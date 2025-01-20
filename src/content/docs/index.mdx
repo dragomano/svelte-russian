@@ -1,0 +1,50 @@
+---
+title: Svelte по-русски
+description: Вольный перевод документации фреймворка Svelte 5
+head:
+  - tag: title
+    content: Svelte по-русски
+template: splash
+hero:
+  tagline: Веб-разработка для всех
+  image:
+    file: ../../assets/hello.webp
+  actions:
+    - text: Что такое Svelte?
+      link: /introduction/overview
+      icon: open-book
+    - text: Руны
+      link: /runes/what-are-runes
+      icon: seti:shell
+      variant: secondary
+    - text: Синтаксис шаблонов
+      link: /template-syntax/basic-markup
+      icon: seti:svelte
+      variant: secondary
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid stagger>
+  <Card title="$state" icon="pencil">
+    Управляй состоянием
+  </Card>
+  <Card title="$derived" icon="add-document">
+    Преобразуй данные
+  </Card>
+  <Card title="$effect" icon="setting">
+    Реагируй на изменения
+  </Card>
+  <Card title="$props" icon="seti:json">
+    Объявляй пропсы
+  </Card>
+  <Card title="$bindable" icon="comment">
+    Привязывай пропсы
+  </Card>
+  <Card title="$inspect" icon="document">
+    Отслеживай изменения
+  </Card>
+  <Card title="$host" icon="up-caret">
+    Обращайся к родителю
+  </Card>
+</CardGrid>
