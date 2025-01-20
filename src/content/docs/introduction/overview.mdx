@@ -1,0 +1,56 @@
+---
+title: Что такое Svelte?
+sidebar:
+  order: 0
+---
+
+Svelte — это фреймворк для создания пользовательских интерфейсов в вебе. Он использует компилятор для преобразования декларативных компонентов, написанных на HTML, CSS и JavaScript...
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      function greet() {
+        alert('Добро пожаловать в Svelte!');
+      }
+    </script>
+
+    <button onclick={greet}>нажми меня</button>
+
+    <style>
+      button {
+        font-size: 2em;
+      }
+    </style>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      function greet() {
+        alert('Добро пожаловать в Svelte!');
+      }
+    </script>
+
+    <button onclick={greet}>нажми меня</button>
+
+    <style>
+      button {
+        font-size: 2em;
+      }
+    </style>
+    ```
+  </TabItem>
+</Tabs>
+
+...в компактный, оптимизированный JavaScript.
+
+Вы можете использовать его для создания чего угодно в вебе, от автономных компонентов до амбициозных полнофункциональных приложений (с использованием сопутствующего фреймворка Svelte, [SvelteKit](https://svelte.dev/docs/kit)) и всего, что между ними.
+
+Эти страницы служат справочной документацией. Если вы новичок в Svelte, мы рекомендуем начать с [интерактивного учебника](https://svelte.dev/tutorial) и вернуться сюда, когда у вас возникнут вопросы.
+
+Вы также можете попробовать Svelte онлайн в [песочнице](https://svelte.dev/playground) или, если вам нужна более функциональная среда, на [StackBlitz](https://sveltekit.new).
