@@ -1,0 +1,79 @@
+---
+title: $bindable
+sidebar:
+  order: 5
+---
+
+Обычно пропсы движутся в одном направлении — от родителя к потомку. Это упрощает понимание того, как данные перемещаются в вашем приложении.
+
+В Svelte пропсы компонентов могут быть _привязаны_, что означает, что данные также могут течь _вверх_ от потомка к родителю. Это не то, что вы должны делать часто, но это может упростить ваш код, если использовать с осторожностью и в ограниченных количествах.
+
+Это также означает, что прокси состояния может быть _изменён_ в дочернем компоненте.
+
+:::note
+Изменение также возможно с обычными пропсами, но настоятельно не рекомендуется — Svelte предупредит вас, если обнаружит, что компонент изменяет состояние, которое ему не «принадлежит».
+:::
+
+Чтобы пометить пропс как привязываемый, мы используем руну `$bindable`:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // FancyInput.svelte
+    <script>
+      let { value = $bindable(), ...props } = $props();
+    </script>
+
+    <input bind:value={value} {...props} />
+
+    <style>
+      input {
+        font-family: 'Comic Sans MS';
+        color: deeppink;
+      }
+    </style>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // FancyInput.svelte
+    <script lang="ts">
+      let { value = $bindable(), ...props } = $props();
+    </script>
+
+    <input bind:value={value} {...props} />
+
+    <style>
+      input {
+        font-family: 'Comic Sans MS';
+        color: deeppink;
+      }
+    </style>
+    ```
+  </TabItem>
+</Tabs>
+
+Теперь компонент, который использует `<FancyInput>`, может добавить директиву [`bind:`](/template-syntax/bind) ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE3WQwWrDMBBEf2URBSfg2nfFMZRCoYeecqx6UJx1IyqvhLUONcb_XqSkTUOSk1az7DBvJtEai0HI90nw6FHIJIhckO7i78n7IhzQctS2OuAtvXHESByEFFVoeuO5VqTYdN71DC-amvGV_MDQ9q6DrCjP0skkWymKJxYZOgxBfyKs4SGwZlxke7TWZcuVoqo8-1P1z3lraCcP2g64nk4GM5S1osrXf0JV-lrkgvGbheR-wDm_g30V8JL-1vpOCZFogpQsEsWcemtxscyhKArfOx9gjps0Lq4hzRVfemaYfu-PoIqqwKPFY_XpaIqj4tYRP7a6M3aUkD27zjSw0RTgbZN6Z8WNs66XsEP03tBXUueUJFlelvYx_wCuI3leNwIAAA==)):
+
+```svelte
+// App.svelte
+<script>
+  import FancyInput from './FancyInput.svelte';
+
+  let message = $state('hello');
+</script>
+
+<FancyInput bind:value={message} />
+<p>{message}</p>
+```
+
+Родительский компонент не _обязан_ использовать `bind:` — он может просто передать обычный пропс. Некоторые родительские компоненты не хотят слушать, что их потомки имеют в виду.
+
+В этом случае вы можете указать значение по умолчанию для случая, когда пропс вообще не передан:
+
+```js
+// FancyInput.svelte
+let { value = $bindable('fallback'), ...props } = $props();
+```
