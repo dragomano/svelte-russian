@@ -1,0 +1,388 @@
+---
+title: "bind:"
+sidebar:
+  order: 10
+---
+
+Данные обычно передаются сверху вниз, от родителя к дочернему компоненту. Директива `bind:` позволяет передавать данные в обратном направлении, от дочернего компонента к родительскому.
+
+Общая синтаксическая структура — `bind:property={expression}`, где `expression` является _lvalue_ (т. е. переменной или свойством объекта). Когда выражение является идентификатором с тем же именем, что и свойство, мы можем опустить выражение — другими словами, эти два варианта эквивалентны:
+
+```svelte
+<input bind:value={value} />
+<input bind:value />
+```
+
+Svelte создаёт обработчик событий, который обновляет связанное значение. Если элемент уже имеет обработчик для того же события, этот обработчик будет вызван перед обновлением связанного значения.
+
+Большинство привязок являются _двусторонними_, что означает, что изменения значения будут влиять на элемент и наоборот. Некоторые привязки являются _только для чтения_, что означает, что изменение их значения не повлияет на элемент.
+
+## Привязки функций
+
+Вы также можете использовать `bind:property={get, set}`, где `get` и `set` — это функции, позволяющие выполнять валидацию и преобразование:
+
+```svelte
+<input bind:value={
+  () => value,
+  (v) => value = v.toLowerCase()}
+/>
+```
+
+В случае привязок только для чтения, таких как [привязки размеров](#размеры), значение `get` должно быть `null`:
+
+```svelte
+<div
+  bind:clientWidth={null, redraw}
+  bind:clientHeight={null, redraw}
+>...</div>
+```
+
+:::note
+Привязки функций доступны в Svelte версии 5.9.0 и новее.
+:::
+
+## `<input bind:value>`
+
+Директива `bind:value` на элементе `<input>` устанавливает связь со свойством `value` этого элемента ввода:
+
+```svelte
+<script>
+  let message = $state('привет');
+</script>
+
+<input bind:value={message} />
+<p>{message}</p>
+```
+
+В случае числового ввода (`type="number"` или `type="range"`) значение будет преобразовано в число ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE6WPwYoCMQxAfyWEPeyiOOqx2w74Hds9pBql0IllmhGXYf5dKqwiyILsLXnwwsuI-5i4oPkaUX8yo7kCnKNQV7dNzoty4qSVBSr8jG-Poixa0KAt2z5mbb14TaxA4OCtKCm_rz4-f2m403WltrlrYhMFTtcLNkoeFGqZ8yhDF7j3CCHKzpwoDexGmqCL4jwuPUJHZ-dxVcfmyYGe5MAv-La5pbxYFf5Z9Zf_UJXb-sEMquFgJJhBmGyTW5yj8lnRaD_w9D1dAKSSj7zqAQAA)):
+
+```svelte
+<script>
+  let a = $state(1);
+  let b = $state(2);
+</script>
+
+<label>
+  <input type="number" bind:value={a} min="0" max="10" />
+  <input type="range" bind:value={a} min="0" max="10" />
+</label>
+
+<label>
+  <input type="number" bind:value={b} min="0" max="10" />
+  <input type="range" bind:value={b} min="0" max="10" />
+</label>
+
+<p>{a} + {b} = {a + b}</p>
+```
+
+Если ввод пустой или недействителен (в случае `type="number"`), значение будет `undefined`.
+
+Начиная с версии 5.6.0, если у `<input>` есть `defaultValue` и он является частью формы, он будет возвращаться к этому значению вместо пустой строки при сбросе формы. Обратите внимание, что для первоначального рендера значение привязки имеет приоритет, если оно не равно `null` или `undefined`.
+
+```svelte
+<script>
+  let value = $state('');
+</script>
+
+<form>
+  <input bind:value defaultValue="не пустая строка">
+  <input type="reset" value="Сброс">
+</form>
+```
+
+:::note
+Используйте кнопки сброса с осторожностью и убедитесь, что пользователи не нажмут на них случайно, пытаясь отправить форму.
+:::
+
+## `<input bind:checked>`
+
+Флажки и переключатели могут быть связаны с помощью `bind:checked`:
+
+```svelte
+<label>
+  <input type="checkbox" bind:checked={accepted} />
+  Принять правила и условия
+</label>
+```
+
+Начиная с версии 5.6.0, если у `<input>` есть атрибут `defaultChecked` и он является частью формы, он будет возвращаться к этому значению вместо `false` при сбросе формы. Обратите внимание, что для первоначального рендера значение привязки имеет приоритет, если оно не равно `null` или `undefined`.
+
+```svelte
+<script>
+  let checked = $state(true);
+</script>
+
+<form>
+  <input type="checkbox" bind:checked defaultChecked={true}>
+  <input type="reset" value="Сброс">
+</form>
+```
+
+## `<input bind:group>`
+
+Элементы ввода, которые работают вместе, могут использовать `bind:group`:
+
+```svelte
+<script>
+  let tortilla = $state('Обычная');
+
+  /** @type {Array<string>} */
+  let fillings = $state([]);
+</script>
+
+<!-- сгруппированные переключатели являются взаимоисключающими -->
+<input type="radio" bind:group={tortilla} value="Обычная" />
+<input type="radio" bind:group={tortilla} value="Цельнозерновая" />
+<input type="radio" bind:group={tortilla} value="Шпинат" />
+
+<!-- сгруппированные флажки формируют массив -->
+<input type="checkbox" bind:group={fillings} value="Рис" />
+<input type="checkbox" bind:group={fillings} value="Фасоль" />
+<input type="checkbox" bind:group={fillings} value="Сыр" />
+<input type="checkbox" bind:group={fillings} value="Гуакамоле (дополнительно)" />
+```
+
+:::note
+`bind:group` работает только если элементы ввода находятся в одном и том же компоненте Svelte.
+:::
+
+## `<input bind:files>`
+
+На элементах `<input>` с `type="file"` вы можете использовать `bind:files`, чтобы получить [`FileList`](https://developer.mozilla.org/ru/docs/Web/API/FileList) выбранных файлов. Когда вы хотите обновить файлы программно, вам всегда нужно использовать объект `FileList`. В настоящее время объекты `FileList` не могут быть созданы напрямую, поэтому вам нужно создать новый объект [`DataTransfer`](https://developer.mozilla.org/ru/docs/Web/API/DataTransfer) и получить `files` оттуда.
+
+```svelte
+<script>
+  let files = $state();
+
+  function clear() {
+    files = new DataTransfer().files; // null или undefined не работают
+  }
+</script>
+
+<label for="avatar">Загрузите картинку:</label>
+<input accept="image/png, image/jpeg" bind:files id="avatar" name="avatar" type="file" />
+<button onclick={clear}>очистить</button>
+```
+
+Объекты `FileList` также не могут быть изменены, поэтому, если вы хотите, например, удалить один файл из списка, вам нужно создать новый объект `DataTransfer` и добавить в него файлы, которые вы хотите сохранить.
+
+:::note
+`DataTransfer` может быть недоступен в средах выполнения JavaScript на стороне сервера. Неинициализированное состояние, связанное с `files`, помогает избежать потенциальных ошибок при рендеринге компонентов на стороне сервера.
+:::
+
+## `<select bind:value>`
+
+Привязка значения `<select>` соответствует свойству `value` выбранного `<option>`, которое может быть любым значением (не только строками, как это обычно происходит в DOM):
+
+```svelte
+<select bind:value={selected}>
+  <option value={a}>a</option>
+  <option value={b}>b</option>
+  <option value={c}>c</option>
+</select>
+```
+
+Элемент `<select multiple>` ведет себя аналогично группе флажков. Связанная переменная представляет собой массив, в котором каждая запись соответствует свойству `value` каждого выбранного `<option>`:
+
+```svelte
+<select multiple bind:value={fillings}>
+  <option value="Рис">Рис</option>
+  <option value="Фасоль">Фасоль</option>
+  <option value="Сыр">Сыр</option>
+  <option value="Гуакамоле (дополнительно)">Гуакамоле (дополнительно)</option>
+</select>
+```
+
+Когда значение `<option>` совпадает с его текстовым содержимым, атрибут можно опустить:
+
+```svelte
+<select multiple bind:value={fillings}>
+  <option>Рис</option>
+  <option>Фасоль</option>
+  <option>Сыр</option>
+  <option>Гуакамоле (дополнительно)</option>
+</select>
+```
+
+Вы можете задать `<select>` значение по умолчанию, добавив атрибут `selected` к `<option>` (или к нескольким опциям в случае `<select multiple>`), которые должны быть выбраны изначально. Если `<select>` является частью формы, он вернется к этому выбору, когда форма будет сброшена. Обратите внимание, что для первоначального рендеринга значение привязки имеет приоритет, если оно не равно `undefined`:
+
+```svelte
+<select bind:value={selected}>
+  <option value={a}>a</option>
+  <option value={b} selected>b</option>
+  <option value={c}>c</option>
+</select>
+```
+
+## `<audio>`
+
+Элементы `<audio>` имеют свой собственный набор привязок — пять двусторонних...
+
+- [`currentTime`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/currentTime)
+- [`playbackRate`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate)
+- [`paused`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/paused)
+- [`volume`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/volume)
+- [`muted`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/muted)
+
+...и семь только для чтения:
+
+- [`duration`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/duration)
+- [`buffered`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/buffered)
+- [`paused`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/paused)
+- [`seekable`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/seekable)
+- [`seeking`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/seeking_event)
+- [`ended`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/ended)
+- [`readyState`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/readyState)
+
+```svelte
+<audio src={clip} bind:duration bind:currentTime bind:paused></audio>
+```
+
+## `<video>`
+
+Элементы `<video>` имеют все те же привязки, что и элементы [audio](#audio), плюс привязки только для чтения [`videoWidth`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement/videoWidth) и [`videoHeight`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement/videoHeight).
+
+## `<img>`
+
+Элементы `<img>` имеют две привязки только для чтения:
+
+- [`naturalWidth`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/naturalWidth)
+- [`naturalHeight`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/naturalHeight)
+
+## `<details bind:open>`
+
+Элементы `<details>` поддерживают привязку к свойству `open`:
+
+```svelte
+<details bind:open={isOpen}>
+  <summary>Что ты делаешь с ошибкой JavaScript?</summary>
+  <p>Ты выводишь её в консоль.</p>
+</details>
+```
+
+## Привязки к элементам с атрибутом contenteditable
+
+Элементы с атрибутом `contenteditable` поддерживают следующие привязки:
+
+- [`innerHTML`](https://developer.mozilla.org/ru/docs/Web/API/Element/innerHTML)
+- [`innerText`](https://developer.mozilla.org/ru/docs/Web/API/HTMLElement/innerText)
+- [`textContent`](https://developer.mozilla.org/ru/docs/Web/API/Node/textContent)
+
+:::note
+Существуют [тонкие различия между `innerText` и `textContent`](https://developer.mozilla.org/ru/docs/Web/API/Node/textContent#differences_from_innertext).
+:::
+
+```svelte
+<div contenteditable="true" bind:innerHTML={html} />
+```
+
+## Размеры
+
+Все видимые элементы имеют следующие привязки только для чтения, измеряемые с помощью `ResizeObserver`:
+
+- [`clientWidth`](https://developer.mozilla.org/en-US/docs/Web/API/Element/clientWidth)
+- [`clientHeight`](https://developer.mozilla.org/en-US/docs/Web/API/Element/clientHeight)
+- [`offsetWidth`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetWidth)
+- [`offsetHeight`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetHeight)
+
+```svelte
+<div bind:offsetWidth={width} bind:offsetHeight={height}>
+  <Chart {width} {height} />
+</div>
+```
+
+:::note
+Элементы с `display: inline` не имеют ширины или высоты (за исключением элементов с 'внутренними' размерами, таких как `<img>` и `<canvas>`) и не могут быть наблюдаемы с помощью `ResizeObserver`. Вам нужно будет изменить стиль `display` этих элементов на что-то другое, например, на `inline-block`.
+:::
+
+## bind:this
+
+```svelte
+bind:this={dom_node}
+```
+
+Чтобы получить ссылку на узел DOM, используйте `bind:this`. Значение будет `undefined` до тех пор, пока компонент не будет смонтирован — другими словами, вы должны считывать его внутри эффекта или обработчика событий, но не во время инициализации компонента:
+
+```svelte
+<script>
+  /** @type {HTMLCanvasElement} */
+  let canvas;
+
+  $effect(() => {
+    const ctx = canvas.getContext('2d');
+    drawStuff(ctx);
+  });
+</script>
+
+<canvas bind:this={canvas} />
+```
+
+Компоненты также поддерживают `bind:this`, что позволяет вам программно взаимодействовать с экземплярами компонентов.
+
+```svelte
+// App.svelte
+<ShoppingCart bind:this={cart} />
+
+<button onclick={() => cart.empty()}> Очистить корзину покупок </button>
+```
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // ShoppingCart.svelte
+    <script>
+      // Все экспорты экземпляра доступны в объекте экземпляра
+      export function empty() {
+        // ...
+      }
+    </script>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // ShoppingCart.svelte
+    <script lang="ts">
+      // Все экспорты экземпляра доступны в объекте экземпляра
+      export function empty() {
+        // ...
+      }
+    </script>
+    ```
+  </TabItem>
+</Tabs>
+
+## bind:_property_ для компонентов
+
+```svelte
+bind:property={variable}
+```
+
+Вы можете привязываться к свойствам компонента, используя тот же синтаксис, что и для элементов:
+
+```svelte
+<Keypad bind:value={pin} />
+```
+
+Хотя свойства в Svelte реагируют на изменения без необходимости привязки, по умолчанию эта реактивность направлена только вниз к компоненту. Применение `bind:property` позволяет изменениям, происходящим внутри компонента, возвращаться обратно наружу.
+
+Чтобы пометить свойство как привязываемое, используйте руну [`$bindable`](/runes/bindable/):
+
+```svelte
+<script>
+  let { readonlyProperty, bindableProperty = $bindable() } = $props();
+</script>
+```
+
+Объявление свойства как привязываемого означает, что его _можно_ использовать с помощью `bind:`, но это не означает, что его _обязательно_ нужно использовать с `bind:`.
+
+Привязываемые свойства могут иметь значение по умолчанию:
+
+```svelte
+<script>
+  let { bindableProperty = $bindable('значение по умолчанию') } = $props();
+</script>
+```
+
+Это значение по умолчанию _применяется только_ в том случае, если свойство _не_ привязано. Когда свойство привязано и присутствует значение по умолчанию, родительский компонент должен предоставить значение, отличное от `undefined`, в противном случае будет выброшена ошибка во время выполнения. Это предотвращает ситуации, которые трудно анализировать, когда неясно, какое значение должно применяться.
