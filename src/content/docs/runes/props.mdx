@@ -1,0 +1,372 @@
+---
+title: $props
+sidebar:
+  order: 4
+---
+
+Входные данные компонента называются _props_, что является сокращением от _properties_. Вы передаете пропсы компонентам так же, как передаете атрибуты элементам:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      import MyComponent from './MyComponent.svelte';
+    </script>
+
+    <MyComponent adjective="cool" />
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      import MyComponent from './MyComponent.svelte';
+    </script>
+
+    <MyComponent adjective="cool" />
+    ```
+  </TabItem>
+</Tabs>
+
+С другой стороны, внутри `MyComponent.svelte` мы можем получать пропсы с помощью руны `$props`...
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // MyComponent.svelte
+    <script>
+      let props = $props();
+    </script>
+
+    <p>этот компонент — {props.adjective}</p>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // MyComponent.svelte
+    <script lang="ts">
+      let props = $props();
+    </script>
+
+    <p>этот компонент — {props.adjective}</p>
+    ```
+  </TabItem>
+</Tabs>
+
+...хотя чаще всего вы будете [_деструктурировать_](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment) ваши пропсы:
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte "{ adjective }" "{adjective}"
+    // MyComponent.svelte
+    <script>
+      let { adjective } = $props();
+    </script>
+
+    <p>этот компонент — {adjective}</p>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte "{ adjective }" "{adjective}"
+    // MyComponent.svelte
+    <script lang="ts">
+      let { adjective } = $props();
+    </script>
+
+    <p>этот компонент — {adjective}</p>
+    ```
+  </TabItem>
+</Tabs>
+
+## Значения по умолчанию
+
+Деструктуризация позволяет нам объявлять значения по умолчанию, которые используются, если родительский компонент не устанавливает данный пропс:
+
+```js
+let { adjective = 'happy' } = $props();
+```
+
+:::note
+Значения по умолчанию не превращаются в прокси реактивного состояния (см. [Обновление пропсов](#обновление-пропсов) для получения дополнительной информации)
+:::
+
+## Переименование пропсов
+
+Мы также можем использовать деструктурирующее присваивание для переименования пропсов, что необходимо, если они являются недопустимыми идентификаторами или ключевым словом JavaScript, таким как `super`:
+
+```js
+let { super: trouper = 'свет меня найдёт' } = $props();
+```
+
+## Остаточные пропсы
+
+Наконец, мы можем использовать _остаточное свойство_ (rest property), чтобы получить все остальные, необъявленные, пропсы:
+
+```js
+let { a, b, c, ...others } = $props();
+```
+
+## Обновление пропсов
+
+Ссылки на пропс внутри компонента обновляются, когда сам пропс обновляется — когда `count` изменяется в `App.svelte`, он также изменится внутри `Child.svelte`. Однако дочерний компонент может временно переопределить значение пропса, что может быть полезно для несохранённого эфемерного состояния ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE6WQ0WrDMAxFf0WIQR0Wmu3VTQJln7HsIfVcZubIxlbGRvC_DzuBraN92qPula50tODZWB1RPi_IX16jLALWSOOUq6P3-_ihLWftNEZ9TVeOWBNHlNhGFYznfqCBzeRdYHh6M_YVzsFNsNs3pdpGd4eBcqPVDMrNxNDBXeSRtXioDgO1zU8ataeZ2RE4Utao924RFXQ9iHXwvoPHKpW1xY4g_Bg0cSVhKS0p560Za95612ZC02ONrD8ZJYdZp_rGQ37ff_mSP86Np2TWZaNNmdcH56P4P67K66_SXoK9pG-5dF5Z9QEAAA==)):
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      import Child from './Child.svelte';
+
+      let count = $state(0);
+    </script>
+
+    <button onclick={() => (count += 1)}>
+      нажатий (parent): {count}
+    </button>
+
+    <Child {count} />
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      import Child from './Child.svelte';
+
+      let count = $state(0);
+    </script>
+
+    <button onclick={() => (count += 1)}>
+      нажатий (parent): {count}
+    </button>
+
+    <Child {count} />
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // Child.svelte
+    <script>
+      let { count } = $props();
+    </script>
+
+    <button onclick={() => (count += 1)}>
+      нажатий (child): {count}
+    </button>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // Child.svelte
+    <script lang="ts">
+      let { count } = $props();
+    </script>
+
+    <button onclick={() => (count += 1)}>
+      нажатий (child): {count}
+    </button>
+    ```
+  </TabItem>
+</Tabs>
+
+Хотя вы можете временно _переопределять_ пропсы, вы не должны их _изменять_, если они не являются [привязываемыми](../bindable/).
+
+Если пропс является обычным объектом, изменение не окажет никакого эффекта ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE3WQwU7DMBBEf2W1QmorQgJXk0RC3PkBwiExG9WQrC17U4Es_ztKUkQp9OjxzM7bjcjtSKjwyfKNp1aLORA4b13ADHszUED1HFE-3eyaBcy-Mw_O5eFAg8xa1wb6T9eWhVgCKiyD9sZJ3XAjZnTWCzzuzfAKvbcjbPJieR2jm_uGy-InweXqtd0baaliBG0nFgW3kBIUNWYo9CGoxE-UsgvIpw2_oc9-LmAPJBCPDJCggqvlVtvdH9puErEMlvVg9HsVtzuoaojzkKKAfRuALVDfk5ZZW0fmy05wXcFdwyktlUs-KIinljTXrRVnm7-kL9dYLVbUAQAA)):
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      import Child from './Child.svelte';
+    </script>
+
+    <Child object={{ count: 0 }} />
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      import Child from './Child.svelte';
+    </script>
+
+    <Child object={{ count: 0 }} />
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // Child.svelte
+    <script>
+      let { object } = $props();
+    </script>
+
+    <button onclick={() => {
+      // не имеет эффекта
+      object.count += 1
+    }}>
+      нажатий: {object.count}
+    </button>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // Child.svelte
+    <script lang="ts">
+      let { object } = $props();
+    </script>
+
+    <button onclick={() => {
+      // не имеет эффекта
+      object.count += 1
+    }}>
+      нажатий: {object.count}
+    </button>
+    ```
+  </TabItem>
+</Tabs>
+
+Однако, если пропс является прокси реактивного состояния, то изменения _будут_ иметь эффект, но вы увидите предупреждение [`ownership_invalid_mutation`](runtime-warnings#Client-warnings-ownership_invalid_mutation), потому что компонент изменяет состояние, которое ему не «принадлежит» ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE3WR0U7DMAxFf8VESBuiauG1WycheOEbKA9p67FA6kSNszJV-XeUZhMw2GN8r-1znUmQ7FGU4pn2UqsOes-SlSGRia3S6ET5Mgk-2OiJBZGdOh6szd0eNcdaIx3-V28NMRI7UYq1awdleVNTzaq3ZmB43CndwXYwPSzyYn4dWxermqJRI4Np3rFlqODasWRcTtAaT1zCHYSbVU3r4nsyrdPMKTUFKDYiE4yfLEoePIbsQpqfy3_nOVMuJIqg0wk1RFg7GOuWfwEbz2wIDLVatR_VtLyBagNTHFIUMCqtoZXeIfAOU1JoUJsR2IC3nWTMjt7GM4yKdyBhlAMpesvhydCC0y_i0ZagHByMh26WzUhXUUxKnpbcVnBfUwhznJnNlac7JkuIURL-2VVfwxflyrWcSQIAAA==)):
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      import Child from './Child.svelte';
+
+      let object = $state({count: 0});
+    </script>
+
+    <Child {object} />
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      import Child from './Child.svelte';
+
+      let object = $state({count: 0});
+    </script>
+
+    <Child {object} />
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // Child.svelte
+    <script>
+      let { object } = $props();
+    </script>
+
+    <button onclick={() => {
+      // вызовет обновление счётчика ниже,
+      // но с предупреждением. Не изменяйте
+      // объекты, которые вам не принадлежат!
+      object.count += 1
+    }}>
+      нажатий: {object.count}
+    </button>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // Child.svelte
+    <script lang="ts">
+      let { object } = $props();
+    </script>
+
+    <button onclick={() => {
+      // вызовет обновление счётчика ниже,
+      // но с предупреждением. Не изменяйте
+      // объекты, которые вам не принадлежат!
+      object.count += 1
+    }}>
+      нажатий: {object.count}
+    </button>
+    ```
+  </TabItem>
+</Tabs>
+
+Значение по умолчанию пропса, не объявленного с помощью `$bindable`, остается нетронутым — оно не превращается в прокси реактивного состояния — что означает, что изменения не вызовут обновления ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE3WQwU7DMBBEf2VkIbUVoYFraCIh7vwA4eC4G9Wta1vxpgJZ_nfkBEQp9OjxzOzTRGHlkUQlXpy9G0gq1idCL43ppDrAD84HUYheGwqieo2CP3y2Z0EU3-En79fhRIaz1slA_-nKWSbLQVRiE9SgPTetbVkfvRsYzztttugHd8RiXU6vr-jisbWb8idhN7O3bEQhmN5ZVDyMlIorcOddv_Eufq4AGmJEuG5PilEjQrnRcoV7JCTUuJlGWq7-YHYjs7NwVhmtDnVcrlA3iLmzLLGTAdaB-j736h68Oxv-JM1I0AFjoG1OzPfX023c1nhobUoT39QeKsRzS8owM8DFTG_pE6dcVl70AQAA))
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // Child.svelte
+    <script>
+      let { object = { count: 0 } } = $props();
+    </script>
+
+    <button onclick={() => {
+      // не имеет эффекта, если используется значение по умолчанию
+      object.count += 1
+    }}>
+      нажатий: {object.count}
+    </button>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // Child.svelte
+    <script lang="ts">
+      let { object = { count: 0 } } = $props();
+    </script>
+
+    <button onclick={() => {
+      // не имеет эффекта, если используется значение по умолчанию
+      object.count += 1
+    }}>
+      нажатий: {object.count}
+    </button>
+    ```
+  </TabItem>
+</Tabs>
+
+В заключение: не изменяйте пропсы. Либо используйте колбэк-пропсы для передачи изменений, либо — если родитель и потомок должны использовать один и тот же объект — используйте руну [`$bindable`](../bindable/).
+
+## Безопасность типов
+
+Вы можете добавить безопасность типов к вашим компонентам, аннотируя ваши пропсы, как вы бы сделали с любым другим объявлением переменной. В TypeScript это может выглядеть так...
+
+```svelte
+<script lang="ts">
+  let { adjective }: { adjective: string } = $props();
+</script>
+```
+
+...в то время как в JSDoc вы можете сделать это так:
+
+```svelte
+<script>
+  /** @type {{ adjective: string }} */
+  let { adjective } = $props();
+</script>
+```
+
+Вы, конечно, можете отделить объявление типа от аннотации:
+
+```svelte
+<script lang="ts">
+  interface Props {
+    adjective: string;
+  }
+
+  let { adjective }: Props = $props();
+</script>
+```
+
+Рекомендуется добавлять типы, так как это подскажет пользователям вашего компонента, какие пропсы они должны предоставить.
