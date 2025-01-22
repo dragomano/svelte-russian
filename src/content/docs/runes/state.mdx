@@ -1,0 +1,314 @@
+---
+title: $state
+sidebar:
+  order: 1
+---
+
+Руна `$state` позволяет вам создавать _реактивное состояние_, что означает, что ваш пользовательский интерфейс _реагирует_ на изменения.
+
+```svelte
+<script>
+  let count = $state(0);
+</script>
+
+<button onclick={() => count++}>
+  нажатий: {count}
+</button>
+```
+
+В отличие от других фреймворков, с которыми вы могли столкнуться, нет API для взаимодействия с состоянием — `count` просто число, а не объект или функция, и вы можете обновлять его так же, как обновляете любую другую переменную.
+
+### Глубокое состояние
+
+Если `$state` используется с массивом или простым объектом, результатом будет глубоко реактивный _прокси состояния_. Объекты [Прокси](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Proxy) позволяют Svelte выполнять код при чтении или записи свойств, включая методы, такие как `array.push(...)`, что вызывает детализированные обновления.
+
+:::note
+Классы, такие как `Set` и `Map`, не будут проксированы, но Svelte предоставляет реактивные реализации для различных встроенных объектов, таких как эти, которые можно импортировать из [`svelte/reactivity`](https://svelte.dev/docs/svelte/svelte-reactivity).
+:::
+
+Состояние проксируется рекурсивно, пока Svelte не найдет что-то, кроме массива или простого объекта. В таком случае...
+
+```js
+let todos = $state([
+  {
+    done: false,
+    text: 'добавить задачу'
+  }
+]);
+```
+
+...изменение свойства отдельной задачи вызовет обновление всего в вашем пользовательском интерфейсе, что зависит от этого конкретного свойства:
+
+```js
+todos[0].done = !todos[0].done;
+```
+
+Если вы добавите новый объект в массив, он также будет проксирован:
+
+```js
+todos.push({
+  done: false,
+  text: 'пообедать'
+});
+```
+
+:::note
+Когда вы обновляете свойства прокси, оригинальный объект _не_ мутируется.
+:::
+
+Обратите внимание, что если вы деструктурируете реактивное значение, ссылки не являются реактивными — как и в обычном JavaScript, они анализируются в момент деструктуризации:
+
+```js
+let { done, text } = todos[0];
+
+// это не повлияет на значение `done`
+todos[0].done = !todos[0].done;
+```
+
+### Классы
+
+Вы также можете использовать `$state` в полях класса (как публичных, так и приватных):
+
+```js
+class Todo {
+  done = $state(false);
+  text = $state();
+
+  constructor(text) {
+    this.text = text;
+  }
+
+  reset() {
+    this.text = '';
+    this.done = false;
+  }
+}
+```
+
+:::note
+Компилятор преобразует `done` и `text` в методы `get`/`set` на прототипе класса, ссылаясь на приватные поля. Это означает, что свойства не являются перечисляемыми.
+:::
+
+При вызове методов в JavaScript значение [`this`](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Operators/this) имеет значение. Это не сработает, потому что `this` внутри метода `reset` будет ссылаться на `<button>`, а не на `Todo`:
+
+```svelte
+<button onclick={todo.reset}>
+  reset
+</button>
+```
+
+Вы можете использовать либо встроенную функцию...
+
+```svelte "() => todo.reset()"
+<button onclick={() => todo.reset()}>
+  reset
+</button>
+```
+
+...либо стрелочную функцию в определении класса:
+
+```js "reset = () => {"
+class Todo {
+  done = $state(false);
+  text = $state();
+
+  constructor(text) {
+    this.text = text;
+  }
+
+  reset = () => {
+    this.text = '';
+    this.done = false;
+  }
+}
+```
+
+## `$state.raw`
+
+В случаях, когда вы не хотите, чтобы объекты и массивы были глубоко реактивными, вы можете использовать `$state.raw`.
+
+Состояние, объявленное с помощью `$state.raw`, не может быть мутировано; его можно только _переопределить_. Другими словами, вместо того чтобы присваивать значение свойству объекта или использовать метод массива, такой как `push`, замените объект или массив целиком, если хотите его обновить:
+
+```js
+let person = $state.raw({
+  name: 'Heraclitus',
+  age: 49
+});
+
+// это не окажет никакого эффекта
+person.age += 1;
+
+// это сработает, потому что мы создаем новый объект
+person = {
+  name: 'Heraclitus',
+  age: 50
+};
+```
+
+Это может улучшить производительность при работе с большими массивами и объектами, которые вы не планировали мутировать, поскольку это позволяет избежать затрат на их реактивность. Обратите внимание, что исходное состояние может _содержать_ реактивное состояние (например, исходный массив реактивных объектов).
+
+## `$state.snapshot`
+
+Чтобы сделать статический снимок глубоко реактивного прокси `$state`, используйте `$state.snapshot`:
+
+```svelte
+<script>
+  let counter = $state({ count: 0 });
+
+  function onclick() {
+    // Будет выведено `{ count: ... }`, а не `Proxy { ... }`
+    console.log($state.snapshot(counter));
+  }
+</script>
+```
+
+Это удобно, когда вы хотите передать состояние во внешнюю библиотеку или API, которые не ожидают прокси, такие как `structuredClone`.
+
+## Передача состояния в функции
+
+JavaScript — это язык с _передачей по значению_ — когда вы вызываете функцию, аргументы являются _значениями_, а не _переменными_. Другими словами:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // index.js
+    /**
+     * @param {number} a
+     * @param {number} b
+     */
+    function add(a, b) {
+      return a + b;
+    }
+
+    let a = 1;
+    let b = 2;
+    let total = add(a, b);
+    console.log(total); // 3
+
+    a = 3;
+    b = 4;
+    console.log(total); // всё ещё 3!
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // index.ts
+    function add(a: number, b: number) {
+      return a + b;
+    }
+
+    let a = 1;
+    let b = 2;
+    let total = add(a, b);
+    console.log(total); // 3
+
+    a = 3;
+    b = 4;
+    console.log(total); // всё ещё 3!
+    ```
+  </TabItem>
+</Tabs>
+
+Если `add` хочет получить доступ к _текущим_ значениям `a` и `b`, а также вернуть текущее значение `total`, вам нужно использовать функции вместо этого:
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js "getA, getB" "() => getA() + getB()" "() => a, () => b" "total()"
+    // index.js
+    /**
+     * @param {() => number} getA
+     * @param {() => number} getB
+     */
+    function add(getA, getB) {
+      return () => getA() + getB();
+    }
+
+    let a = 1;
+    let b = 2;
+    let total = add(() => a, () => b);
+    console.log(total()); // 3
+
+    a = 3;
+    b = 4;
+    console.log(total()); // 7
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts "getA, getB" "() => getA() + getB()" "() => a, () => b" "total()"
+    // index.ts
+    function add(getA: () => number, getB: () => number) {
+      return () => getA() + getB();
+    }
+
+    let a = 1;
+    let b = 2;
+    let total = add(() => a, () => b);
+    console.log(total()); // 3
+
+    a = 3;
+    b = 4;
+    console.log(total()); // 7
+    ```
+  </TabItem>
+</Tabs>
+
+Состояние в Svelte ничем не отличается — когда вы ссылаетесь на что-то, объявленное с помощью руны `$state`...
+
+```js "$state(1)" "$state(2)"
+let a = $state(1);
+let b = $state(2);
+```
+
+...вы получаете его _текущее значение_.
+
+Обратите внимание, что «функции» — это широкое понятие — оно охватывает свойства прокси и свойства [`get`](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Functions/get)/[`set`](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Functions/set)...
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // index.js
+    /**
+     * @param {{ a: number, b: number }} input
+     */
+    function add(input) {
+      return {
+        get value() {
+          return input.a + input.b;
+        }
+      };
+    }
+
+    let input = $state({ a: 1, b: 2 });
+    let total = add(input);
+    console.log(total.value); // 3
+
+    input.a = 3;
+    input.b = 4;
+    console.log(total.value); // 7
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // index.ts
+    function add(input: { a: number, b: number }) {
+      return {
+        get value() {
+          return input.a + input.b;
+        }
+      };
+    }
+
+    let input = $state({ a: 1, b: 2 });
+    let total = add(input);
+    console.log(total.value); // 3
+
+    input.a = 3;
+    input.b = 4;
+    console.log(total.value); // 7
+    ```
+  </TabItem>
+</Tabs>
+
+...хотя если вы обнаружите, что пишете код подобным образом, подумайте о том, чтобы перейти на [классы](#классы).
