@@ -1,0 +1,176 @@
+---
+title: "animate:"
+sidebar:
+  order: 14
+---
+
+Анимация запускается, когда содержимое [блока each с привязкой по ключам](../each/#блоки-each-с-привязкой-по-ключам) переупорядочивается. Анимации не выполняются, когда элемент добавляется или удаляется, а только когда индекс существующего элемента данных в блоке `each` изменяется. Директивы анимации должны находиться на элементе, который является _непосредственным_ потомком блока `each` с привязкой по ключам.
+
+Анимации могут использоваться с [встроенными функциями анимации Svelte](https://svelte.dev/docs/svelte/svelte-animate) или [пользовательскими функциями анимации](#пользовательские-функции-анимации).
+
+```svelte
+<!-- Когда `list` переупорядочивается, анимация будет выполняться -->
+{#each list as item, index (item)}
+  <li animate:flip>{item}</li>
+{/each}
+```
+
+## Параметры анимации
+
+Как и в случае с действиями и переходами, анимации могут иметь параметры.
+
+(Двойные `{{фигурные скобки}}` не являются специальным синтаксисом; это литерал объекта внутри тега выражения.)
+
+```svelte
+{#each list as item, index (item)}
+  <li animate:flip={{ delay: 500 }}>{item}</li>
+{/each}
+```
+
+## Пользовательские функции анимации
+
+```js
+animation = (node: HTMLElement, { from: DOMRect, to: DOMRect } , params: any) => {
+  delay?: number,
+  duration?: number,
+  easing?: (t: number) => number,
+  css?: (t: number, u: number) => string,
+  tick?: (t: number, u: number) => void
+}
+```
+
+Анимации могут использовать пользовательские функции, которые принимают `node`, объект `animation` и любые `parameters` в качестве аргументов. Параметр `animation` — это объект, содержащий свойства `from` и `to`, каждое из которых содержит [DOMRect](https://developer.mozilla.org/en-US/docs/Web/API/DOMRect#Properties), описывающий геометрию элемента в его начальном и конечном положениях. Свойство `from` — это DOMRect элемента в его начальном положении, а свойство `to` — это DOMRect элемента в его конечном положении после того, как список был переупорядочен и DOM обновлен.
+
+Если возвращаемый объект имеет метод `css`, Svelte создаст [веб-анимацию](https://developer.mozilla.org/ru/docs/Web/API/Web_Animations_API), которая будет воспроизводиться на элементе.
+
+Аргумент `t`, передаваемый в `css`, — это значение, которое изменяется от `0` до `1` после применения функции `easing`. Аргумент `u` равен `1 - t`.
+
+Функция вызывается многократно _до_ начала анимации с различными аргументами `t` и `u`.
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+      // App.svelte
+      <script>
+        import { cubicOut } from 'svelte/easing';
+
+        /**
+         * @param {HTMLElement} node
+         * @param {{ from: DOMRect; to: DOMRect }} states
+         * @param {any} params
+         */
+        function whizz(node, { from, to }, params) {
+          const dx = from.left - to.left;
+          const dy = from.top - to.top;
+
+          const d = Math.sqrt(dx * dx + dy * dy);
+
+          return {
+            delay: 0,
+            duration: Math.sqrt(d) * 120,
+            easing: cubicOut,
+            css: (t, u) => `transform: translate(${u * dx}px, ${u * dy}px) rotate(${t * 360}deg);`
+          };
+        }
+      </script>
+
+      {#each list as item, index (item)}
+        <div animate:whizz>{item}</div>
+      {/each}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+      // App.svelte
+      <script lang="ts">
+        import { cubicOut } from 'svelte/easing';
+
+        function whizz(node: HTMLElement, { from, to }: { from: DOMRect; to: DOMRect }, params: any) {
+          const dx = from.left - to.left;
+          const dy = from.top - to.top;
+
+          const d = Math.sqrt(dx * dx + dy * dy);
+
+          return {
+            delay: 0,
+            duration: Math.sqrt(d) * 120,
+            easing: cubicOut,
+            css: (t, u) => `transform: translate(${u * dx}px, ${u * dy}px) rotate(${t * 360}deg);`
+          };
+        }
+      </script>
+
+      {#each list as item, index (item)}
+        <div animate:whizz>{item}</div>
+      {/each}
+    ```
+  </TabItem>
+</Tabs>
+
+Пользовательская функция анимации также может возвращать функцию `tick`, которая вызывается _в процессе_ анимации с теми же аргументами `t` и `u`.
+
+:::note
+Если возможно использовать `css` вместо `tick`, делайте это — веб-анимации могут выполняться в отдельном потоке, предотвращая заикания на более медленных устройствах.
+:::
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+      // App.svelte
+      <script>
+        import { cubicOut } from 'svelte/easing';
+
+        /**
+         * @param {HTMLElement} node
+         * @param {{ from: DOMRect; to: DOMRect }} states
+         * @param {any} params
+         */
+        function whizz(node, { from, to }, params) {
+          const dx = from.left - to.left;
+          const dy = from.top - to.top;
+
+          const d = Math.sqrt(dx * dx + dy * dy);
+
+          return {
+            delay: 0,
+            duration: Math.sqrt(d) * 120,
+            easing: cubicOut,
+            tick: (t, u) => Object.assign(node.style, { color: t > 0.5 ? 'Pink' : 'Blue' })
+          };
+        }
+      </script>
+
+      {#each list as item, index (item)}
+        <div animate:whizz>{item}</div>
+      {/each}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+      // App.svelte
+      <script lang="ts">
+        import { cubicOut } from 'svelte/easing';
+
+        function whizz(node: HTMLElement, { from, to }: { from: DOMRect; to: DOMRect }, params: any) {
+          const dx = from.left - to.left;
+          const dy = from.top - to.top;
+
+          const d = Math.sqrt(dx * dx + dy * dy);
+
+          return {
+            delay: 0,
+            duration: Math.sqrt(d) * 120,
+            easing: cubicOut,
+            tick: (t, u) => Object.assign(node.style, { color: t > 0.5 ? 'Pink' : 'Blue' })
+          };
+        }
+      </script>
+
+      {#each list as item, index (item)}
+        <div animate:whizz>{item}</div>
+      {/each}
+    ```
+  </TabItem>
+</Tabs>
