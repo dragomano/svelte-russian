@@ -1,0 +1,238 @@
+---
+title: "transition:"
+sidebar:
+  order: 12
+---
+
+_Переход_ инициируется элементом, который входит в DOM или покидает его в результате изменения состояния.
+
+Когда блок (например, блок `{#if ...}`) выходит, все элементы внутри него, включая те, которые не имеют собственных переходов, остаются в DOM до тех пор, пока все переходы в блоке не будут завершены.
+
+Директива `transition:` указывает на _двунаправленный_ переход, что означает, что его можно плавно отменить, пока переход находится в процессе.
+
+```svelte {2} "transition:fade"
+<script>
+  import { fade } from 'svelte/transition';
+
+  let visible = $state(false);
+</script>
+
+<button onclick={() => visible = !visible}>переключить</button>
+
+{#if visible}
+  <div transition:fade>плавно появляется и исчезает</div>
+{/if}
+```
+
+## Встроенные переходы
+
+Набор встроенных переходов можно импортировать из модуля [`svelte/transition`](https://svelte.dev/docs/svelte/svelte-transition).
+
+## Локальные и глобальные
+
+Переходы по умолчанию являются локальными. Локальные переходы воспроизводятся только тогда, когда блок, к которому они принадлежат, создается или уничтожается, _а не_ когда создаются или уничтожаются родительские блоки.
+
+```svelte
+{#if x}
+  {#if y}
+    <p transition:fade>плавно появляется и исчезает только когда изменяется y</p>
+
+    <p transition:fade|global>плавно появляется и исчезает, когда изменяются x или y</p>
+  {/if}
+{/if}
+```
+
+## Параметры перехода
+
+Переходы могут иметь параметры.
+
+(Двойные `{{фигурные скобки}}` не являются специальным синтаксисом; это литерал объекта внутри тега выражения.)
+
+```svelte
+{#if visible}
+  <div transition:fade={{ duration: 2000 }}>плавно появляется и исчезает в течение двух секунд</div>
+{/if}
+```
+## Пользовательские функции перехода
+
+```js
+transition = (node: HTMLElement, params: any, options: { direction: 'in' | 'out' | 'both' }) => {
+  delay?: number,
+  duration?: number,
+  easing?: (t: number) => number,
+  css?: (t: number, u: number) => string,
+  tick?: (t: number, u: number) => void
+}
+```
+
+Переходы могут использовать пользовательские функции. Если возвращаемый объект имеет функцию `css`, Svelte сгенерирует ключевые кадры для [веб-анимации](https://developer.mozilla.org/ru/docs/Web/API/Web_Animations_API).
+
+Аргумент `t`, передаваемый в `css`, — это значение между `0` и `1` после применения функции `easing`. _Входные_ переходы выполняются от `0` до `1`, _исходящие_ переходы выполняются от `1` до `0` — другими словами, `1` соответствует естественному состоянию элемента, как будто переход не был применен. Аргумент `u` равен `1 - t`.
+
+Функция вызывается многократно _до_ начала перехода с различными аргументами `t` и `u`.
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+      // App.svelte
+      <script>
+        import { elasticOut } from 'svelte/easing';
+
+        /** @type {boolean} */
+        export let visible;
+
+        /**
+         * @param {HTMLElement} node
+         * @param {{ delay?: number, duration?: number, easing?: (t: number) => number }} params
+         */
+        function whoosh(node, params) {
+          const existingTransform = getComputedStyle(node).transform.replace('none', '');
+
+          return {
+            delay: params.delay || 0,
+            duration: params.duration || 400,
+            easing: params.easing || elasticOut,
+            css: (t, u) => `transform: ${existingTransform} scale(${t})`
+          };
+        }
+      </script>
+
+      {#if visible}
+        <div in:whoosh>влетает с шумом</div>
+      {/if}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+      // App.svelte
+      <script lang="ts">
+        import { elasticOut } from 'svelte/easing';
+
+        export let visible: boolean;
+
+        function whoosh(node: HTMLElement, params: { delay?: number, duration?: number, easing?: (t: number) => number }) {
+          const existingTransform = getComputedStyle(node).transform.replace('none', '');
+
+          return {
+            delay: params.delay || 0,
+            duration: params.duration || 400,
+            easing: params.easing || elasticOut,
+            css: (t, u) => `transform: ${existingTransform} scale(${t})`
+          };
+        }
+      </script>
+
+      {#if visible}
+        <div in:whoosh>влетает с шумом</div>
+      {/if}
+    ```
+  </TabItem>
+</Tabs>
+
+Пользовательская функция перехода также может возвращать функцию `tick`, которая вызывается _в процессе_ перехода с теми же аргументами `t` и `u`.
+
+:::note
+Если возможно использовать `css` вместо `tick`, делайте это — веб-анимации могут выполняться вне основного потока, предотвращая заикания на более медленных устройствах.
+:::
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      export let visible = false;
+
+      /**
+       * @param {HTMLElement} node
+       * @param {{ speed?: number }} params
+       */
+      function typewriter(node, { speed = 1 }) {
+        const valid = node.childNodes.length === 1 && node.childNodes[0].nodeType === Node.TEXT_NODE;
+
+        if (!valid) {
+          throw new Error(`Этот переход работает только с элементами, имеющими единственный дочерний текстовый узел`);
+        }
+
+        const text = node.textContent;
+        const duration = text.length / (speed * 0.01);
+
+        return {
+          duration,
+          tick: (t) => {
+            const i = ~~(text.length * t);
+            node.textContent = text.slice(0, i);
+          }
+        };
+      }
+    </script>
+
+    {#if visible}
+      <p in:typewriter={{ speed: 1 }}>Быстрая коричневая лиса прыгает через ленивую собаку</p>
+    {/if}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+      // App.svelte
+      <script lang="ts">
+        export let visible = false;
+
+        function typewriter(node: HTMLElement, { speed = 1 }: { speed?: number }) {
+          const valid = node.childNodes.length === 1 && node.childNodes[0].nodeType === Node.TEXT_NODE;
+
+          if (!valid) {
+            throw new Error(`Этот переход работает только с элементами, имеющими единственный дочерний текстовый узел`);
+          }
+
+          const text = node.textContent;
+          const duration = text.length / (speed * 0.01);
+
+          return {
+            duration,
+            tick: (t) => {
+              const i = ~~(text.length * t);
+              node.textContent = text.slice(0, i);
+            }
+          };
+        }
+      </script>
+
+      {#if visible}
+        <p in:typewriter={{ speed: 1 }}>Быстрая коричневая лиса прыгает через ленивую собаку</p>
+      {/if}
+    ```
+  </TabItem>
+</Tabs>
+
+Если переход возвращает функцию вместо объекта перехода, функция будет вызвана в следующей микрозадаче. Это позволяет нескольким переходам координироваться, что делает возможными [эффекты перекрёстного затухания](https://svelte.dev/tutorial/deferred-transitions).
+
+Функции перехода также получают третий аргумент, `options`, который содержит информацию о переходе.
+
+Доступные значения в объекте `options`:
+
+- `direction` - одно из значений `in`, `out` или `both` в зависимости от типа перехода
+
+## События перехода
+
+Элемент с переходами будет генерировать следующие события в дополнение к любым стандартным событиям DOM:
+
+- `introstart`
+- `introend`
+- `outrostart`
+- `outroend`
+
+```svelte
+{#if visible}
+  <p
+    transition:fly={{ y: 200, duration: 2000 }}
+    onintrostart={() => (status = 'intro started')}
+    onoutrostart={() => (status = 'outro started')}
+    onintroend={() => (status = 'intro ended')}
+    onoutroend={() => (status = 'outro ended')}
+  >
+    влетает и вылетает
+  </p>
+{/if}
+```
