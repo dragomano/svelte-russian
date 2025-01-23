@@ -1,0 +1,165 @@
+---
+title: "use:"
+sidebar:
+  order: 11
+---
+
+Действия — это функции, которые вызываются, когда элемент монтируется. Они добавляются с помощью директивы `use:`, и обычно используют `$effect`, чтобы сбросить любое состояние, когда элемент размонтируется.
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+      // App.svelte
+      <script>
+        /** @type {import('svelte/action').Action} */
+        function myaction(node) {
+          // узел был смонтирован в DOM
+
+          $effect(() => {
+            // настройка происходит здесь
+
+            return () => {
+              // очистка происходит здесь
+            };
+          });
+        }
+      </script>
+
+      <div use:myaction>...</div>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+      // App.svelte
+      <script lang="ts">
+        import type { Action } from 'svelte/action';
+
+        const myaction: Action = (node) => {
+          // узел был смонтирован в DOM
+
+          $effect(() => {
+            // настройка происходит здесь
+
+            return () => {
+              // очистка происходит здесь
+            };
+          });
+        };
+      </script>
+
+      <div use:myaction>...</div>
+    ```
+  </TabItem>
+</Tabs>
+
+Действие может быть вызвано с аргументом:
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte "data"
+      // App.svelte
+      <script>
+        /** @type {import('svelte/action').Action} */
+        function myaction(node, data) {
+          // ...
+        }
+      </script>
+
+      <div use:myaction={data}>...</div>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte "data"
+      // App.svelte
+      <script lang="ts">
+        import type { Action } from 'svelte/action';
+
+        const myaction: Action = (node, data) => {
+          // ...
+        };
+      </script>
+
+      <div use:myaction={data}>...</div>
+    ```
+  </TabItem>
+</Tabs>
+
+Действие вызывается только один раз (но не во время серверного рендеринга) — оно _не_ будет выполняться снова, если аргумент изменится.
+
+:::caution
+До руны `$effect` действия могли возвращать объект с методами `update` и `destroy`, где `update` вызывался с последним значением аргумента, если оно изменялось. Предпочтительно использовать эффекты.
+:::
+
+## Типизация
+
+Интерфейс `Action` принимает три необязательных аргумента типа — тип узла (который может быть `Element`, если действие применяется ко всему), параметр и любые пользовательские обработчики событий, созданные действием:
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+      // App.svelte
+      <script>
+        /**
+         * @type {import('svelte/action').Action<
+         * 	HTMLDivElement,
+         * 	undefined,
+         * 	{
+         * 		onswiperight: (e: CustomEvent) => void;
+         * 		onswipeleft: (e: CustomEvent) => void;
+         * 		// ...
+         * 	}
+         * >}
+         */
+        function gestures(node) {
+          $effect(() => {
+            // ...
+            node.dispatchEvent(new CustomEvent('swipeleft'));
+
+            // ...
+            node.dispatchEvent(new CustomEvent('swiperight'));
+          });
+        }
+      </script>
+
+      <div
+        use:gestures
+        onswipeleft={next}
+        onswiperight={prev}
+      >...</div>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+      // App.svelte
+      <script lang="ts">
+        import type { Action } from 'svelte/action';
+
+        const gestures: Action<
+          HTMLDivElement,
+          undefined,
+          {
+            onswiperight: (e: CustomEvent) => void;
+            onswipeleft: (e: CustomEvent) => void;
+            // ...
+          }
+        > = (node) => {
+          $effect(() => {
+            // ...
+            node.dispatchEvent(new CustomEvent('swipeleft'));
+
+            // ...
+            node.dispatchEvent(new CustomEvent('swiperight'));
+          });
+        };
+      </script>
+
+      <div
+        use:gestures
+        onswipeleft={next}
+        onswiperight={prev}
+      >...</div>
+    ```
+  </TabItem>
+</Tabs>
