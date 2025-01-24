@@ -6,6 +6,7 @@ import svelte from '@astrojs/svelte';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://svelte.dragomano.ru',
   integrations: [starlight({
     plugins: [
       starlightLinksValidator({
@@ -45,6 +46,14 @@ export default defineConfig({
       {
         label: 'Синтаксис шаблонов',
         autogenerate: { directory: 'template-syntax' },
+      },
+      {
+        label: 'Стилизация',
+        autogenerate: { directory: 'styling' },
+      },
+      {
+        label: 'Разное',
+        autogenerate: { directory: 'misc' },
       },
       {
         label: 'Обучающие статьи и ролики',
