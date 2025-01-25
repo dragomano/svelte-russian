@@ -1,0 +1,145 @@
+---
+title: "class"
+sidebar:
+  order: 16
+---
+
+Существует два способа установить классы на элементах: атрибут `class` и директива `class:`.
+
+## Атрибуты
+
+Примитивные значения обрабатываются как любые другие атрибуты:
+
+```svelte
+<div class={large ? 'large' : 'small'}>...</div>
+```
+
+:::note
+По историческим причинам ложноподобные значения (такие как `false` и `NaN`) преобразуются в строки (`class="false"`), хотя `class={undefined}` (или `null`) приводит к полному отсутствию атрибута. В будущей версии Svelte все ложноподобные значения будут приводить к отсутствию `class`.
+:::
+
+### Объекты и массивы
+
+Начиная с Svelte 5.16, `class` может быть объектом или массивом и преобразуется в строку с помощью [clsx](https://github.com/lukeed/clsx).
+
+Если значение является объектом, добавляются истинноподобные ключи:
+
+```svelte
+<script>
+  let { cool } = $props();
+</script>
+
+<!-- если `cool` истинно, результат будет `class="cool"`,
+     в противном случае - `class="lame"` -->
+<div class={{ cool, lame: !cool }}>...</div>
+```
+
+Если значение является массивом, истинноподобные значения объединяются:
+
+```svelte
+<!-- если `faded` и `large` оба истинны, результат будет
+     `class="saturate-0 opacity-50 scale-200"` -->
+<div class={[faded && 'saturate-0 opacity-50', large && 'scale-200']}>...</div>
+```
+
+Обратите внимание, что независимо от того, используем ли мы массив или объект, мы можем установить несколько классов одновременно с помощью одного условия, что особенно полезно, если вы используете такие вещи, как Tailwind.
+
+Массивы могут содержать массивы и объекты, и clsx будет их объединять. Это полезно для комбинирования локальных классов с пропсами, например:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // Button.svelte
+    <script>
+      let props = $props();
+    </script>
+
+    <button {...props} class={['cool-button', props.class]}>
+      {@render props.children?.()}
+    </button>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // Button.svelte
+    <script lang="ts">
+      let props = $props();
+    </script>
+
+    <button {...props} class={['cool-button', props.class]}>
+      {@render props.children?.()}
+    </button>
+    ```
+  </TabItem>
+</Tabs>
+
+Пользователь этого компонента имеет такую же гибкость в использовании смеси объектов, массивов и строк:
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      import Button from './Button.svelte';
+      let useTailwind = $state(false);
+    </script>
+
+    <Button
+      onclick={() => useTailwind = true}
+      class={{ 'bg-blue-700 sm:w-1/2': useTailwind }}
+    >
+      Принять неизбежность Tailwind
+    </Button>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      import Button from './Button.svelte';
+      let useTailwind = $state(false);
+    </script>
+
+    <Button
+      onclick={() => useTailwind = true}
+      class={{ 'bg-blue-700 sm:w-1/2': useTailwind }}
+    >
+      Принять неизбежность Tailwind
+    </Button>
+    ```
+  </TabItem>
+</Tabs>
+
+Svelte также предоставляет тип `ClassValue`, который является типом значения, принимаемого атрибутом `class` на элементах. Это полезно, если вы хотите использовать безопасное по типу имя класса в пропсах компонента:
+
+```svelte
+<script lang="ts">
+	import type { ClassValue } from 'svelte/elements';
+
+	const props: { class: ClassValue } = $props();
+</script>
+
+<div class={['original', props.class]}>...</div>
+```
+
+## Директива `class:`
+
+До Svelte 5.16 директива `class:` была самым удобным способом установки классов на элементах по условию.
+
+```svelte
+<!-- Эти выражения эквивалентны -->
+<div class={{ cool, lame: !cool }}>...</div>
+<div class:cool={cool} class:lame={!cool}>...</div>
+```
+
+Как и с другими директивами, мы можем использовать сокращённую запись, когда имя класса совпадает со значением:
+
+```svelte
+<div class:cool class:lame={!cool}>...</div>
+```
+
+:::note
+Если вы не используете более старую версию Svelte, рассмотрите возможность избегания директивы `class:`, так как атрибут более мощный и составной.
+:::
