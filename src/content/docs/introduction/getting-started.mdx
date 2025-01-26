@@ -4,12 +4,34 @@ title: Первые шаги
 
 Мы рекомендуем использовать [SvelteKit](https://svelte.dev/docs/kit), официальный фреймворк для разработки приложений от команды Svelte, основанный на [Vite](https://vite.dev/):
 
-```bash
-npx sv create myapp
-cd myapp
-npm install
-npm run dev
-```
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="npm">
+    ```sh
+    npx sv create myapp
+    cd myapp
+    npm install
+    npm run dev
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```sh
+    pnpx sv create myapp
+    cd myapp
+    pnpm install
+    pnpm run dev
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```sh
+    yarn dlx sv create myapp
+    cd myapp
+    yarn install
+    yarn dev
+    ```
+  </TabItem>
+</Tabs>
 
 Не беспокойтесь, если вы ещё не знакомы с Svelte! Вы можете игнорировать все замечательные функции, которые SvelteKit предлагает на данный момент, и вернуться к ним позже.
 
