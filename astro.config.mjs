@@ -45,6 +45,7 @@ export default defineConfig({
       },
       {
         label: 'Синтаксис шаблонов',
+        collapsed: true,
         autogenerate: { directory: 'template-syntax' },
       },
       {
