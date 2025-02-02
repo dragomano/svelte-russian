@@ -15,6 +15,15 @@ export default defineConfig({
     ],
     title: 'Svelte по-русски',
     description: 'Документация Svelte 5 на русском языке.',
+    head: [
+      {
+        tag: 'meta',
+        attrs: {
+          name: 'google-site-verification',
+          content: 'fq1A8llkn1XRVaPfBInN-TPoDtGsEUQmvEr3QVrEsyI',
+        },
+      },
+    ],
     defaultLocale: 'root',
     locales: {
       root: {
