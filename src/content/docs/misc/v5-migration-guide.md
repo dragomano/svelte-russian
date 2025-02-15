@@ -744,7 +744,38 @@ Svelte 5 требует современный браузер (другими с
 
 ### Опция `accessors` игнорируется
 
-Установка опции `accessors` в значение `true` делает свойства компонента напрямую доступными на экземпляре компонента. В режиме рун свойства никогда не доступны на экземпляре компонента. Если вам нужно их открыть, вы можете использовать экспорты компонента.
+Установка опции `accessors` в значение `true` делает свойства доступными напрямую через экземпляр компонента.
+
+```svelte
+<svelte:options accessors={true} />
+<script>
+  // доступно через componentInstance.name
+  export let name;
+</script>
+```
+
+В режиме рун свойства никогда не доступны через экземпляр компонента. Если нужно сделать их доступными, используйте экспорт компонентов.
+
+```svelte
+<script>
+  let { name } = $props();
+  // доступно через componentInstance.getName()
+  export const getName = () => name;
+  </script>
+```
+
+Другой вариант — если у вас есть контроль над местом их создания, можно применять руны в файлах `.js/.ts`, изменив их расширение на `.svelte`, например `.svelte.js` или `.svelte.ts`, а затем использовать `$state`:
+
+```diff lang="js"
++import { mount } from 'svelte';
+import App from './App.svelte'
+
+-const app = new App({ target: document.getElementById("app"), props: { foo: 'bar' } });
+-app.foo = 'baz'
++const props = $state({ foo: 'bar' });
++const app = mount(App, { target: document.getElementById("app"), props });
++props.foo = 'baz';
+```
 
 ### Опция `immutable` игнорируется
 
