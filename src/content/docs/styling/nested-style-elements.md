@@ -1,5 +1,6 @@
 ---
 title: Вложенные элементы <style>
+origin: https://svelte.dev/docs/svelte/nested-style-elements
 sidebar:
   order: 3
 ---

@@ -1,5 +1,6 @@
 ---
 title: 'in: и out'
+origin: https://svelte.dev/docs/svelte/in-and-out
 sidebar:
   order: 13
 ---

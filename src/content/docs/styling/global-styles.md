@@ -1,5 +1,6 @@
 ---
 title: Глобальные стили
+origin: https://svelte.dev/docs/svelte/global-styles
 sidebar:
   order: 1
 ---

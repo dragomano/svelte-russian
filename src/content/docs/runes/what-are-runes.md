@@ -1,5 +1,6 @@
 ---
 title: Что такое руны?
+origin: https://svelte.dev/docs/svelte/what-are-runes
 sidebar:
   order: 0
 ---

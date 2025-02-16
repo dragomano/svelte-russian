@@ -1,5 +1,6 @@
 ---
 title: $derived
+origin: https://svelte.dev/docs/svelte/$derived
 sidebar:
   order: 2
 ---

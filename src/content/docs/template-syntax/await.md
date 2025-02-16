@@ -1,5 +1,6 @@
 ---
 title: "{#await ...}"
+origin: https://svelte.dev/docs/svelte/await
 sidebar:
   order: 4
 ---

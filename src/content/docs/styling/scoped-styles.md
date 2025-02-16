@@ -1,5 +1,6 @@
 ---
 title: Локальные стили
+origin: https://svelte.dev/docs/svelte/scoped-styles
 sidebar:
   order: 0
 ---

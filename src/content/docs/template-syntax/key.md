@@ -1,5 +1,6 @@
 ---
 title: "{#key ...}"
+origin: https://svelte.dev/docs/svelte/key
 sidebar:
   order: 3
 ---

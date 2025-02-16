@@ -43,6 +43,9 @@ export default defineConfig({
     editLink: {
       baseUrl: 'https://github.com/dragomano/svelte-russian/edit/main/',
     },
+    components: {
+      LastUpdated: './src/components/LastUpdated.astro',
+    },
     sidebar: [
       {
         label: 'Введение',

@@ -1,5 +1,6 @@
 ---
 title: $effect
+origin: https://svelte.dev/docs/svelte/$effect
 sidebar:
   order: 3
 ---

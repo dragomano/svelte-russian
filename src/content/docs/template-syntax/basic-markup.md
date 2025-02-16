@@ -1,5 +1,6 @@
 ---
 title: Базовая разметка
+origin: https://svelte.dev/docs/svelte/basic-markup
 sidebar:
   order: 0
 ---

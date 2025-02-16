@@ -1,5 +1,6 @@
 ---
 title: Файлы .svelte.js и .svelte.ts
+origin: https://svelte.dev/docs/svelte/svelte-js-files
 ---
 
 Помимо файлов `.svelte`, Svelte также работает с файлами `.svelte.js` и `.svelte.ts`.

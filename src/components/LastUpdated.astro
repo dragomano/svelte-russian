@@ -1,0 +1,30 @@
+---
+import { Icon } from '@astrojs/starlight/components';
+import Default from '@astrojs/starlight/components/LastUpdated.astro';
+
+const { entry, editUrl, slug } = Astro.locals.starlightRoute;
+const source = entry.data.origin ? entry.data.origin : 'https://svelte.dev/docs/svelte' + slug;
+---
+
+{
+  editUrl && (
+    <>
+      <a href={source} target="_blank" class='sl-flex'>
+        <Icon name='external' size='1.2em' /> Оригинальная документация
+      </a>
+      <Default />
+    </>
+  )
+}
+
+<style>
+  a {
+    gap: 0.5rem;
+    align-items: center;
+    text-decoration: none;
+    color: var(--sl-color-gray-3);
+  }
+  a:hover {
+    color: var(--sl-color-white);
+  }
+</style>

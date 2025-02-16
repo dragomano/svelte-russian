@@ -1,5 +1,6 @@
 ---
 title: Пользовательские свойства
+origin: https://svelte.dev/docs/svelte/custom-properties
 sidebar:
   order: 2
 ---

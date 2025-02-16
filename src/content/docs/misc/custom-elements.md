@@ -1,5 +1,6 @@
 ---
 title: Пользовательские элементы
+origin: https://svelte.dev/docs/svelte/custom-elements
 sidebar:
   order: 2
 ---

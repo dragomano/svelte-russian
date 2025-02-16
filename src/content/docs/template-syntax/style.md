@@ -1,5 +1,6 @@
 ---
 title: "style:"
+origin: https://svelte.dev/docs/svelte/style
 sidebar:
   order: 15
 ---

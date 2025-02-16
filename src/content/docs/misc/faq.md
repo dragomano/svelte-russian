@@ -1,5 +1,6 @@
 ---
 title: Часто задаваемые вопросы
+origin: https://svelte.dev/docs/svelte/faq
 sidebar:
   order: 5
 ---

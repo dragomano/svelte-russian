@@ -1,5 +1,6 @@
 ---
 title: TypeScript
+origin: https://svelte.dev/docs/svelte/typescript
 sidebar:
   order: 1
 ---

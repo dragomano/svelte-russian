@@ -1,5 +1,6 @@
 ---
 title: "{@const ...}"
+origin: https://svelte.dev/docs/svelte/@const
 sidebar:
   order: 8
 ---

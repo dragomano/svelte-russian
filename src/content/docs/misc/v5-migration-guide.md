@@ -1,5 +1,6 @@
 ---
 title: Переход на Svelte 5
+origin: https://svelte.dev/docs/svelte/v5-migration-guide
 sidebar:
   order: 4
 ---

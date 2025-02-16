@@ -1,5 +1,6 @@
 ---
 title: "{@debug ...}"
+origin: https://svelte.dev/docs/svelte/@debug
 sidebar:
   order: 9
 ---

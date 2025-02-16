@@ -1,5 +1,6 @@
 ---
 title: "{#each ...}"
+origin: https://svelte.dev/docs/svelte/each
 sidebar:
   order: 2
 ---
