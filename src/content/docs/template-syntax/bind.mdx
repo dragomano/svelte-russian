@@ -273,7 +273,7 @@ Svelte создаёт обработчик событий, который обн
 :::
 
 ```svelte
-<div contenteditable="true" bind:innerHTML={html} />
+<div contenteditable="true" bind:innerHTML={html}></div>
 ```
 
 ## Размеры
@@ -314,7 +314,7 @@ bind:this={dom_node}
   });
 </script>
 
-<canvas bind:this={canvas} />
+<canvas bind:this={canvas}></canvas>
 ```
 
 Компоненты также поддерживают `bind:this`, что позволяет вам программно взаимодействовать с экземплярами компонентов.
