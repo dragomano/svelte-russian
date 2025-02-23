@@ -65,6 +65,10 @@ export default defineConfig({
         autogenerate: { directory: 'styling' },
       },
       {
+        label: 'Специальные элементы',
+        autogenerate: { directory: 'special-elements' },
+      },
+      {
         label: 'Разное',
         autogenerate: { directory: 'misc' },
       },
