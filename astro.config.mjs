@@ -66,7 +66,12 @@ export default defineConfig({
       },
       {
         label: 'Специальные элементы',
+        collapsed: true,
         autogenerate: { directory: 'special-elements' },
+      },
+      {
+        label: 'Рантайм',
+        autogenerate: { directory: 'runtime' },
       },
       {
         label: 'Разное',
