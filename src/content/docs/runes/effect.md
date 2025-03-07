@@ -5,17 +5,11 @@ sidebar:
   order: 3
 ---
 
-Эффекты — это то, что заставляет ваше приложение _выполнять действия_. Когда Svelte запускает функцию эффекта, он отслеживает, какие части состояния (и производного состояния) были доступны (если они не были доступны внутри [`untrack`](svelte#untrack)), и повторно запускает функцию, когда это состояние изменяется позже.
+Эффекты — это функции, которые выполняются при обновлении состояния и могут использоваться для таких задач, как вызов сторонних библиотек, рисование на элементах `<canvas>` или выполнение сетевых запросов. Они выполняются только в браузере, а не во время серверного рендеринга.
 
-Большинство эффектов в приложении Svelte создаются самим Svelte — это те части, которые обновляют текст в `<h1>привет, {name}!</h1>`, когда изменяется `name`, например.
+Вообще говоря, вам _не следует_ обновлять состояние внутри эффектов, так как это может сделать код более запутанным и часто приводит к бесконечным циклам обновлений. Если вы обнаруживаете, что делаете это, ознакомьтесь с разделом [Когда не использовать `$effect`](#когда-не-использовать-effect), чтобы узнать об альтернативных подходах.
 
-Но вы также можете создать свои собственные эффекты с помощью руны `$effect`, что полезно, когда вам нужно синхронизировать внешнюю систему (будь то библиотека, элемент `<canvas>` или что-то в сети) с состоянием внутри вашего приложения Svelte.
-
-:::note
-Избегайте чрезмерного использования `$effect`! Когда вы выполняете слишком много работы в эффектах, код часто становится трудным для понимания и сопровождения. Ознакомьтесь с разделом [Когда не использовать `$effect`](#когда-не-использовать-effect), чтобы узнать об альтернативных подходах.
-:::
-
-Ваши эффекты выполняются после того, как компонент был смонтирован в DOM, и в [микрозадаче](https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide) после изменения состояния ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE31S246bMBD9lZF3pSRSAqTVvrCAVPUP2sdSKY4ZwJJjkD0hSVH-vbINuWxXfQH5zMyZc2ZmZLVUaFn6a2R06ZGlHmBrpvnBvb71fWQHVOSwPbf4GS46TajJspRlVhjZU1HqkhQSWPkHIYdXS5xw-Zas3ueI6FRn7qHFS11_xSRZhIxbFtcDtw7SJb1iXaOg5XIFeQGjzyPRaevYNOGZIJ8qogbpe8CWiy_VzEpTXiQUcvPDkSVrSNZz1UlW1N5eLcqmpdXUvaQ4BmqlhZNUCgxuzFHDqUWNAxrYeUM76AzsnOsdiJbrBp_71lKpn3RRbii-4P3f-IMsRxS-wcDV_bL4PmSdBa2wl7pKnbp8DMgVvJm8ZNskKRkEM_OzyOKQFkgqOYBQ3Nq89Ns0nbIl81vMFN-jKoLMTOr-SOBOJS-Z8f5Y6D1wdcR8dFqvEBdetK-PHwj-z-cH8oHPY54wRJ8Ys7iSQ3Bg3VA9azQbmC9k35kKzYa6PoVtfwbbKVnBixBiGn7Pq0rqJoUtHiCZwAM3jdTPWCVtr_glhVrhecIa3vuksJ_b7TqFs4DPyriSjd5IwoNNQaAmNI-ESfR2p8zimzvN1swdCkvJHPH6-_oX8o1SgcIDAAA=)):
+Вы можете создать эффект с помощью руны `$effect` ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE31S246bMBD9lZF3pSRSAqTVvrCAVPUP2sdSKY4ZwJJjkD0hSVH-vbINuWxXfQH5zMyZc2ZmZLVUaFn6a2R06ZGlHmBrpvnBvb71fWQHVOSwPbf4GS46TajJspRlVhjZU1HqkhQSWPkHIYdXS5xw-Zas3ueI6FRn7qHFS11_xSRZhIxbFtcDtw7SJb1iXaOg5XIFeQGjzyPRaevYNOGZIJ8qogbpe8CWiy_VzEpTXiQUcvPDkSVrSNZz1UlW1N5eLcqmpdXUvaQ4BmqlhZNUCgxuzFHDqUWNAxrYeUM76AzsnOsdiJbrBp_71lKpn3RRbii-4P3f-IMsRxS-wcDV_bL4PmSdBa2wl7pKnbp8DMgVvJm8ZNskKRkEM_OzyOKQFkgqOYBQ3Nq89Ns0nbIl81vMFN-jKoLMTOr-SOBOJS-Z8f5Y6D1wdcR8dFqvEBdetK-PHwj-z-cH8oHPY54wRJ8Ys7iSQ3Bg3VA9azQbmC9k35kKzYa6PoVtfwbbKVnBixBiGn7Pq0rqJoUtHiCZwAM3jdTPWCVtr_glhVrhecIa3vuksJ_b7TqFs4DPyriSjd5IwoNNQaAmNI-ESfR2p8zimzvN1swdCkvJHPH6-_oX8o1SgcIDAAA=)):
 
 ```svelte
 <script>
@@ -37,11 +31,23 @@ sidebar:
 <canvas bind:this={canvas} width="100" height="100" />
 ```
 
-Повторные выполнения группируются (т. е. изменение `color` и `size` в один и тот же момент не вызовет два отдельных выполнения) и происходят после того, как все обновления DOM были применены.
+Когда Svelte выполняет функцию эффекта, она отслеживает, какие части состояния (и производного состояния) были доступны (если они не были доступны внутри [`untrack`](https://svelte.dev/docs/svelte/svelte#untrack)), и повторно запускает функцию, когда это состояние изменяется.
 
-Вы можете размещать `$effect` в любом месте, а не только на верхнем уровне компонента, при условии, что он вызывается во время инициализации компонента (или пока активен родительский эффект). Он будет связан с жизненным циклом компонента (или родительского эффекта) и, следовательно, уничтожит себя, когда компонент будет размонтирован (или родительский эффект будет уничтожен).
+:::note
+Если вам сложно понять, почему ваш `$effect` перезапускается или не запускается, ознакомьтесь с разделом [Понимание зависимостей](#понимание-зависимостей). Эффекты срабатывают иначе, чем блоки `$:`, к которым вы могли привыкнуть, если переходите с Svelte 4.
+:::
 
-Вы можете вернуть функцию из `$effect`, которая будет выполняться немедленно перед повторным выполнением эффекта и перед его уничтожением ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE42RQY-bMBCF_8rI2kPopiXpMQtIPfbeW6m0xjyKtWaM7CFphPjvFVB2k2oPe7LmzXzyezOjaqxDVKefo5JrD3VaBLVXrLu5-tb3X-IZTmat0hHv6cazgCWqk8qiCbaXouRSHISMH1gop4coWrA7JE9bp7PO2QjjuY5vA8fDYZ3hUh7QNDCy2yWUFzTOUilpSj9aG-linaMKFGACtKCmSwvGGYGeLQvCWbtnMq3m34grajxHoa1JOUXI93_V_Sfz7Oz7Mafj0ypN-zvHm8dSAmQITP_xaUq2IU1GO1dp80I2Uh_82dao92Rl9R8GvgF0QrbrUFstcFeq0PgAkha0LoICPoeB4w1SJUvsZcj4rvcMlvmvGlGCv6J-DeSgw2vabQnJlm55p7nM0rcTctYei3HZxZSl7XHVqkHEM3k2zpqXfFyj393zU05fpyI6f0HI0hUoPoamC9roKDeo2ivBH1EnCQOmX9NfYw2GHrgCAAA=)).
+### Понимание жизненного цикла
+
+Ваши эффекты выполняются после того, как компонент был смонтирован в DOM, и в рамках [микрозадачи](https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide) после изменений состояния. Повторные запуски группируются (например, изменение `color` и `size` одновременно не вызовет двух отдельных запусков) и происходят после применения всех обновлений DOM.
+
+Вы можете использовать `$effect` где угодно, не только на верхнем уровне компонента, при условии, что он вызывается во время выполнения родительского эффекта.
+
+:::note
+Svelte использует эффекты внутри себя для представления логики и выражений в вашем шаблоне — именно так `<h1>привет, {name}!</h1>` обновляется при изменении `name`.
+:::
+
+Эффект может возвращать _функцию очистки_, которая будет выполняться непосредственно перед повторным запуском эффекта ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE42SQVODMBCF_8pOxkPRKq3HCsx49K4n64xpskjGkDDJ0tph-O8uINo6HjxB3u7HvrehE07WKDbiyZEhi1osRWksRrF57gQdm6E2CKx_dd43zU3co6VB28mIf-nKO0JH_BmRRRVMQ8XWbXkAgfKtI8jhIpIkXKySu7lSG2tNRGZ1_GlYr1ZTD3ddYFmiosUigbyAbpC2lKbwWJkIB8ZhhxBQBWRSw6FCh3sM8GrYTthL-wqqku4N44TyqEgwF3lmRHr4Op0PGXoH31c5rO8mqV-eOZ49bikgtcHBL55tmhIkEMqg_cFB2TpFxjtg703we6NRL8HQFCS07oSUCZi6Rm04lz1yytIHBKoQpo1w6Gsm4gmyS8b8Y5PydeMdX8gwS2Ok4I-ov5NZtvQde95GMsccn_1wzNKfu3RZtS66cSl9lvL7qO1aIk7knbJGvefdtIOzi73M4bYvovUHDFk6AcX_0HRESxnpBOW_jfCDxIZCi_1L_wm4xGQ60wIAAA==)).
 
 ```svelte
 <script>
@@ -55,7 +61,7 @@ sidebar:
     }, milliseconds);
 
     return () => {
-      // если предоставлен обратный вызов, он будет выполнен
+      // если предоставлена функция очистки, она будет выполнена
       // a) немедленно перед повторным выполнением эффекта
       // b) когда компонент будет уничтожен
       clearInterval(interval);
@@ -69,9 +75,11 @@ sidebar:
 <button onclick={() => (milliseconds /= 2)}>быстрее</button>
 ```
 
+Функции очистки также выполняются, когда эффект уничтожается, что происходит при уничтожении его родителя (например, когда компонент демонтируется) или при повторном запуске родительского эффекта.
+
 ### Понимание зависимостей
 
-`$effect` автоматически отслеживает любые реактивные значения (`$state`, `$derived`, `$props`), которые _синхронно_ читаются внутри его функции (включая косвенные вызовы через другие функции), и регистрирует их как зависимости. Когда эти зависимости изменяются, `$effect` планирует повторное выполнение.
+`$effect` автоматически отслеживает любые реактивные значения (`$state`, `$derived`, `$props`), которые _синхронно_ читаются внутри его тела функции (включая косвенные вызовы через другие функции), и регистрирует их как зависимости. Когда эти зависимости изменяются, `$effect` планирует повторный запуск.
 
 Значения, которые читаются _асинхронно_ — после `await` или внутри `setTimeout`, например — не будут отслеживаться. Здесь холст будет перерисован, когда изменится `color`, но не когда изменится `size` ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE31T246bMBD9lZF3pWSlBEirfaEQqdo_2PatVIpjBrDkGGQPJGnEv1e2IZfVal-wfHzmzJyZ4cIqqdCy9M-F0blDlnqArZjmB3f72XWRHVCRw_bc4me4aDWhJstSlllhZEfbQhekkMDKfwg5PFvihMvX5OXH_CJa1Zrb0-Kpqr5jkiwC48rieuDWQbqgZ6wqFLRcvkC-hYvnkWi1dWqa8ESQTxFRjfQWsOXiWzmr0sSLhEJu3p1YsoJkNUcdZUnN9dagrBu6FVRQHAM10sJRKgUG16bXcGxQ44AGdt7SDkTDdY02iqLHnJVU6hedlWuIp94JW6Tf8oBt_8GdTxlF0b4n0C35ZLBzXb3mmYn3ae6cOW74zj0YVzDNYXRHFt9mprNgHfZSl6mzml8CMoLvTV6wTZIUDEJv5us2iwMtiJRyAKG4tXnhl8O0yhbML0Wm-B7VNlSSSd31BG7z8oIZZ6dgIffAVY_5xdU9Qrz1Bnx8fCfwtZ7v8Qc9j3nB8PqgmMWlHIID6-bkVaPZwDySfWtKNGtquxQ23Qlsq2QJT0KIqb8dL0up6xQ2eIBkAg_c1FI_YqW0neLnFCqFpwmreedJYT7XX8FVOBfwWRhXstZrSXiwKQjUhOZeMIleb5JZfHWn2Yq5pWEpmR7Hv-N_wEqT8hEEAAA=)):
 
