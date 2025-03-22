@@ -9,14 +9,14 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.32.2",
-    "@astrojs/svelte": "^7.0.5",
-    "astro": "^5.4.1",
+    "@astrojs/starlight": "^0.32.4",
+    "@astrojs/svelte": "^7.0.7",
+    "astro": "^5.5.4",
     "sharp": "^0.33.5",
     "starlight-links-validator": "^0.14.3",
     "starlight-package-managers": "^0.10.0",
     "starlight-showcases": "^0.3.0",
-    "svelte": "^5.20.5",
+    "svelte": "^5.25.2",
     "typescript": "^5.8.2"
   }
 }
