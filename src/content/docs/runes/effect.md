@@ -81,6 +81,8 @@ Svelte использует эффекты внутри себя для пред
 
 `$effect` автоматически отслеживает любые реактивные значения (`$state`, `$derived`, `$props`), которые _синхронно_ читаются внутри его тела функции (включая косвенные вызовы через другие функции), и регистрирует их как зависимости. Когда эти зависимости изменяются, `$effect` планирует повторный запуск.
 
+Если `$state` и `$derived` используются непосредственно внутри `$effect` (например, при создании [реактивного класса](/runes/state#классы)), эти значения не будут рассматриваться как зависимости.
+
 Значения, которые читаются _асинхронно_ — после `await` или внутри `setTimeout`, например — не будут отслеживаться. Здесь холст будет перерисован, когда изменится `color`, но не когда изменится `size` ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE31T246bMBD9lZF3pWSlBEirfaEQqdo_2PatVIpjBrDkGGQPJGnEv1e2IZfVal-wfHzmzJyZ4cIqqdCy9M-F0blDlnqArZjmB3f72XWRHVCRw_bc4me4aDWhJstSlllhZEfbQhekkMDKfwg5PFvihMvX5OXH_CJa1Zrb0-Kpqr5jkiwC48rieuDWQbqgZ6wqFLRcvkC-hYvnkWi1dWqa8ESQTxFRjfQWsOXiWzmr0sSLhEJu3p1YsoJkNUcdZUnN9dagrBu6FVRQHAM10sJRKgUG16bXcGxQ44AGdt7SDkTDdY02iqLHnJVU6hedlWuIp94JW6Tf8oBt_8GdTxlF0b4n0C35ZLBzXb3mmYn3ae6cOW74zj0YVzDNYXRHFt9mprNgHfZSl6mzml8CMoLvTV6wTZIUDEJv5us2iwMtiJRyAKG4tXnhl8O0yhbML0Wm-B7VNlSSSd31BG7z8oIZZ6dgIffAVY_5xdU9Qrz1Bnx8fCfwtZ7v8Qc9j3nB8PqgmMWlHIID6-bkVaPZwDySfWtKNGtquxQ23Qlsq2QJT0KIqb8dL0up6xQ2eIBkAg_c1FI_YqW0neLnFCqFpwmreedJYT7XX8FVOBfwWRhXstZrSXiwKQjUhOZeMIleb5JZfHWn2Yq5pWEpmR7Hv-N_wEqT8hEEAAA=)):
 
 ```js
@@ -98,7 +100,7 @@ $effect(() => {
 });
 ```
 
-Эффект повторно выполняется только тогда, когда изменяется сам объект, который он читает, а не когда изменяется свойство внутри него. (Если вы хотите отслеживать изменения _внутри_ объекта во время разработки, вы можете использовать [`$inspect`]($inspect).)
+Эффект повторно выполняется только тогда, когда изменяется сам объект, который он читает, а не когда изменяется свойство внутри него. (Если вы хотите отслеживать изменения _внутри_ объекта во время разработки, вы можете использовать [`$inspect`](/runes/inspect).)
 
 ```svelte
 <script>
@@ -248,6 +250,8 @@ $effect(() => {
 :::note
 Для вещей, которые более сложны, чем простое выражение, такое как `count * 2`, вы также можете использовать `$derived.by`.
 :::
+
+Если вы используете эффект, потому что хотите иметь возможность переопределять производное значение (например, для создания оптимистичного UI), обратите внимание, что [производные значения можно напрямую переопределять](/runes/derived#переопределение-производных-значений), начиная со Svelte 5.25.
 
 Вас может привлечь идея создать сложные связи между эффектами, чтобы связать одно значение с другим. В следующем примере представлены два поля ввода для «потраченных денег» и «оставшихся денег», которые взаимосвязаны. Если вы измените одно из них, другое должно обновиться соответственно. Не используйте эффекты для этого ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAACpVRy26DMBD8FcvKgUhtoIdeHBwp31F6MGSJkBbHwksEQvx77aWQqooq9bgzOzP7mGTdIHipPiZJowOpGJAv0po2VmfnDv4OSBErjYdneHWzBJaCjcx91TWOToUtCIEE3cig0OIty44r5l1oDtjOkyFIsv3GINQ_CNYyGegd1DVUlCR7oU9iilDUcP8S8roYs9n8p2wdYNVFm4csTx872BxNCcjr5I11fdgonEkXsjP2CoUUZWMv6m6wBz2x7yxaM-iJvWeRsvSbSVeUy5i0uf8vKA78NIeJLSZWv1I8jQjLdyK4XuTSeIdmVKJGGI4LdjVOiezwDu1yG74My8PLCQaSiroe5s_5C2PHrkVGAgAA)):
 
