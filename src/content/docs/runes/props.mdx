@@ -176,7 +176,7 @@ let { a, b, c, ...others } = $props();
   </TabItem>
 </Tabs>
 
-Хотя вы можете временно _переопределять_ пропсы, вы не должны их _изменять_, если они не являются [привязываемыми](../bindable/).
+Хотя вы можете временно _переопределять_ пропсы, вы не должны их _изменять_, если они не являются [привязываемыми](/runes/bindable/).
 
 Если пропс является обычным объектом, изменение не окажет никакого эффекта ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE3WQwU7DMBBEf2W1QmorQgJXk0RC3PkBwiExG9WQrC17U4Es_ztKUkQp9OjxzM7bjcjtSKjwyfKNp1aLORA4b13ADHszUED1HFE-3eyaBcy-Mw_O5eFAg8xa1wb6T9eWhVgCKiyD9sZJ3XAjZnTWCzzuzfAKvbcjbPJieR2jm_uGy-InweXqtd0baaliBG0nFgW3kBIUNWYo9CGoxE-UsgvIpw2_oc9-LmAPJBCPDJCggqvlVtvdH9puErEMlvVg9HsVtzuoaojzkKKAfRuALVDfk5ZZW0fmy05wXcFdwyktlUs-KIinljTXrRVnm7-kL9dYLVbUAQAA)):
 
@@ -236,7 +236,7 @@ let { a, b, c, ...others } = $props();
   </TabItem>
 </Tabs>
 
-Однако, если пропс является прокси реактивного состояния, то изменения _будут_ иметь эффект, но вы увидите предупреждение [`ownership_invalid_mutation`](runtime-warnings#Client-warnings-ownership_invalid_mutation), потому что компонент изменяет состояние, которое ему не «принадлежит» ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE3WR0U7DMAxFf8VESBuiauG1WycheOEbKA9p67FA6kSNszJV-XeUZhMw2GN8r-1znUmQ7FGU4pn2UqsOes-SlSGRia3S6ET5Mgk-2OiJBZGdOh6szd0eNcdaIx3-V28NMRI7UYq1awdleVNTzaq3ZmB43CndwXYwPSzyYn4dWxermqJRI4Np3rFlqODasWRcTtAaT1zCHYSbVU3r4nsyrdPMKTUFKDYiE4yfLEoePIbsQpqfy3_nOVMuJIqg0wk1RFg7GOuWfwEbz2wIDLVatR_VtLyBagNTHFIUMCqtoZXeIfAOU1JoUJsR2IC3nWTMjt7GM4yKdyBhlAMpesvhydCC0y_i0ZagHByMh26WzUhXUUxKnpbcVnBfUwhznJnNlac7JkuIURL-2VVfwxflyrWcSQIAAA==)):
+Однако, если пропс является прокси реактивного состояния, то изменения _будут_ иметь эффект, но вы увидите предупреждение [`ownership_invalid_mutation`](https://svelte.dev/docs/svelte/runtime-warnings#Client-warnings-ownership_invalid_mutation), потому что компонент изменяет состояние, которое ему не «принадлежит» ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE3WR0U7DMAxFf8VESBuiauG1WycheOEbKA9p67FA6kSNszJV-XeUZhMw2GN8r-1znUmQ7FGU4pn2UqsOes-SlSGRia3S6ET5Mgk-2OiJBZGdOh6szd0eNcdaIx3-V28NMRI7UYq1awdleVNTzaq3ZmB43CndwXYwPSzyYn4dWxermqJRI4Np3rFlqODasWRcTtAaT1zCHYSbVU3r4nsyrdPMKTUFKDYiE4yfLEoePIbsQpqfy3_nOVMuJIqg0wk1RFg7GOuWfwEbz2wIDLVatR_VtLyBagNTHFIUMCqtoZXeIfAOU1JoUJsR2IC3nWTMjt7GM4yKdyBhlAMpesvhydCC0y_i0ZagHByMh26WzUhXUUxKnpbcVnBfUwhznJnNlac7JkuIURL-2VVfwxflyrWcSQIAAA==)):
 
 <Tabs syncKey="lang">
   <TabItem label="JS">
@@ -337,7 +337,7 @@ let { a, b, c, ...others } = $props();
   </TabItem>
 </Tabs>
 
-В заключение: не изменяйте пропсы. Либо используйте колбэк-пропсы для передачи изменений, либо — если родитель и потомок должны использовать один и тот же объект — используйте руну [`$bindable`](../bindable/).
+В заключение: не изменяйте пропсы. Либо используйте колбэк-пропсы для передачи изменений, либо — если родитель и потомок должны использовать один и тот же объект — используйте руну [`$bindable`](/runes/bindable/).
 
 ## Безопасность типов
 
