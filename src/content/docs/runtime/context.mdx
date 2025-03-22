@@ -5,175 +5,201 @@ sidebar:
   order: 1
 ---
 
-Большая часть состояния — это состояние на уровне компонента, которое существует до тех пор, пока существует сам компонент. Однако также существует состояние на уровне раздела или всего приложения, которое также нужно как-то обрабатывать.
-
-Самый простой способ сделать это — создать глобальное состояние и просто импортировать его.
-
-```ts
-// state.svelte.js
-export const myGlobalState = $state({
-  user: {
-    /* ... */
-  }
-  /* ... */
-});
-```
+Контекст позволяет компонентам получать доступ к значениям, принадлежащим родительским компонентам, без необходимости передавать их через пропсы (избегая передачи через множество промежуточных компонентов, что также называют «пробросом пропсов» («prop-drilling»)). Родительский компонент устанавливает контекст с помощью `setContext(key, value)`...
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 <Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
-    // App.svelte
+    // Parent.svelte
     <script>
-      import { myGlobalState } from './state.svelte.js';
-      // ...
+      import { setContext } from 'svelte';
+
+      setContext('my-context', 'привет из Parent.svelte');
     </script>
     ```
   </TabItem>
   <TabItem label="TS">
     ```svelte
-    // App.svelte
+    // Parent.svelte
     <script lang="ts">
-      import { myGlobalState } from './state.svelte.js';
-      // ...
+      import { setContext } from 'svelte';
+
+      setContext('my-context', 'привет из Parent.svelte');
     </script>
     ```
   </TabItem>
 </Tabs>
 
-Однако у этого подхода есть несколько недостатков:
+...а дочерний компонент получает его с помощью `getContext`.
 
-- он безопасно работает только в случае, если ваше глобальное состояние используется исключительно на стороне клиента — например, когда вы создаете одностраничное приложение, которое не рендерит компоненты на сервере. Если ваше состояние управляется и обновляется на сервере, оно может быть общим для нескольких сессий и/или пользователей, что приведет к ошибкам.
-- это может создать ложное впечатление, что определённое состояние является глобальным, хотя на самом деле его следует использовать только в определённой части приложения.
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // Child.svelte
+    <script>
+      import { getContext } from 'svelte';
 
-Чтобы решить эти проблемы, Svelte предоставляет несколько примитивов `context`, которые помогают их устранить.
+      const message = getContext('my-context');
+    </script>
 
-## Установка и получение контекста
+    <h1>{message}, внутри Child.svelte</h1>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // Child.svelte
+    <script lang="ts">
+      import { getContext } from 'svelte';
 
-Чтобы связать произвольный объект с текущим компонентом, используйте `setContext`.
+      const message = getContext('my-context');
+    </script>
+
+    <h1>{message}, внутри Child.svelte</h1>
+    ```
+  </TabItem>
+</Tabs>
+
+Это особенно полезно, когда `Parent.svelte` не знает напрямую о `Child.svelte`, а вместо этого отображает его как часть [сниппета](/template-syntax/snippet) `children` ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE42Q3W6DMAyFX8WyJgESK-oto6hTX2D3YxcM3IIUQpR40yqUd58CrCXsp7tL7HNsf2dAWXaEKR56yfTBGOOxFWQwfR6Qz8q1XAHjL-GjUhvzToJd7bU09FO9ctMkG0wxM5VuFeeFLLjtVK8ZnkpNkuGo-w6CTTJ9Z3PwsBAemlbUF934W8iy5DpaZtOUcU02-ZLcaS51jHEkTFm_kY1_wfOO8QnXrb8hBzDEc6pgZ4gFoyz4KgiD7nxfTe8ghqAhIfrJ46cTzVZBbkPlODVJsLCDO6V7ZcJoncyw1yRr0hd1GNn_ZbEM3I9i1bmVxOlWElUvDUNHxpQngt3C4CXzjS1rtvkw22wMrTRtTbC8Lkuabe7jvthPPe3DofYCAAA=)).
+
+```svelte
+<Parent>
+  <Child />
+</Parent>
+```
+
+Ключ (`'my-context'` в примере выше) и сам контекст могут быть любыми значениями JavaScript.
+
+Помимо [`setContext`](https://svelte.dev/docs/svelte/svelte#setContext) и [`getContext`](https://svelte.dev/docs/svelte/svelte#getContext), Svelte предоставляет функции [`hasContext`](https://svelte.dev/docs/svelte/svelte#hasContext) и [`getAllContexts`](https://svelte.dev/docs/svelte/svelte#getAllContexts).
+
+## Использование контекста с состоянием
+
+Вы можете хранить реактивное состояние в контексте ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE41R0W6DMAz8FSuaBNUQdK8MkKZ-wh7HHihzu6hgosRMm1D-fUpSVNq12x4iEvvOx_kmQU2PIhfP3DCCJGgHYvxkkYid7NCI_GUS_KUcxhVEMjOelErNB3bsatvG4LW6n0ZsRC4K02qpuKqpZtmrQTNMYJA3QRAs7PTQQxS40eMCt3mX3duxnWb-lS5h7nTI0A4jMWoo4c44P_Hku-zrOazdy64chWo-ScfRkRgl8wgHKrLTH1OxHZkHgoHaTraHcopXUFYzPPVfuC_hwQaD1GrskdiNCdQwJljJqlvXfyqVsA5CGg0uRUQifHw56xFtciO75QrP07vo_JXf_tf8yK2ezDKY_ZWt_1y2qqYzv7bI1IW1V_sN19m-07wCAAA=))...
 
 ```svelte
 <script>
   import { setContext } from 'svelte';
+  import Child from './Child.svelte';
 
-  setContext('key', value);
+  let counter = $state({
+    count: 0
+  });
+
+  setContext('counter', counter);
 </script>
+
+<button onclick={() => counter.count += 1}>
+  увеличить
+</button>
+
+<Child />
+<Child />
+<Child />
 ```
 
-Контекст становится доступным для дочерних элементов компонента (включая содержимое, переданное через слоты) с помощью `getContext`.
+...однако обратите внимание, что если вы _переприсваиваете_ `counter` вместо его обновления, вы «разорвете связь» — другими словами, вместо этого...
 
 ```svelte
-<script>
-  import { getContext } from 'svelte';
-
-  const value = getContext('key');
-</script>
+<button onclick={() => counter = { count: 0 }}>
+  сбросить
+</button>
 ```
 
-`setContext` и `getContext` решают указанные выше проблемы:
+...вы должны делать так:
 
-- состояние не является глобальным, оно ограничено компонентом. Это позволяет безопасно рендерить компоненты на сервере без утечки состояния;
-- ясно, что состояние не глобальное, а ограничено определённым деревом компонентов, поэтому его нельзя использовать в других частях приложения.
+```svelte "counter.count = 0"
+<button onclick={() => counter.count = 0}>
+  сбросить
+</button>
+```
 
-:::note
-`setContext`/`getContext` должны вызываться во время инициализации компонента.
-:::
+Svelte предупредит вас, если вы сделаете что-то неправильно.
 
-Контекст по своей природе не является реактивным. Если вам нужны реактивные значения в контексте, вы можете передать объект `$state` в контекст, свойства которого _будут_ реактивными.
+## Типобезопасный контекст
+
+Полезным шаблоном является оборачивание вызовов `setContext` и `getContext` внутри вспомогательных функций, которые позволяют сохранить типобезопасность:
 
 <Tabs syncKey="lang">
   <TabItem label="JS">
-    ```svelte
-    // Parent.svelte
-    <script>
-      import { setContext } from 'svelte';
+    ```js
+    // context.js
+    import { getContext, setContext } from 'svelte';
 
-      let value = $state({ count: 0 });
-      setContext('counter', value);
-    </script>
+    let key = {};
 
-    <button onclick={() => value.count++}>увеличить</button>
+    /** @param {User} user */
+    export function setUserContext(user) {
+      setContext(key, user);
+    }
+
+    export function getUserContext() {
+      return /** @type {User} */ (getContext(key));
+    }
     ```
   </TabItem>
   <TabItem label="TS">
-    ```svelte
-    // Parent.svelte
-    <script lang="ts">
-      import { setContext } from 'svelte';
+    ```js
+    // context.ts
+    import { getContext, setContext } from 'svelte';
 
-      let value = $state({ count: 0 });
-      setContext('counter', value);
-    </script>
+    let key = {};
+    export function setUserContext(user: User) {
+      setContext(key, user);
+    }
 
-    <button onclick={() => value.count++}>увеличить</button>
+    export function getUserContext() {
+      return getContext(key) as User;
+    }
     ```
   </TabItem>
 </Tabs>
 
-<Tabs syncKey="lang">
-  <TabItem label="JS">
-    ```svelte
-    // Child.svelte
-    <script>
-      import { getContext } from 'svelte';
+## Замена глобального состояния
 
-      const value = getContext('counter');
-    </script>
+Когда у вас есть состояние, которое используется многими компонентами, может возникнуть соблазн поместить его в отдельный модуль и просто импортировать там, где это необходимо:
 
-    <p>Счётчик равен {value.count}</p>
-    ```
-  </TabItem>
-  <TabItem label="TS">
-    ```svelte
-    // Child.svelte
-    <script lang="ts">
-      import { getContext } from 'svelte';
-
-      const value = getContext('counter');
-    </script>
-
-    <p>Счётчик равен {value.count}</p>
-    ```
-  </TabItem>
-</Tabs>
-
-Чтобы проверить, был ли задан определённый `key` в контексте родительского компонента, используйте `hasContext`.
-
-```svelte
-<script>
-  import { hasContext } from 'svelte';
-
-  if (hasContext('key')) {
-    // что-то делаем
+```js
+// state.svelte.js
+export const myGlobalState = $state({
+  user: {
+    // ...
   }
-</script>
+  // ...
+});
 ```
 
-Вы также можете получить всю карту контекста, принадлежащую ближайшему родительскому компоненту, с помощью `getAllContexts`. Это полезно, например, если вы программно создаете компонент и хотите передать ему существующий контекст.
+Во многих случаях это вполне допустимо, но есть риск: если вы изменяете состояние во время рендеринга на стороне сервера (что не рекомендуется, но всё же возможно)...
 
-```svelte
-<script>
-  import { getAllContexts } from 'svelte';
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // App.svelte
+    <script>
+      import { myGlobalState } from 'svelte';
 
-  const contexts = getAllContexts();
-</script>
-```
+      let { data } = $props();
 
-## Инкапсуляция взаимодействий с контекстом
+      if (data.user) {
+        myGlobalState.user = data.user;
+      }
+    </script>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```js
+    // App.svelte
+    <script lang="ts">
+      import { myGlobalState } from 'svelte';
 
-Указанные выше методы не навязывают конкретного способа их использования. Когда ваше приложение растет в масштабе, стоит инкапсулировать установку и получение контекста в функции и правильно типизировать их.
+      let { data } = $props();
 
-```ts
-import { getContext, setContext } from 'svelte';
+      if (data.user) {
+        myGlobalState.user = data.user;
+      }
+    </script>
+    ```
+  </TabItem>
+</Tabs>
 
-let userKey = Symbol('user');
-
-export function setUserContext(user: User) {
-  setContext(userKey, user);
-}
-
-export function getUserContext(): User {
-  return getContext(userKey) as User;
-}
-```
+...то данные могут стать доступными для _следующего_ пользователя. Контекст решает эту проблему, так как он не является общим между запросами.
