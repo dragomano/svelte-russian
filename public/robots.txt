@@ -1,3 +1,4 @@
 User-agent: *
+Allow: /
 
 Sitemap: https://svelte.dragomano.ru/sitemap-index.xml
