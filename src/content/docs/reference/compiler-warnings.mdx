@@ -1,0 +1,1077 @@
+---
+title: Предупреждения компилятора
+origin: https://svelte.dev/docs/svelte/compiler-warnings
+sidebar:
+  order: 15
+---
+
+Svelte предупреждает вас во время компиляции о потенциальных ошибках, таких как создание недоступной разметки.
+
+Некоторые предупреждения могут быть ложными в вашем конкретном случае. Вы можете отключить такие ложные срабатывания, добавив комментарий `<!-- svelte-ignore <код> -->` над строкой, вызывающей предупреждение. Пример:
+
+```svelte
+<!-- svelte-ignore a11y_autofocus -->
+<input autofocus />
+```
+
+Можно перечислить несколько правил в одном комментарии (через запятую) и добавить пояснительную заметку (в скобках):
+
+```svelte
+<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions (because of reasons) -->
+<div onclick>...</div>
+```
+
+### a11y_accesskey
+
+```
+Avoid using accesskey
+```
+
+Избегайте использования атрибута `accesskey` на элементе. Access keys — это HTML-атрибуты, которые позволяют веб-разработчикам назначать сочетания клавиш для элементов. Несоответствия между сочетаниями клавиш и командами клавиатуры, используемыми пользователями скринридеров и только клавиатуры, создают проблемы с доступностью. Чтобы избежать осложнений, access keys не следует использовать.
+
+```svelte
+<!-- A11y: Avoid using accesskey -->
+<div accesskey="z"></div>
+```
+
+### a11y_aria_activedescendant_has_tabindex
+
+```
+An element with an aria-activedescendant attribute should have a tabindex value
+```
+
+Для элемента с `aria-activedescendant` обязательно должна быть возможность фокусировки через Tab — либо через встроенный `tabindex`, либо через явное указание атрибута `tabindex`.
+
+```svelte
+<!-- A11y: Elements with attribute aria-activedescendant should have tabindex value -->
+<div aria-activedescendant="some-id"></div>
+```
+
+### a11y_aria_attributes
+
+```
+`<%name%>` should not have aria-* attributes
+```
+
+Некоторые зарезервированные DOM-элементы не поддерживают ARIA-роли, состояния и свойства. Обычно это связано с тем, что они не отображаются визуально, например: `meta`, `html`, `script`, `style`. Данное правило гарантирует, что эти DOM-элементы не содержат атрибутов `aria-*`.
+
+```svelte
+<!-- A11y: <meta> should not have aria-* attributes -->
+<meta aria-hidden="false" />
+```
+
+### a11y_autocomplete_valid
+
+```
+'%value%' is an invalid value for 'autocomplete' on `<input type="%type%">`
+```
+
+### a11y_autofocus
+
+```
+Avoid using autofocus
+```
+
+Избегайте использования атрибута `autofocus` на элементах. Автоматическая установка фокуса может создавать проблемы удобства использования как для зрячих, так и для незрячих пользователей.
+
+```svelte
+<!-- A11y: Avoid using autofocus -->
+<input autofocus />
+```
+
+### a11y_click_events_have_key_events
+
+```
+Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+```
+
+Проследите, чтобы видимые неинтерактивные элементы с обработчиком `onclick` также имели обработчик событий клавиатуры.
+
+Сначала пользователям следует рассмотреть, будет ли более уместным использование интерактивного элемента, такого как `<button type="button">` для действий или `<a>` для навигации. Эти элементы более семантически значимы и имеют встроенную обработку нажатий клавиш. Например, `<button>` срабатывает при нажатии `Пробела` и `Enter`, а `<a>` — при нажатии `Enter`.
+
+Если требуется неинтерактивный элемент, то `onclick` должен сопровождаться обработчиком `onkeyup` или `onkeydown`, позволяющим пользователю выполнять аналогичные действия с клавиатуры. Чтобы пользователь мог активировать элемент клавишей, элемент также должен быть фокусируемым — для этого нужно добавить атрибут [`tabindex`](https://developer.mozilla.org/ru/docs/Web/HTML/Global_attributes/tabindex). Хотя обработчик `onkeypress` также отключит это предупреждение, следует учитывать, что событие `keypress` устарело.
+
+```svelte
+<!-- A11y: visible, non-interactive elements with an onclick event must be accompanied by a keyboard event handler. -->
+<div onclick={() => {}}></div>
+```
+
+Поддержка клавиатурного управления крайне важна для:
+- Пользователей с ограниченными возможностями, которые не могут использовать мышь
+- Совместимости со вспомогательными технологиями (AT)
+- Пользователей скринридеров
+
+### a11y_consider_explicit_label
+
+```
+Buttons and links should either contain text or have an `aria-label` or `aria-labelledby` attribute
+```
+
+### a11y_distracting_elements
+
+```
+Avoid `<%name%>` elements
+```
+
+Избегайте использования отвлекающих элементов. Элементы, которые могут визуально отвлекать, могут вызывать проблемы с доступностью у пользователей с нарушениями зрения. Такие элементы, скорее всего, устарели, и их следует избегать.
+
+Следующие элементы визуально отвлекают: `<marquee>` и `<blink>`.
+
+```svelte
+<!-- A11y: Avoid <marquee> elements -->
+<marquee></marquee>
+```
+
+### a11y_figcaption_index
+
+```
+`<figcaption>` must be first or last child of `<figure>`
+```
+
+### a11y_figcaption_parent
+
+```
+`<figcaption>` must be an immediate child of `<figure>`
+```
+
+Обеспечьте соответствие определённых DOM-элементов требуемой структуре.
+
+```svelte
+<!-- A11y: <figcaption> must be an immediate child of <figure> -->
+<div>
+  <figcaption>Описание изображения</figcaption>
+</div>
+```
+
+### a11y_hidden
+
+```
+`<%name%>` element should not be hidden
+```
+
+Некоторые DOM-элементы важны для навигации с помощью скринридера и не должны быть скрыты.
+
+```svelte
+<!-- A11y: <h2> element should not be hidden -->
+<h2 aria-hidden="true">невидимый заголовок</h2>
+```
+
+### a11y_img_redundant_alt
+
+```
+Screenreaders already announce `<img>` elements as an image
+```
+
+Проследите, чтобы атрибут `alt` у изображений не содержал слов «image», «picture» или «photo». Скринридеры уже объявляют элементы `img` как изображения. Нет необходимости использовать такие слова, как _image_, _photo_ и/или _picture_.
+
+```svelte
+<img src="foo" alt="Foo eating a sandwich." />
+
+<!-- aria-hidden, won't be announced by screen reader -->
+<img src="bar" aria-hidden="true" alt="Picture of me taking a photo of an image" />
+
+<!-- A11y: Screen readers already announce <img> elements as an image. -->
+<img src="foo" alt="Photo of foo being weird." />
+
+<!-- A11y: Screen readers already announce <img> elements as an image. -->
+<img src="bar" alt="Image of me at a bar!" />
+
+<!-- A11y: Screen readers already announce <img> elements as an image. -->
+<img src="foo" alt="Picture of baz fixing a bug." />
+```
+
+### a11y_incorrect_aria_attribute_type
+
+```
+The value of '%attribute%' must be a %type%
+```
+
+Обеспечьте, чтобы для ARIA-атрибутов использовались только корректные типы значений. Например, `aria-hidden` должен принимать только булево значение.
+
+```svelte
+<!-- A11y: The value of 'aria-hidden' must be exactly one of true or false -->
+<div aria-hidden="yes"></div>
+```
+
+### a11y_incorrect_aria_attribute_type_boolean
+
+```
+The value of '%attribute%' must be either 'true' or 'false'. It cannot be empty
+```
+
+### a11y_incorrect_aria_attribute_type_id
+
+```
+The value of '%attribute%' must be a string that represents a DOM element ID
+```
+
+### a11y_incorrect_aria_attribute_type_idlist
+
+```
+The value of '%attribute%' must be a space-separated list of strings that represent DOM element IDs
+```
+
+### a11y_incorrect_aria_attribute_type_integer
+
+```
+The value of '%attribute%' must be an integer
+```
+
+### a11y_incorrect_aria_attribute_type_token
+
+```
+The value of '%attribute%' must be exactly one of %values%
+```
+
+### a11y_incorrect_aria_attribute_type_tokenlist
+
+```
+The value of '%attribute%' must be a space-separated list of one or more of %values%
+```
+
+### a11y_incorrect_aria_attribute_type_tristate
+
+```
+The value of '%attribute%' must be exactly one of true, false, or mixed
+```
+
+### a11y_interactive_supports_focus
+
+```
+Elements with the '%role%' interactive role must have a tabindex value
+```
+
+Проследите, чтобы элементы с интерактивной ролью и обработчиками событий (мышь или клавиатура) были фокусируемыми или доступными через табуляцию.
+
+```svelte
+<!-- A11y: Elements with the 'button' interactive role must have a tabindex value. -->
+<div role="button" onkeypress={() => {}} />
+```
+
+### a11y_invalid_attribute
+
+```
+'%href_value%' is not a valid %href_attribute% attribute
+```
+
+Обеспечьте, чтобы важные для доступности атрибуты имели допустимые значения. Например, `href` не должен быть пустым, содержать `'#'` или `javascript:`.
+
+```svelte
+<!-- A11y: '' is not a valid href attribute -->
+<a href="">invalid</a>
+```
+
+### a11y_label_has_associated_control
+
+```
+A form label must be associated with a control
+```
+
+Обеспечьте, чтобы тег `label` имел текстовую метку и связанный элемент управления.
+
+Поддерживается два способа связывания метки с элементом:
+
+- Обернуть элемент управления в тег `label`
+- Добавить атрибут `for` в `label` с указанием ID соответствующего поля ввода
+
+```svelte
+<label for="id">B</label>
+
+<label>C <input type="text" /></label>
+
+<!-- A11y: A form label must be associated with a control. -->
+<label>A</label>
+```
+
+### a11y_media_has_caption
+
+```
+`<video>` elements must have a `<track kind="captions">`
+```
+
+Предоставление субтитров для медиафайлов критически важно для глухих пользователей. Субтитры должны включать:
+- Транскрипцию или перевод диалогов
+- Звуковые эффекты
+- Значимые музыкальные моменты
+- Другую важную аудиоинформацию
+
+Это не только важно для доступности, но и полезно всем пользователям при недоступности медиа (аналогично тексту `alt` для изображений).
+
+Субтитры должны передавать всю ключевую информацию для понимания контента, но не обязательно дословно. Видео с атрибутом `muted` не требуют субтитров.
+
+```svelte
+<video><track kind="captions" /></video>
+
+<audio muted></audio>
+
+<!-- A11y: Media elements must have a <track kind=\"captions\"> -->
+<video></video>
+
+<!-- A11y: Media elements must have a <track kind=\"captions\"> -->
+<video><track /></video>
+```
+
+### a11y_misplaced_role
+
+```
+`<%name%>` should not have role attribute
+```
+
+Некоторые зарезервированные DOM-элементы не поддерживают ARIA-роли, состояния и свойства (например, `meta`, `html`, `script`, `style`), так как они не отображаются визуально. Данное правило запрещает использование атрибута `role` на таких элементах.
+
+```svelte
+<!-- A11y: <meta> should not have role attribute -->
+<meta role="tooltip" />
+```
+
+### a11y_misplaced_scope
+
+```
+The scope attribute should only be used with `<th>` elements
+```
+
+Атрибут `scope` должен использоваться только на элементах `<th>`.
+
+```svelte
+<!-- A11y: The scope attribute should only be used with <th> elements -->
+<div scope="row" />
+```
+
+### a11y_missing_attribute
+
+```
+`<%name%>` element should have %article% %sequence% attribute
+```
+
+Проверьте наличие обязательных атрибутов доступности на элементах:
+
+- `<a>` должен иметь `href` (кроме [тега, определяющего фрагмент](https://github.com/sveltejs/svelte/issues/4697))
+- `<area>` требует `alt`, `aria-label` или `aria-labelledby`
+- `<html>` должен содержать `lang`
+- `<iframe>` требует `title`
+- `<img>` должен иметь `alt`
+- `<object>` требует `title`, `aria-label` или `aria-labelledby`
+- `<input type="image">` требует `alt`, `aria-label` или `aria-labelledby`
+
+```svelte
+<!-- A11y: <input type=\"image\"> element should have an alt, aria-label or aria-labelledby attribute -->
+<input type="image" />
+
+<!-- A11y: <html> element should have a lang attribute -->
+<html></html>
+
+<!-- A11y: <a> element should have an href attribute -->
+<a>текст</a>
+```
+
+### a11y_missing_content
+
+```
+`<%name%>` element should contain text
+```
+
+Проследите, чтобы заголовки (`h1`, `h2` и т. д.) и ссылки имели содержимое, доступное для скринридеров.
+
+```svelte
+<!-- A11y: <a> element should have child content -->
+<a href="/foo"></a>
+
+<!-- A11y: <h1> element should have child content -->
+<h1></h1>
+```
+
+### a11y_mouse_events_have_key_events
+
+```
+'%event%' event must be accompanied by '%accompanied_by%' event
+```
+
+Обеспечьте, чтобы `onmouseover` и `onmouseout` сопровождались `onfocus` и `onblur` соответственно. Это гарантирует, что функциональность, активируемая этими событиями мыши, будет доступна и для пользователей клавиатуры.
+
+```svelte
+<!-- A11y: onmouseover must be accompanied by onfocus -->
+<div onmouseover={handleMouseover} />
+
+<!-- A11y: onmouseout must be accompanied by onblur -->
+<div onmouseout={handleMouseout} />
+```
+
+### a11y_no_abstract_role
+
+```
+Abstract role '%role%' is forbidden
+```
+
+### a11y_no_interactive_element_to_noninteractive_role
+
+```
+`<%element%>` cannot have role '%role%'
+```
+
+Роли [WAI-ARIA](https://www.w3.org/TR/wai-aria-1.1/#usage_intro) не должны использоваться для преобразования интерактивного элемента в неинтерактивный. К неинтерактивным ARIA-ролям относятся: `article`, `banner`, `complementary`, `img`, `listitem`, `main`, `region` и `tooltip`.
+
+```svelte
+<!-- A11y: <textarea> cannot have role 'listitem' -->
+<textarea role="listitem"></textarea>
+```
+
+### a11y_no_noninteractive_element_interactions
+
+```
+Non-interactive element `<%element%>` should not be assigned mouse or keyboard event listeners
+```
+
+Неинтерактивные элементы не поддерживают обработчики событий (мыши и клавиатуры). К ним относятся:
+
+**HTML-элементы:**
+- `<main>`
+- `<area>`
+- Заголовки (`<h1>`, `<h2>` и др.)
+- `<p>`
+- `<img>`
+- `<li>`, `<ul>`, `<ol>`
+
+**Неинтерактивные [WAI-ARIA роли](https://www.w3.org/TR/wai-aria-1.1/#usage_intro):**
+- `article`
+- `banner`
+- `complementary`
+- `img`
+- `listitem`
+- `main`
+- `region`
+- `tooltip`
+
+```svelte
+<!-- `A11y: Non-interactive element <li> should not be assigned mouse or keyboard event listeners.` -->
+<li onclick={() => {}}></li>
+
+<!-- `A11y: Non-interactive element <div> should not be assigned mouse or keyboard event listeners.` -->
+<div role="listitem" onclick={() => {}}></div>
+```
+
+### a11y_no_noninteractive_element_to_interactive_role
+
+```
+Non-interactive element `<%element%>` cannot have interactive role '%role%'
+```
+
+Роли [WAI-ARIA](https://www.w3.org/TR/wai-aria-1.1/#usage_intro) не должны использоваться для преобразования неинтерактивного элемента в интерактивный. К интерактивным ARIA-ролям относятся:
+
+- `button`
+- `link`
+- `checkbox`
+- `menuitem`
+- `menuitemcheckbox`
+- `menuitemradio`
+- `option`
+- `radio`
+- `searchbox`
+- `switch`
+- `textbox`
+
+```svelte
+<!-- A11y: Non-interactive element <h3> cannot have interactive role 'searchbox' -->
+<h3 role="searchbox">Button</h3>
+```
+
+### a11y_no_noninteractive_tabindex
+
+```
+noninteractive element cannot have nonnegative tabIndex value
+```
+
+Фокусировка при навигации клавишей Tab должна быть доступна только для интерактивных элементов интерфейса.
+
+```svelte
+<!-- A11y: noninteractive element cannot have nonnegative tabIndex value -->
+<div tabindex="0"></div>
+```
+
+### a11y_no_redundant_roles
+
+```
+Redundant role '%role%'
+```
+
+У некоторых HTML-элементов есть встроенные ARIA-роли — их дублирование [бесполезно](https://www.w3.org/TR/using-aria/#aria-does-nothing).
+
+```svelte
+<!-- A11y: Redundant role 'button' -->
+<button role="button">...</button>
+
+<!-- A11y: Redundant role 'img' -->
+<img role="img" src="foo.jpg" />
+```
+
+### a11y_no_static_element_interactions
+
+```
+`<%element%>` with a %handler% handler must have an ARIA role
+```
+
+Элементы вроде `<div>` с интерактивными обработчиками (например, `click`) должны иметь ARIA-роль.
+
+```svelte
+<!-- A11y: <div> with click handler must have an ARIA role -->
+<div onclick={() => ''}></div>
+```
+
+### a11y_positive_tabindex
+
+```
+Avoid tabindex values above zero
+```
+
+Не используйте положительные значения `tabindex` — они нарушают логический порядок табуляции и усложняют навигацию с клавиатуры.
+
+```svelte
+<!-- A11y: avoid tabindex values above zero -->
+<div tabindex="1"></div>
+```
+
+### a11y_role_has_required_aria_props
+
+```
+Elements with the ARIA role "%role%" must have the following attributes defined: %props%
+```
+
+Для элементов, которым назначены ARIA-роли, необходимо указывать все требуемые атрибуты этих ролей.
+
+```svelte
+<!-- A11y: A11y: Elements with the ARIA role "checkbox" must have the following attributes defined: "aria-checked" -->
+<span role="checkbox" aria-labelledby="foo" tabindex="0"></span>
+```
+
+### a11y_role_supports_aria_props
+
+```
+The attribute '%attribute%' is not supported by the role '%role%'
+```
+
+Элементы с явными или неявными ролями должны содержать только поддерживаемые этими ролями `aria-*` атрибуты.
+
+```svelte
+<!-- A11y: The attribute 'aria-multiline' is not supported by the role 'link'. -->
+<div role="link" aria-multiline></div>
+
+<!-- A11y: The attribute 'aria-required' is not supported by the role 'listitem'. This role is implicit on the element <li>. -->
+<li aria-required></li>
+```
+
+### a11y_role_supports_aria_props_implicit
+
+```
+The attribute '%attribute%' is not supported by the role '%role%'. This role is implicit on the element `<%name%>`
+```
+
+Элементы с назначенными ролями (явными или неявными) должны использовать только поддерживаемые для этих ролей ARIA-атрибуты.
+
+```svelte
+<!-- A11y: The attribute 'aria-multiline' is not supported by the role 'link'. -->
+<div role="link" aria-multiline></div>
+
+<!-- A11y: The attribute 'aria-required' is not supported by the role 'listitem'. This role is implicit on the element <li>. -->
+<li aria-required></li>
+```
+
+### a11y_unknown_aria_attribute
+
+```
+Unknown aria attribute 'aria-%attribute%'
+```
+
+```
+Unknown aria attribute 'aria-%attribute%'. Did you mean '%suggestion%'?
+```
+
+Используйте только стандартные ARIA-атрибуты, определённые в [спецификации WAI-ARIA States and Properties](https://www.w3.org/WAI/PF/aria-1.1/states_and_properties).
+
+```svelte
+<!-- A11y: Unknown aria attribute 'aria-labeledby' (did you mean 'labelledby'?) -->
+<input type="image" aria-labeledby="foo" />
+```
+
+### a11y_unknown_role
+
+```
+Unknown role '%role%'
+```
+
+```
+Unknown role '%role%'. Did you mean '%suggestion%'?
+```
+
+Элементы с ARIA-ролями должны использовать только допустимые, неабстрактные ARIA-роли. Определения ролей приведены в [спецификации WAI-ARIA](https://www.w3.org/TR/wai-aria/#role_definitions).
+
+```svelte
+<!-- A11y: Unknown role 'toooltip' (did you mean 'tooltip'?) -->
+<div role="toooltip"></div>
+```
+
+### attribute_avoid_is
+
+```
+The "is" attribute is not supported cross-browser and should be avoided
+```
+
+### attribute_global_event_reference
+
+```
+You are referencing `globalThis.%name%`. Did you forget to declare a variable with that name?
+```
+
+### attribute_illegal_colon
+
+```
+Attributes should not contain ':' characters to prevent ambiguity with Svelte directives
+```
+
+### attribute_invalid_property_name
+
+```
+'%wrong%' is not a valid HTML attribute. Did you mean '%right%'?
+```
+
+### attribute_quoted
+
+```
+Quoted attributes on components and custom elements will be stringified in a future version of Svelte. If this isn't what you want, remove the quotes
+```
+
+### bind_invalid_each_rest
+
+```
+The rest operator (...) will create a new object and binding '%name%' with the original object will not work
+```
+
+### block_empty
+
+```
+Empty block
+```
+
+### component_name_lowercase
+
+```
+`<%name%>` will be treated as an HTML element unless it begins with a capital letter
+```
+
+### css_unused_selector
+
+```
+Unused CSS selector "%name%"
+```
+
+Svelte анализирует как шаблон, так и тег `<style>`, чтобы определить, какие CSS-селекторы не используются в шаблоне, и удалить их.
+
+В некоторых случаях селектор может нацеливаться на элемент, который не «виден» компилятору — например, потому что он является частью тега `{@html ...}` или вы переопределяете стили в дочернем компоненте. В таких ситуациях используйте [`:global`](/styling/global-styles), чтобы сохранить селектор как есть:
+
+```svelte
+<div class="post">{@html content}</div>
+
+<style>
+  .post :global {
+    p {...}
+  }
+</style>
+```
+
+### element_invalid_self_closing_tag
+
+```
+Self-closing HTML tags for non-void elements are ambiguous — use `<%name% ...></%name%>` rather than `<%name% ... />`
+```
+
+В HTML [не существует самозакрывающихся тегов](https://jakearchibald.com/2023/against-self-closing-tags-in-html/). Хотя это _выглядит_ как самостоятельный элемент с текстом рядом...
+
+```html
+<div>
+	<span class="icon" /> какой-то текст!
+</div>
+```
+
+...парсер HTML, соответствующий спецификации (например, браузер), фактически обработает это следующим образом — с текстом _внутри_ иконки:
+
+```html
+<div>
+	<span class="icon"> какой-то текст! </span>
+</div>
+```
+
+Некоторые языки шаблонов (включая Svelte) «исправляют» HTML, преобразуя `<span />` в `<span></span>`. Другие строго следуют спецификации. Оба подхода создают неоднозначность и путаницу при копировании кода между разными контекстами, поэтому Svelte требует явного указания закрывающего тега.
+
+Для автоматического исправления выполните специальную миграцию:
+
+```bash
+npx sv migrate self-closing-tags
+```
+
+В будущей версии Svelte самозакрывающиеся теги могут перейти из категории предупреждений в ошибки.
+
+### event_directive_deprecated
+
+```
+Using `on:%name%` to listen to the %name% event is deprecated. Use the event attribute `on%name%` instead
+```
+
+Дополнительную информацию можно найти в [руководстве по миграции](/misc/v5-migration-guide#изменения-в-событиях).
+
+### export_let_unused
+
+```
+Component has unused export property '%name%'. If it is for external reference only, please consider using `export const %name%`
+```
+
+### legacy_code
+
+```
+`%code%` is no longer valid — please use `%suggestion%` instead
+```
+
+### legacy_component_creation
+
+```
+Svelte 5 components are no longer classes. Instantiate them using `mount` or `hydrate` (imported from 'svelte') instead.
+```
+
+Дополнительную информацию можно найти в [руководстве по миграции](/misc/v5-migration-guide#компоненты-больше-не-являются-классами).
+
+### node_invalid_placement_ssr
+
+```
+%message%. When rendering this component on the server, the resulting HTML will be modified by the browser (by moving, removing, or inserting elements), likely resulting in a `hydration_mismatch` warning
+```
+
+HTML накладывает ограничения на допустимое расположение элементов. При нарушении этих правил браузер «исправит» HTML, что нарушит ожидания Svelte относительно структуры ваших компонентов. Примеры:
+
+- `<p>привет, <div>мир</div></p>` → `<p>привет, </p><div>мир</div><p></p>` (тег `<div>` автоматически закрывает `<p>`, так как `<p>` не может содержать блочные элементы)
+- `<option><div>вариант a</div></option>` → `<option>вариант a</option>` (тег `<div>` будет удалён)
+- `<table><tr><td>ячейка</td></tr></table>` → `<table><tbody><tr><td>ячейка</td></tr></tbody></table>` (тег `<tbody>` будет добавлен автоматически)
+
+Такой код будет работать при клиентском рендеринге (поэтому это предупреждение, а не ошибка), но приведёт к ошибкам гидратации при серверном рендеринге.
+
+### non_reactive_update
+
+```
+`%name%` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+```
+
+Это предупреждение возникает, когда компилятор обнаруживает:
+- Переменную, объявленную без `$state` или `$state.raw`
+- Последующее переприсваивание этой переменной
+- Использование переменной в реактивном контексте
+
+В таких случаях изменение значения не будет корректно вызывать обновления. Пример:
+
+```svelte
+<script>
+  let reactive = $state('реактивное значение');
+  let stale = 'устаревшее значение';
+</script>
+
+<p>Это значение обновляется: {reactive}</p>
+<p>Это значение не обновляется: {stale}</p>
+
+<button onclick={() => {
+  stale = 'обновлено';
+  reactive = 'обновлено';
+}}>обновить</button>
+```
+
+Для исправления используйте `$state` при объявлении переменной.
+
+### options_deprecated_accessors
+
+```
+The `accessors` option has been deprecated. It will have no effect in runes mode
+```
+
+### options_deprecated_immutable
+
+```
+The `immutable` option has been deprecated. It will have no effect in runes mode
+```
+
+### options_missing_custom_element
+
+```
+The `customElement` option is used when generating a custom element. Did you forget the `customElement: true` compile option?
+```
+
+### options_removed_enable_sourcemap
+
+```
+The `enableSourcemap` option has been removed. Source maps are always generated now, and tooling can choose to ignore them
+```
+
+### options_removed_hydratable
+
+```
+The `hydratable` option has been removed. Svelte components are always hydratable now
+```
+
+### options_removed_loop_guard_timeout
+
+```
+The `loopGuardTimeout` option has been removed
+```
+
+### options_renamed_ssr_dom
+
+```
+`generate: "dom"` and `generate: "ssr"` options have been renamed to "client" and "server" respectively
+```
+
+### perf_avoid_inline_class
+
+```
+Avoid 'new class' — instead, declare the class at the top level scope
+```
+
+### perf_avoid_nested_class
+
+```
+Avoid declaring classes below the top level scope
+```
+
+### reactive_declaration_invalid_placement
+
+```
+Reactive declarations only exist at the top level of the instance script
+```
+
+### reactive_declaration_module_script_dependency
+
+```
+Reassignments of module-level declarations will not cause reactive statements to update
+```
+
+### script_context_deprecated
+
+```
+`context="module"` is deprecated, use the `module` attribute instead
+```
+
+```diff lang="svelte"
+- <script context="module">
++ <script module>
+  let foo = 'bar';
+</script>
+```
+
+### script_unknown_attribute
+
+```
+Unrecognized attribute — should be one of `generics`, `lang` or `module`. If this exists for a preprocessor, ensure that the preprocessor removes it
+```
+
+### slot_element_deprecated
+
+```
+Using `<slot>` to render parent content is deprecated. Use `{@render ...}` tags instead
+```
+
+Дополнительную информацию можно найти в [руководстве по миграции](/misc/v5-migration-guide#сниппеты-вместо-слотов).
+
+### state_referenced_locally
+
+```
+State referenced in its own scope will never update. Did you mean to reference it inside a closure?
+```
+
+Это предупреждение возникает, когда компилятор обнаруживает:
+- Реактивную переменную
+- Её переприсваивание
+- Использование переменной в той же области видимости, но в нереактивном контексте
+
+В этом случае переприсваивание состояния не будет замечено получателями. Например, если передать состояние в функцию, она не получит обновлений:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // Parent.svelte
+    <script>
+      import { setContext } from 'svelte';
+
+      let count = $state(0);
+
+      // предупреждение: state_referenced_locally
+      setContext('count', count);
+    </script>
+
+    <button onclick={() => count++}>
+      увеличить
+    </button>
+    ```
+
+    ```svelte
+    // Child.svelte
+    <script>
+      import { getContext } from 'svelte';
+
+      const count = getContext('count');
+    </script>
+
+    <!-- Это значение никогда не обновится -->
+    <p>Счётчик: {count}</p>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // Parent.svelte
+    <script lang="ts">
+      import { setContext } from 'svelte';
+
+      let count = $state(0);
+
+      // предупреждение: state_referenced_locally
+      setContext('count', count);
+    </script>
+
+    <button onclick={() => count++}>
+      увеличить
+    </button>
+    ```
+
+    ```svelte
+    // Child.svelte
+    <script lang="ts">
+      import { getContext } from 'svelte';
+
+      const count = getContext('count');
+    </script>
+
+    <!-- Это значение никогда не обновится -->
+    <p>Счётчик: {count}</p>
+    ```
+  </TabItem>
+</Tabs>
+
+
+Чтобы исправить это, обратитесь к переменной таким образом, чтобы её вычисление было отложенным. В приведённом примере этого можно достичь, обернув `count` в функцию:
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte "() => count"
+    // Parent.svelte
+    <script>
+      import { setContext } from 'svelte';
+
+      let count = $state(0);
+      setContext('count', () => count);
+    </script>
+
+    <button onclick={() => count++}>
+      увеличить
+    </button>
+    ```
+
+    ```svelte "count()"
+    // Child.svelte
+    <script>
+      import { getContext } from 'svelte';
+
+      const count = getContext('count');
+    </script>
+
+    <!-- Это значение обновится -->
+    <p>Счётчик: {count()}</p>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte "() => count"
+    // Parent.svelte
+    <script lang="ts">
+      import { setContext } from 'svelte';
+
+      let count = $state(0);
+      setContext('count', () => count);
+    </script>
+
+    <button onclick={() => count++}>
+      увеличить
+    </button>
+    ```
+
+    ```svelte "count()"
+    // Child.svelte
+    <script lang="ts">
+      import { getContext } from 'svelte';
+
+      const count = getContext('count');
+    </script>
+
+    <!-- Это значение обновится -->
+    <p>Счётчик: {count()}</p>
+    ```
+  </TabItem>
+</Tabs>
+
+Подробнее см. в разделе [Передача состояния в функции](/runes/state#передача-состояния-в-функции).
+
+### store_rune_conflict
+
+```
+It looks like you're using the `$%name%` rune, but there is a local binding called `%name%`. Referencing a local variable with a `$` prefix will create a store subscription. Please rename `%name%` to avoid the ambiguity
+```
+
+### svelte_component_deprecated
+
+```
+`<svelte:component>` is deprecated in runes mode — components are dynamic by default
+```
+
+В предыдущих версиях Svelte конструктор компонента фиксировался при рендеринге. То есть, если требовалось перерендерить `<X>` при изменении `X`, нужно было использовать либо `<svelte:component this={X}>`, либо блок `{#key X}...{/key}`.
+
+В Svelte 5 это больше не так — при изменении `X` компонент `<X>` будет перерендерен.
+
+В некоторых случаях синтаксис `<object.property>` может служить заменой: в Svelte 5 переменная в нижнем регистре с доступом к свойству распознаётся как компонент.
+
+Для сложной логики разрешения компонентов может потребоваться промежуточная переменная с заглавной буквы. Например, там, где можно использовать `@const`:
+
+```diff lang="svelte"
+{#each items as item}
+-  <svelte:component this={item.condition ? Y : Z} />
++  {@const Component = item.condition ? Y : Z}
++  <Component />
+{/each}
+```
+
+Производное значение может использоваться в других контекстах:
+
+```diff lang="svelte"
+<script>
+  // ...
+  let condition = $state(false);
++ const Component = $derived(condition ? Y : Z);
+</script>
+
+-<svelte:component this={condition ? Y : Z} />
++<Component />
+```
+
+### svelte_element_invalid_this
+
+```
+`this` should be an `{expression}`. Using a string attribute value will cause an error in future versions of Svelte
+```
+
+### svelte_self_deprecated
+
+```
+`<svelte:self>` is deprecated — use self-imports (e.g. `import %name% from './%basename%'`) instead
+```
+
+Подробнее см. [примечание в документации](https://svelte.dev/docs/svelte/legacy-svelte-self).
+
+### unknown_code
+
+```
+`%code%` is not a recognised code
+```
+
+```
+`%code%` is not a recognised code (did you mean `%suggestion%`?)
+```
