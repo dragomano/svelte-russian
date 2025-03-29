@@ -78,6 +78,10 @@ export default defineConfig({
         autogenerate: { directory: 'misc' },
       },
       {
+        label: 'Справочник',
+        autogenerate: { directory: 'reference' },
+      },
+      {
         label: 'Обучающие статьи и ролики',
         link: 'learning',
       },
