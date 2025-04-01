@@ -99,7 +99,7 @@ _Сквозные тесты_: Чтобы убедиться, что ваши п
 
 Если вы предпочитаете декларативный подход с HTML, существует изоморфная библиотека [svelte-routing](https://github.com/EmilTholin/svelte-routing) и её форк под названием [svelte-navigator](https://github.com/mefechoel/svelte-navigator), содержащий дополнительный функционал.
 
-Если вам нужна маршрутизация на основе хешей на стороне клиента, обратите внимание на [svelte-spa-router](https://github.com/ItalyPaleAle/svelte-spa-router) или [abstract-state-router](https://github.com/TehShrike/abstract-state-router/).
+Если вам нужна маршрутизация на основе хешей на стороне клиента, обратите внимание на [опцию `hash`](https://svelte.dev/docs/kit/configuration#router) в SvelteKit, [svelte-spa-router](https://github.com/ItalyPaleAle/svelte-spa-router), или [abstract-state-router](https://github.com/TehShrike/abstract-state-router/).
 
 [Routify](https://routify.dev) — это ещё один маршрутизатор на основе файловой системы, аналогичный маршрутизатору SvelteKit. Версия 3 поддерживает нативный SSR Svelte.
 
