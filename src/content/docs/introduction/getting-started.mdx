@@ -3,7 +3,7 @@ title: Первые шаги
 origin: https://svelte.dev/docs/svelte/getting-started
 ---
 
-Мы рекомендуем использовать [SvelteKit](https://svelte.dev/docs/kit), официальный фреймворк для разработки приложений от команды Svelte, основанный на [Vite](https://vite.dev/):
+Мы рекомендуем использовать [SvelteKit](https://svelte.dev/docs/kit), который позволяет [создавать практически что угодно](https://svelte.dev/docs/kit/project-types). Это официальный фреймворк для разработки приложений от команды Svelte, работающий на базе [Vite](https://vite.dev/). Создайте новый проект с помощью команды:
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
@@ -39,6 +39,10 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 ## Альтернативы SvelteKit
 
 Вы также можете использовать Svelte напрямую с Vite, запустив команду `npm create vite@latest` и выбрав опцию `svelte`. В этом случае команда `npm run build` сгенерирует файлы HTML, JS и CSS в директории `dist`, используя [vite-plugin-svelte](https://github.com/sveltejs/vite-plugin-svelte). В большинстве случаев вам, вероятно, потребуется [выбрать библиотеку маршрутизации](/misc/faq#есть-ли-роутер).
+
+:::note
+Vite часто используется в автономном режиме для сборки [одностраничных приложений (SPA)](https://svelte.dev/docs/kit/glossary#SPA), которые также можно [создавать с помощью SvelteKit](https://svelte.dev/docs/kit/single-page-apps).
+:::
 
 Существуют также плагины для [Rollup](https://github.com/sveltejs/rollup-plugin-svelte), [Webpack](https://github.com/sveltejs/svelte-loader) [и нескольких других](https://sveltesociety.dev/packages?category=build-plugins), но мы рекомендуем Vite.
 
