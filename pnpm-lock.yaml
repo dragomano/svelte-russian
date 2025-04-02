@@ -29,6 +29,9 @@ importers:
       starlight-showcases:
         specifier: ^0.3.0
         version: 0.3.0(@astrojs/starlight@0.32.5(astro@5.5.5(rollup@4.38.0)(typescript@5.8.2)))(astro@5.5.5(rollup@4.38.0)(typescript@5.8.2))
+      starlight-theme-nova:
+        specifier: ^0.1.1
+        version: 0.1.1(typescript@5.8.2)
       svelte:
         specifier: ^5.25.3
         version: 5.25.3
@@ -41,6 +44,60 @@ packages:
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
+
+  '@aria-ui/core@0.0.21':
+    resolution: {integrity: sha512-b39+C2Ao7QP+bpvBQSFK5Uf/2f+htYo4KSS8BdnoJ/npvVNTXtcyhHPughZGUOHj1gKGvxi+2rdEhGus/UVsNw==}
+
+  '@aria-ui/overlay@0.0.24':
+    resolution: {integrity: sha512-kXIzQ7DtRtlSbN1tbT504M1J5HzF0U+ZvEv/f2ONiY3yu7BlZeMKJPF4MXcvl3vQhB/joFyoqXb47OyJvHVkxA==}
+
+  '@aria-ui/presence@0.0.19':
+    resolution: {integrity: sha512-YUWo9JmYFhv20XAto85t3N7YDO+f5VoBiDbT77iurOU2ktyFZ1NLrMDh6S6rpDS+k106h0mA5iItpiYHx4kr6Q==}
+
+  '@aria-ui/tooltip@0.0.29':
+    resolution: {integrity: sha512-U1h430e9c9frIHB/3BPUJNpu0PUeY3La99QQPA53Rn2tC+Up9B0MS9arwROOnkpEKfdEzCczlHTyxnLx9wfGdA==}
+
+  '@ariatype/aria-attributes-drag-and-drop@1.0.1':
+    resolution: {integrity: sha512-C1cZHJuL2e0dhFv0tgyHNPd+WC5oMlzqRxiKQlluyQakWoOoxRIHJbRNd7EajXdu6rwTKgfxZE9ag8gSKnFiKQ==}
+
+  '@ariatype/aria-attributes-global@1.0.1':
+    resolution: {integrity: sha512-f0lqlhAJdAjC/RswZ1nK39GZyi60U4pBIItLVwiN28n1q0Pi3nGEVCu5iSN3TvwMtasgsWMB8cuQ96jd2GDe+Q==}
+
+  '@ariatype/aria-attributes-live-region@1.0.1':
+    resolution: {integrity: sha512-P7K9EOh/qyh+7p7SZQ/2MiZwwHDWkTStlbql3ZpI6i+4FwS23PvwCXjhPIIiHn6lrw1tNV5zXBTWOzEBWmHgVw==}
+
+  '@ariatype/aria-attributes-relationship@1.0.1':
+    resolution: {integrity: sha512-vg3TgzCFQvhIUJiKV+k086KKa+yJ7g472nJLEYpTTeyh5qp3UY/llxORWAgMVYjBRgHp7RDDtr2KBUS/yNzfqw==}
+
+  '@ariatype/aria-attributes-widget@1.0.1':
+    resolution: {integrity: sha512-ualglvS5d/55Y+tUAcymx2xslSiBMCBJJwkzZ9fq60d7At7Rf2m5lr1KFxBGAdWEo00qj2DgAXXbbKH0927Dzg==}
+
+  '@ariatype/aria-attributes@1.0.1':
+    resolution: {integrity: sha512-pnwf/p4gciKU0SCzAmZWMpL8ZubyKGcKa1ruhzpTVuRXT8VYtqcajtWXrHKAK7071YLS1v0tAKpCHB2tZmVfUg==}
+
+  '@ariatype/aria-roles-composite@1.0.1':
+    resolution: {integrity: sha512-Snhi7xDDoQKDu+57GrN/JC9dWmnBIAPBYzKqFr+1eIJjsieiHTSIL8NyZcTqTIJVAm2J4zNPkT4UvIJPW9lEvw==}
+
+  '@ariatype/aria-roles-document-structure@1.0.1':
+    resolution: {integrity: sha512-+BMQ8DmVINg0erDSwf6RxrV68Ry3ou2IZnnVJba23KZVM+PNw6UwL055N1N68fNgizX2nrd3ectDtsq6DazCzQ==}
+
+  '@ariatype/aria-roles-generic@1.0.1':
+    resolution: {integrity: sha512-797pOcQndj3VSAW4/M+Fb4sh8SjyB9NrWWB/Q2DCBsrFxRzjlPf+jCL78knKOkllp0UJErtKSjWyz8KrDr9edQ==}
+
+  '@ariatype/aria-roles-landmark@1.0.1':
+    resolution: {integrity: sha512-oVlgz1d30aGbkonCe08nyM2xMkaqANsfYO3c8cWM/Gqbow7FCtdejOYjXjhz2q99MGltd7Gla9htAhGYK7vROw==}
+
+  '@ariatype/aria-roles-live-region@1.0.1':
+    resolution: {integrity: sha512-VTIchI0cg2a1HTPB5JcmzboS5YA6MXFNnvEx0K+gRDzLL0AJgwQS2yxHyDcPt6GUyE/N8/Ul1fg4njl+Qp0jiA==}
+
+  '@ariatype/aria-roles-widget@1.0.1':
+    resolution: {integrity: sha512-7TYRjcmRV7m+7XJ4619jGb72qX4GrmCU/AHFN58ro1yYXwSb6THd4xHMc0fDjO2yXTFy0HNIyZ/d3ZpJsoAIpw==}
+
+  '@ariatype/aria-roles-window@1.0.1':
+    resolution: {integrity: sha512-laLPFW9UUcNvCyBiv+dSa+tzIUODZMLOPoNkjFpbCBYSlW65QhvvA8o7sah4TS+L7v6qr7jFrGlVq2LPadBLJQ==}
+
+  '@ariatype/aria-roles@1.0.1':
+    resolution: {integrity: sha512-5XhX1IKcMWIqbQonV20C8lcAzg+pErGLWRK2Itam01F1I6YPxj1zC+52bE5M0seoK9UmJc2qHs6777a8cY9atw==}
 
   '@astro-community/astro-embed-twitter@0.5.8':
     resolution: {integrity: sha512-O2ptQPw+DfipukK8czjJcTcyVgDsrs3OmrHbc3YmWRglaUTOpSTImzPo076POyNBSWjLaRKloul81DFiAMNjTA==}
@@ -284,6 +341,15 @@ packages:
   '@expressive-code/plugin-text-markers@0.40.2':
     resolution: {integrity: sha512-/XoLjD67K9nfM4TgDlXAExzMJp6ewFKxNpfUw4F7q5Ecy+IU3/9zQQG/O70Zy+RxYTwKGw2MA9kd7yelsxnSmw==}
 
+  '@floating-ui/core@1.6.9':
+    resolution: {integrity: sha512-uMXCuQ3BItDUbAMhIXw7UPXRfAlOAvZzdK9BWpE60MCn+Svt3aLn9jsPTi/WNGlRUu2uI0v5S7JiIUsbsvh3fw==}
+
+  '@floating-ui/dom@1.6.13':
+    resolution: {integrity: sha512-umqzocjDgNRGTuO7Q8CU32dkHkECqI8ZdMZ5Swb6QAM0t5rnlrN3lGo1hdpscRd3WS8T6DKYK4ephgIH9iRh3w==}
+
+  '@floating-ui/utils@0.2.9':
+    resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
+
   '@img/sharp-darwin-arm64@0.33.5':
     resolution: {integrity: sha512-UT4p+iz/2H4twwAoLCqfA9UH5pI6DggwKEGuaPy7nCVQ8ZsiY5PIcrRvD1DzuY3qYL07NtIQcWnBSY/heikIFQ==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
@@ -407,6 +473,9 @@ packages:
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
 
+  '@lit-labs/ssr-dom-shim@1.3.0':
+    resolution: {integrity: sha512-nQIWonJ6eFAvUUrSlwyHDm/aE8PBDu5kRpL0vHMg6K8fK3Diq1xdPjTnsJSwxABhaZ+5eBi1btQB5ShUTKo4nQ==}
+
   '@mdx-js/mdx@3.1.0':
     resolution: {integrity: sha512-/QxEhPAvGwbQmy1Px8F899L5Uc2KZ6JtXwlCgJmjSTBedwOZkByYcBG4GceIGPXRDsmfxhHazuS+hlOShRLeDw==}
 
@@ -440,6 +509,9 @@ packages:
     resolution: {integrity: sha512-BR1bIRWOMqkf8IoU576YDhij1Wd/Zf2kX/kCI0b2qzCKC8wcc2GQJaaRMCpzvCCrmliO4vtJ6RITp/AnoYUUmQ==}
     cpu: [x64]
     os: [win32]
+
+  '@preact/signals-core@1.8.0':
+    resolution: {integrity: sha512-OBvUsRZqNmjzCZXWLxkZfhcgT+Fk8DDcT/8vD6a1xhDemodyy87UJRJfASMuSD8FaAIeGgGm85ydXhm7lr4fyA==}
 
   '@rollup/pluginutils@5.1.4':
     resolution: {integrity: sha512-USm05zrsFxYLPdWWq+K3STlWiT/3ELn3RcV5hJMghpeAIhxfsUIg6mt12CBJBInWMV4VneoV7SfGv8xIwo2qNQ==}
@@ -580,6 +652,14 @@ packages:
   '@shikijs/themes@3.2.1':
     resolution: {integrity: sha512-k5DKJUT8IldBvAm8WcrDT5+7GA7se6lLksR+2E3SvyqGTyFMzU2F9Gb7rmD+t+Pga1MKrYFxDIeyWjMZWM6uBQ==}
 
+  '@shikijs/transformers@3.2.1':
+    resolution: {integrity: sha512-oIT40p8LOPV/6XLnUrVPeRtJtbu0Mpl+BjGFuMXw870eX9zTSQlidg7CsksFDVyUiSAOC/CH1RQm+ldZp0/6eQ==}
+
+  '@shikijs/twoslash@3.2.1':
+    resolution: {integrity: sha512-2ZiL9xXY8JRXHG5BdJXE9KoIeSsyH9/yK+YTN90/SUIKkq7Nf5dWqXp5wJ6+4SL0FQO8mq2HUutwqU+gamOgOA==}
+    peerDependencies:
+      typescript: '>=5.5.0'
+
   '@shikijs/types@1.29.2':
     resolution: {integrity: sha512-VJjK0eIijTZf0QSTODEXCqinjBn0joAHQ+aPSBzrv4O2d/QSbsMw+ZeSRx03kV34Hy7NzUvV/7NqfYGRLrASmw==}
 
@@ -651,8 +731,19 @@ packages:
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
 
+  '@typescript/vfs@1.6.1':
+    resolution: {integrity: sha512-JwoxboBh7Oz1v38tPbkrZ62ZXNHAk9bJ7c9x0eI5zBfBnBYGhURdbnh7Z4smN/MV48Y5OCcZb58n972UtbazsA==}
+    peerDependencies:
+      typescript: '*'
+
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
+
+  '@zag-js/dom-query@1.7.0':
+    resolution: {integrity: sha512-cj+mKB7Sj7mqAepHMsbV4bGvDJfUYCt4d4ruYw0dVpDa1Z9N38TtztTznfrm9kuqOYcJkgE0q3Rn/kPLi8rK8g==}
+
+  '@zag-js/types@1.7.0':
+    resolution: {integrity: sha512-rmPonVc8EBOGIEJYjzWIBQ6LJwUMc3LnipRREECO+n7LNlUQUliCOFbHw1UOGP+4ZkCKmxjGFR3jLtjY8aN4gQ==}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -704,6 +795,9 @@ packages:
     resolution: {integrity: sha512-yJMQId0yXSAbW9I6yqvJ3FcjKzJ8zRL7elbJbllkv1ZJPlsI0NI83Pxn1YL1IapEM347EvOOkSW2GL+2+NO61w==}
     peerDependencies:
       astro: ^4.0.0-beta || ^5.0.0-beta || ^3.3.0
+
+  astro-theme-toggle@0.6.0:
+    resolution: {integrity: sha512-Pe2DTeckxJaspMXNWbHzhn3fQq6K4JTEZ/Gutehgty6qzfLWehsGPFtsKOhsS0r2EOK18MaUnONliE5+sDBLYw==}
 
   astro@5.5.5:
     resolution: {integrity: sha512-fdnnK5dhWNIQT/cXzvaGs9il4T5noi4jafobdntbuNOrRxI1JnOxDfrtBadUo6cknCRCFhYrXh4VndCqj1a4Sg==}
@@ -822,6 +916,9 @@ packages:
 
   cssom@0.5.0:
     resolution: {integrity: sha512-iKuQcq+NdHqlAcwUY0o/HL69XQrUaQdMjmStJ8JFmUaiiQErlhrmuigkg/CU4E2J0IyUKUrMAgl36TvN67MqTw==}
+
+  csstype@3.1.3:
+    resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
 
   debug@4.4.0:
     resolution: {integrity: sha512-6WTZ/IxCY/T6BALoZHaE4ctp9xm+Z5kY/pzYaCHRFeyVhojxlrm+46y68HA6hr0TcwEssoxNiDEUJQjfPZ/RYA==}
@@ -1126,6 +1223,12 @@ packages:
     resolution: {integrity: sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==}
     hasBin: true
 
+  just-kebab-case@4.2.0:
+    resolution: {integrity: sha512-p2BdO7o4BI+pMun3J+dhaOfYan5JsZrw9wjshRjkWY9+p+u+kKSMhNWYnot2yHDR9CSahZ9iT3dcqJ+V72qHMw==}
+
+  just-map-values@3.2.0:
+    resolution: {integrity: sha512-TyqCKtK3NxiUgOjRYMIKURvBTHesi3XzomDY0QVPZ3rYzLCF+nNq5rSi0B/L5aOd/WMTZo6ukzA4wih4HUbrDg==}
+
   kleur@3.0.3:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
     engines: {node: '>=6'}
@@ -1343,6 +1446,11 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
+  nanoid@5.1.5:
+    resolution: {integrity: sha512-Ir/+ZpE9fDsNH0hQ3C68uyThDXzYcim2EqcZ8zn8Chtt1iylPT9xXJB0kPCnqzgcEGikO9RxSrh63MsmVCU7Fw==}
+    engines: {node: ^18 || >=20}
+    hasBin: true
+
   neotraverse@0.6.18:
     resolution: {integrity: sha512-Z4SmBUweYa09+o6pG+eASabEpP6QkQ70yHj351pQoEXIs8uHbaU2DWVmzBANKgflPa47A50PtB2+NgRpQvr7vA==}
     engines: {node: '>= 10'}
@@ -1553,9 +1661,15 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  server-dom-shim@1.0.2:
+    resolution: {integrity: sha512-6MTS2ouF/fXZMUdPzAzPOXgeuIwj3wNianF4BYEmFC5XdCLIAkNkUSxHk0kW58nObQnyHc6wp4wL7xdt3m7X+Q==}
+
   sharp@0.33.5:
     resolution: {integrity: sha512-haPVm1EkS9pgvHrQ/F3Xy+hgcuMV0Wm9vfIBSiwZ05k+xgb0PkBQpGsAA/oWdDobNaZTH5ppvHtzCFbnSEwHVw==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+
+  shiki-twoslash-renderer@0.0.2:
+    resolution: {integrity: sha512-PX5/1EdGGe4pyVPkqbdufX/8a0civ3XitpeEPoc8gBYjehNS7BaS3UlAKpvc5951gN7+NGaS7xkQ9K3jCjJ3Pg==}
 
   shiki@1.29.2:
     resolution: {integrity: sha512-njXuliz/cP+67jU2hukkxCNuH1yUi4QfdZZY+sMr5PPrIyXSu5iTb/qYC4BiWWB0vZ+7TbdvYUCeL23zpwCfbg==}
@@ -1606,6 +1720,9 @@ packages:
     engines: {node: '>=18'}
     peerDependencies:
       '@astrojs/starlight': '>=0.30.0'
+
+  starlight-theme-nova@0.1.1:
+    resolution: {integrity: sha512-idnhZ18jxtphxAGA+OHcACedKfIpAn1qEU3q0SXxA5LPozBd6Sw9xvrQKRgWATI5nejr8Gd4snSUEy/9ATUI2g==}
 
   stream-replace-string@2.0.0:
     resolution: {integrity: sha512-TlnjJ1C0QrmxRNrON00JvaFFlNh5TTG00APw23j74ET7gkQpTASi6/L2fuiav8pzK715HXtUeClpBTw2NPSn6w==}
@@ -1670,6 +1787,14 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+
+  twoslash-protocol@0.3.1:
+    resolution: {integrity: sha512-BMePTL9OkuNISSyyMclBBhV2s9++DiOCyhhCoV5Kaht6eaWLwVjCCUJHY33eZJPsyKeZYS8Wzz0h+XI01VohVw==}
+
+  twoslash@0.3.1:
+    resolution: {integrity: sha512-OGqMTGvqXTcb92YQdwGfEdK0nZJA64Aj/ChLOelbl3TfYch2IoBST0Yx4C0LQ7Lzyqm9RpgcpgDxeXQIz4p2Kg==}
+    peerDependencies:
+      typescript: ^5.5.0
 
   type-fest@4.38.0:
     resolution: {integrity: sha512-2dBz5D5ycHIoliLYLi0Q2V7KRaDlH0uWIvmk7TYlAg5slqwiPv1ezJdZm1QEM0xgk29oYWMCbIG7E6gHpvChlg==}
@@ -1904,6 +2029,89 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.8
       '@jridgewell/trace-mapping': 0.3.25
+
+  '@aria-ui/core@0.0.21':
+    dependencies:
+      '@ariatype/aria-attributes': 1.0.1
+      '@ariatype/aria-roles': 1.0.1
+      '@preact/signals-core': 1.8.0
+      '@zag-js/dom-query': 1.7.0
+      just-kebab-case: 4.2.0
+      just-map-values: 3.2.0
+      server-dom-shim: 1.0.2
+
+  '@aria-ui/overlay@0.0.24':
+    dependencies:
+      '@aria-ui/core': 0.0.21
+      '@floating-ui/dom': 1.6.13
+      '@floating-ui/utils': 0.2.9
+      '@zag-js/dom-query': 1.7.0
+
+  '@aria-ui/presence@0.0.19':
+    dependencies:
+      '@aria-ui/core': 0.0.21
+      '@zag-js/dom-query': 1.7.0
+
+  '@aria-ui/tooltip@0.0.29':
+    dependencies:
+      '@aria-ui/core': 0.0.21
+      '@aria-ui/overlay': 0.0.24
+      '@aria-ui/presence': 0.0.19
+      nanoid: 5.1.5
+
+  '@ariatype/aria-attributes-drag-and-drop@1.0.1': {}
+
+  '@ariatype/aria-attributes-global@1.0.1': {}
+
+  '@ariatype/aria-attributes-live-region@1.0.1': {}
+
+  '@ariatype/aria-attributes-relationship@1.0.1': {}
+
+  '@ariatype/aria-attributes-widget@1.0.1': {}
+
+  '@ariatype/aria-attributes@1.0.1':
+    dependencies:
+      '@ariatype/aria-attributes-drag-and-drop': 1.0.1
+      '@ariatype/aria-attributes-global': 1.0.1
+      '@ariatype/aria-attributes-live-region': 1.0.1
+      '@ariatype/aria-attributes-relationship': 1.0.1
+      '@ariatype/aria-attributes-widget': 1.0.1
+
+  '@ariatype/aria-roles-composite@1.0.1':
+    dependencies:
+      '@ariatype/aria-roles-generic': 1.0.1
+
+  '@ariatype/aria-roles-document-structure@1.0.1':
+    dependencies:
+      '@ariatype/aria-roles-generic': 1.0.1
+
+  '@ariatype/aria-roles-generic@1.0.1': {}
+
+  '@ariatype/aria-roles-landmark@1.0.1':
+    dependencies:
+      '@ariatype/aria-roles-generic': 1.0.1
+
+  '@ariatype/aria-roles-live-region@1.0.1':
+    dependencies:
+      '@ariatype/aria-roles-generic': 1.0.1
+
+  '@ariatype/aria-roles-widget@1.0.1':
+    dependencies:
+      '@ariatype/aria-roles-generic': 1.0.1
+
+  '@ariatype/aria-roles-window@1.0.1':
+    dependencies:
+      '@ariatype/aria-roles-generic': 1.0.1
+
+  '@ariatype/aria-roles@1.0.1':
+    dependencies:
+      '@ariatype/aria-roles-composite': 1.0.1
+      '@ariatype/aria-roles-document-structure': 1.0.1
+      '@ariatype/aria-roles-generic': 1.0.1
+      '@ariatype/aria-roles-landmark': 1.0.1
+      '@ariatype/aria-roles-live-region': 1.0.1
+      '@ariatype/aria-roles-widget': 1.0.1
+      '@ariatype/aria-roles-window': 1.0.1
 
   '@astro-community/astro-embed-twitter@0.5.8(astro@5.5.5(rollup@4.38.0)(typescript@5.8.2))':
     dependencies:
@@ -2167,6 +2375,17 @@ snapshots:
     dependencies:
       '@expressive-code/core': 0.40.2
 
+  '@floating-ui/core@1.6.9':
+    dependencies:
+      '@floating-ui/utils': 0.2.9
+
+  '@floating-ui/dom@1.6.13':
+    dependencies:
+      '@floating-ui/core': 1.6.9
+      '@floating-ui/utils': 0.2.9
+
+  '@floating-ui/utils@0.2.9': {}
+
   '@img/sharp-darwin-arm64@0.33.5':
     optionalDependencies:
       '@img/sharp-libvips-darwin-arm64': 1.0.4
@@ -2259,6 +2478,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
+  '@lit-labs/ssr-dom-shim@1.3.0': {}
+
   '@mdx-js/mdx@3.1.0(acorn@8.14.1)':
     dependencies:
       '@types/estree': 1.0.7
@@ -2307,6 +2528,8 @@ snapshots:
 
   '@pagefind/windows-x64@1.3.0':
     optional: true
+
+  '@preact/signals-core@1.8.0': {}
 
   '@rollup/pluginutils@5.1.4(rollup@4.38.0)':
     dependencies:
@@ -2430,6 +2653,20 @@ snapshots:
     dependencies:
       '@shikijs/types': 3.2.1
 
+  '@shikijs/transformers@3.2.1':
+    dependencies:
+      '@shikijs/core': 3.2.1
+      '@shikijs/types': 3.2.1
+
+  '@shikijs/twoslash@3.2.1(typescript@5.8.2)':
+    dependencies:
+      '@shikijs/core': 3.2.1
+      '@shikijs/types': 3.2.1
+      twoslash: 0.3.1(typescript@5.8.2)
+      typescript: 5.8.2
+    transitivePeerDependencies:
+      - supports-color
+
   '@shikijs/types@1.29.2':
     dependencies:
       '@shikijs/vscode-textmate': 10.0.2
@@ -2508,7 +2745,22 @@ snapshots:
 
   '@types/unist@3.0.3': {}
 
+  '@typescript/vfs@1.6.1(typescript@5.8.2)':
+    dependencies:
+      debug: 4.4.0
+      typescript: 5.8.2
+    transitivePeerDependencies:
+      - supports-color
+
   '@ungap/structured-clone@1.3.0': {}
+
+  '@zag-js/dom-query@1.7.0':
+    dependencies:
+      '@zag-js/types': 1.7.0
+
+  '@zag-js/types@1.7.0':
+    dependencies:
+      csstype: 3.1.3
 
   acorn-jsx@5.3.2(acorn@8.14.1):
     dependencies:
@@ -2545,6 +2797,8 @@ snapshots:
     dependencies:
       astro: 5.5.5(rollup@4.38.0)(typescript@5.8.2)
       rehype-expressive-code: 0.40.2
+
+  astro-theme-toggle@0.6.0: {}
 
   astro@5.5.5(rollup@4.38.0)(typescript@5.8.2):
     dependencies:
@@ -2737,6 +2991,8 @@ snapshots:
   cssesc@3.0.0: {}
 
   cssom@0.5.0: {}
+
+  csstype@3.1.3: {}
 
   debug@4.4.0:
     dependencies:
@@ -3175,6 +3431,10 @@ snapshots:
   js-yaml@4.1.0:
     dependencies:
       argparse: 2.0.1
+
+  just-kebab-case@4.2.0: {}
+
+  just-map-values@3.2.0: {}
 
   kleur@3.0.3: {}
 
@@ -3679,6 +3939,8 @@ snapshots:
 
   nanoid@3.3.11: {}
 
+  nanoid@5.1.5: {}
+
   neotraverse@0.6.18: {}
 
   nlcst-to-string@4.0.0:
@@ -4012,6 +4274,10 @@ snapshots:
 
   semver@7.7.1: {}
 
+  server-dom-shim@1.0.2:
+    dependencies:
+      '@lit-labs/ssr-dom-shim': 1.3.0
+
   sharp@0.33.5:
     dependencies:
       color: 4.2.3
@@ -4037,6 +4303,17 @@ snapshots:
       '@img/sharp-wasm32': 0.33.5
       '@img/sharp-win32-ia32': 0.33.5
       '@img/sharp-win32-x64': 0.33.5
+
+  shiki-twoslash-renderer@0.0.2(typescript@5.8.2):
+    dependencies:
+      '@aria-ui/core': 0.0.21
+      '@aria-ui/tooltip': 0.0.29
+      '@shikijs/twoslash': 3.2.1(typescript@5.8.2)
+      '@shikijs/types': 3.2.1
+      '@types/hast': 3.0.4
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
 
   shiki@1.29.2:
     dependencies:
@@ -4108,6 +4385,18 @@ snapshots:
       '@astrojs/starlight': 0.32.5(astro@5.5.5(rollup@4.38.0)(typescript@5.8.2))
     transitivePeerDependencies:
       - astro
+
+  starlight-theme-nova@0.1.1(typescript@5.8.2):
+    dependencies:
+      '@shikijs/transformers': 3.2.1
+      '@shikijs/twoslash': 3.2.1(typescript@5.8.2)
+      '@shikijs/types': 3.2.1
+      astro-theme-toggle: 0.6.0
+      hast-util-is-element: 3.0.0
+      shiki-twoslash-renderer: 0.0.2(typescript@5.8.2)
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
 
   stream-replace-string@2.0.0: {}
 
@@ -4184,6 +4473,16 @@ snapshots:
       typescript: 5.8.2
 
   tslib@2.8.1: {}
+
+  twoslash-protocol@0.3.1: {}
+
+  twoslash@0.3.1(typescript@5.8.2):
+    dependencies:
+      '@typescript/vfs': 1.6.1(typescript@5.8.2)
+      twoslash-protocol: 0.3.1
+      typescript: 5.8.2
+    transitivePeerDependencies:
+      - supports-color
 
   type-fest@4.38.0: {}
 
