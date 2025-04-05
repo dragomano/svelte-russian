@@ -1,0 +1,38 @@
+---
+title: Общая информация
+origin: https://svelte.dev/docs/cli/overview
+sidebar:
+  order: 0
+---
+
+Утилита командной строки `sv` представляет собой инструмент для создания и сопровождения Svelte-приложений.
+
+## Использование
+
+Самый простой способ запустить `sv` — с помощью [`npx`](https://docs.npmjs.com/cli/v8/commands/npx) (или эквивалентной команды, если вы используете другой менеджер пакетов):
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem icon="seti:npm" label="npm">
+    ```sh
+    npx sv <команда> <аргументы>
+    ```
+  </TabItem>
+  <TabItem icon="pnpm" label="pnpm">
+    ```sh
+    pnpx sv <команда> <аргументы>
+    ```
+  </TabItem>
+  <TabItem icon="seti:yarn" label="yarn">
+    ```sh
+    yarn dlx sv <команда> <аргументы>
+    ```
+  </TabItem>
+</Tabs>
+
+Если вы находитесь внутри проекта, где `sv` уже установлен, будет использована локальная версия. В противном случае загрузится последняя версия, которая запустится без установки — это особенно удобно для команды [`sv create`](/cli/commands/sv-create).
+
+## Благодарности
+
+Спасибо Кристоферу Брауну, который изначально владел именем `sv` в npm, за любезное разрешение использовать его для Svelte CLI. Оригинальный пакет `sv` можно найти здесь: [@chbrown/sv](https://www.npmjs.com/package/@chbrown/sv).
