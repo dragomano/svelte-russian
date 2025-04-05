@@ -8,7 +8,7 @@ origin: https://svelte.dev/docs/svelte/getting-started
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 <Tabs syncKey="starlight-package-managers-pkg">
-  <TabItem label="npm">
+  <TabItem icon="seti:npm" label="npm">
     ```sh
     npx sv create myapp
     cd myapp
@@ -16,7 +16,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
     npm run dev
     ```
   </TabItem>
-  <TabItem label="pnpm">
+  <TabItem icon="pnpm" label="pnpm">
     ```sh
     pnpx sv create myapp
     cd myapp
@@ -24,7 +24,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
     pnpm run dev
     ```
   </TabItem>
-  <TabItem label="yarn">
+  <TabItem icon="seti:yarn" label="yarn">
     ```sh
     yarn dlx sv create myapp
     cd myapp
