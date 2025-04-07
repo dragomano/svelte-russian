@@ -1,0 +1,307 @@
+---
+title: Предупреждения рантайма
+origin: https://svelte.dev/docs/svelte/runtime-warnings
+sidebar:
+  order: 17
+---
+
+## Клиентские предупреждения
+
+### assignment_value_stale
+
+```
+Assignment to `%property%` property (%location%) will evaluate to the right-hand side, not the value of `%property%` following the assignment. This may result in unexpected behaviour.
+```
+
+Рассмотрим следующий случай:
+
+```svelte
+<script>
+  let object = $state({ array: null });
+
+  function add() {
+    (object.array ??= []).push(object.array.length);
+  }
+</script>
+
+<button onclick={add}>добавить</button>
+<p>элементы: {JSON.stringify(object.items)}</p>
+```
+
+...массив, в который происходит добавление при первом клике на кнопку, — это `[]` в правой части присваивания, но итоговое значение `object.array` становится пустым прокси-объектом состояния. В результате добавленное значение будет потеряно.
+
+Исправить это можно, разделив операцию на два отдельных выражения:
+
+```js
+function add() {
+  object.array ??= [];
+  object.array.push(object.array.length);
+}
+```
+
+### binding_property_non_reactive
+
+```
+`%binding%` is binding to a non-reactive property
+```
+
+```
+`%binding%` (%location%) is binding to a non-reactive property
+```
+
+### console_log_state
+
+```
+Your `console.%method%` contained `$state` proxies. Consider using `$inspect(...)` or `$state.snapshot(...)` instead
+```
+
+При логировании [прокси](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Proxy) инструменты разработчика в браузере выводят сам прокси, а не значение, которое он представляет. В случае со Svelte, `target` (целевой объект) прокси `$state` может не соответствовать текущему значению, что может сбивать с толку.
+
+Самый простой способ залогировать изменяющееся значение — использовать руну [`$inspect`](/runes/inspect). В качестве альтернативы, для разового логирования (например, в обработчике событий) можно использовать [`$state.snapshot`](/runes/state#statesnapshot), чтобы получить снимок текущего значения.
+
+### event_handler_invalid
+
+```
+%handler% should be a function. Did you mean to %suggestion%?
+```
+
+### hydration_attribute_changed
+
+```
+The `%attribute%` attribute on `%html%` changed its value between server and client renders. The client value, `%value%`, will be ignored in favour of the server value
+```
+
+Некоторые атрибуты, такие как `src` у элемента `<img>`, не будут обновляться во время гидратации — серверное значение останется без изменений. Это происходит потому, что обновление этих атрибутов может привести к повторной загрузке изображения (или, в случае `<iframe>`, к перезагрузке фрейма), даже если они ссылаются на тот же ресурс.
+
+Чтобы исправить это:
+- Либо отключите предупреждение комментарием [`svelte-ignore`](/template-syntax/basic-markup#комментарии)
+- Либо убедитесь, что значение одинаково на сервере и клиенте
+
+Если вам действительно нужно изменить значение при гидратации, можно принудительно обновить его так:
+
+```svelte
+<script>
+  let { src } = $props();
+
+  if (typeof window !== 'undefined') {
+    // сохраняем исходное значение...
+    const initial = src;
+
+    // сбрасываем его...
+    src = undefined;
+
+    $effect(() => {
+      // ...и восстанавливаем после монтирования
+      src = initial;
+    });
+  }
+</script>
+
+<img {src} />
+```
+
+### hydration_html_changed
+
+```
+The value of an `{@html ...}` block changed between server and client renders. The client value will be ignored in favour of the server value
+```
+
+```
+The value of an `{@html ...}` block %location% changed between server and client renders. The client value will be ignored in favour of the server value
+```
+
+Если значение `{@html ...}` отличается на сервере и клиенте, оно не будет исправлено при гидратации — останется серверное значение. Это происходит потому, что обнаружение изменений во время гидратации требует много ресурсов и обычно не нужно.
+
+Чтобы исправить это:
+- Либо отключите предупреждение комментарием [`svelte-ignore`](/template-syntax/basic-markup#комментарии)
+- Либо убедитесь, что значение одинаково на сервере и клиенте
+
+Если вам действительно нужно изменить значение при гидратации, можно принудительно обновить его так:
+
+```svelte
+<script>
+  let { markup } = $props();
+
+  if (typeof window !== 'undefined') {
+    // сохраняем исходное значение...
+    const initial = markup;
+
+    // сбрасываем его...
+    markup = undefined;
+
+    $effect(() => {
+      // ...и восстанавливаем после монтирования
+      markup = initial;
+    });
+  }
+</script>
+
+{@html markup}
+```
+
+### hydration_mismatch
+
+```
+Hydration failed because the initial UI does not match what was rendered on the server
+```
+
+```
+Hydration failed because the initial UI does not match what was rendered on the server. The error occurred near %location%
+```
+
+Это предупреждение появляется, когда Svelte сталкивается с ошибкой при гидратации HTML с сервера. Во время гидратации Svelte анализирует DOM, ожидая определённой структуры. Если структура отличается (например, из-за того, что браузер автоматически исправил некорректный HTML), Svelte не сможет корректно выполнить гидратацию, что приводит к этому предупреждению.
+
+В режиме разработки этой ошибке часто предшествует `console.error` с подробным описанием проблемного HTML, который требует исправления.
+
+### invalid_raw_snippet_render
+
+```
+The `render` function passed to `createRawSnippet` should return HTML for a single element
+```
+
+### legacy_recursive_reactive_block
+
+```
+Detected a migrated `$:` reactive block in `%filename%` that both accesses and updates the same reactive value. This may cause recursive updates when converted to an `$effect`.
+```
+
+### lifecycle_double_unmount
+
+```
+Tried to unmount a component that was not mounted
+```
+
+### ownership_invalid_binding
+
+```
+%parent% passed a value to %child% with `bind:`, but the value is owned by %owner%. Consider creating a binding between %owner% and %parent%
+```
+
+Рассмотрим три компонента: `GrandParent`, `Parent` и `Child`. Если вы используете `<GrandParent bind:value>`, внутри `GrandParent` передаёте переменную через `<Parent {value} />` (обратите внимание на отсутствие `bind:`), а затем используете `<Child bind:value>` внутри `Parent`, то будет вызвано это предупреждение.
+
+Чтобы исправить ситуацию, используйте `bind:` при передаче значения вместо простого свойства (в данном примере следует сделать `<Parent bind:value />`).
+
+### ownership_invalid_mutation
+
+```
+Mutating a value outside the component that created it is strongly discouraged. Consider passing values to child components with `bind:`, or use a callback instead
+```
+
+```
+%component% mutated a value owned by %owner%. This is strongly discouraged. Consider passing values to child components with `bind:`, or use a callback instead
+```
+
+Рассмотрим следующий код:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      import Child from './Child.svelte';
+      let person = $state({ name: 'Florida', surname: 'Man' });
+    </script>
+
+    <Child {person} />
+    ```
+
+    ```svelte
+    // Child.svelte
+    <script>
+      let { person } = $props();
+    </script>
+
+    <input bind:value={person.name}>
+    <input bind:value={person.surname}>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      import Child from './Child.svelte';
+      let person = $state({ name: 'Florida', surname: 'Man' });
+    </script>
+
+    <Child {person} />
+    ```
+
+    ```svelte
+    // Child.svelte
+    <script lang="ts">
+      let { person } = $props();
+    </script>
+
+    <input bind:value={person.name}>
+    <input bind:value={person.surname}>
+    ```
+  </TabItem>
+</Tabs>
+
+Компонент `Child` изменяет (`мутирует`) объект `person`, который принадлежит компоненту `App`, без явного «разрешения» на это. Такой подход крайне не рекомендуется, так как может привести к коду, который сложно анализировать в больших масштабах («кто изменил это значение?»), отсюда и предупреждение.
+
+Чтобы исправить это:
+- Либо используйте callback-пропсы для передачи изменений
+- Либо пометьте `person` как [`$bindable`](/runes/bindable)
+
+### state_proxy_equality_mismatch
+
+```
+Reactive `$state(...)` proxies and the values they proxy have different identities. Because of this, comparisons with `%operator%` will produce unexpected results
+```
+
+`$state(...)` создает [прокси](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Proxy) для переданного значения. Прокси и исходное значение имеют разные идентификаторы, поэтому проверки на равенство всегда будут возвращать `false`:
+
+```svelte
+<script>
+  let value = { foo: 'bar' };
+  let proxy = $state(value);
+
+  value === proxy; // всегда false
+</script>
+```
+
+Чтобы решить эту проблему, убедитесь, что вы сравниваете значения, которые либо **оба** созданы через `$state(...)`, либо **оба** не являются прокси. Обратите внимание, что `$state.raw(...)` *не* создаёт прокси состояния.
+
+### transition_slide_display
+
+```
+The `slide` transition does not work correctly for elements with `display: %value%`
+```
+
+Переход [slide](https://svelte.dev/docs/svelte/svelte-transition#slide) работает за счёт анимации свойства `height`, что требует стиля `display` со значением `block`, `flex` или `grid`. Он **не работает** для:
+
+- `display: inline` (значение по умолчанию для элементов вроде `<span>`) и его вариантов: `inline-block`, `inline-flex`, `inline-grid`
+- `display: table` и `table-[name]` (значения по умолчанию для `<table>`, `<tr>` и др.)
+- `display: contents`
+
+## Общие предупреждения
+
+### dynamic_void_element_content
+
+```
+`<svelte:element this="%tag%">` is a void element — it cannot have content
+```
+
+Элементы типа `<input>` не могут содержать дочерние элементы — любой переданный им контент будет проигнорирован.
+
+### state_snapshot_uncloneable
+
+```
+Value cannot be cloned with `$state.snapshot` — the original value was returned
+```
+
+```
+The following properties cannot be cloned with `$state.snapshot` — the return value contains the originals:
+
+%properties%
+```
+
+`$state.snapshot` пытается клонировать переданное значение, чтобы вернуть неизменяемую ссылку. Некоторые объекты не могут быть клонированы — в этом случае возвращается исходное значение. В следующем примере `property` клонируется, а `window` — нет, поскольку DOM-элементы невозможно клонировать:
+
+```js
+const object = $state({ property: 'это можно клонировать', window })
+const snapshot = $state.snapshot(object);
+```
