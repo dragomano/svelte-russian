@@ -1,0 +1,75 @@
+---
+title: sv migrate
+origin: https://svelte.dev/docs/cli/sv-migrate
+sidebar:
+  order: 3
+---
+
+`sv migrate` выполняет миграцию кодовой базы Svelte(Kit). Эта команда использует пакет [`svelte-migrate`](https://www.npmjs.com/package/svelte-migrate).
+
+Особенности работы:
+
+- Некоторые миграции могут оставлять в коде пометки `@migration`
+- Эти пометки указывают на места, требующие ручного завершения
+- Для поиска таких мест используйте глобальный поиск по `@migration` в проекте
+
+## Использование
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem icon="seti:npm" label="npm">
+    ```sh
+    npx sv migrate
+    ```
+    ```sh
+    npx sv migrate [миграция]
+    ```
+  </TabItem>
+  <TabItem icon="pnpm" label="pnpm">
+    ```sh
+    pnpx sv migrate
+    ```
+    ```sh
+    pnpx sv migrate [миграция]
+    ```
+  </TabItem>
+  <TabItem icon="seti:yarn" label="yarn">
+    ```sh
+    yarn dlx sv migrate
+    ```
+    ```sh
+    yarn dlx sv migrate [миграция]
+    ```
+  </TabItem>
+</Tabs>
+
+## Миграции
+
+### `app-state`
+
+Заменяет использование `$app/stores` на `$app/state` в файлах `.svelte`. Подробнее в [руководстве по миграции](https://svelte.dev/docs/kit/migrating-to-sveltekit-2#SvelteKit-2.12:-$app-stores-deprecated).
+
+### `svelte-5`
+
+Обновляет приложение Svelte 4 до Svelte 5, преобразуя компоненты для использования [рун](/runes/what-are-runes) и другого синтаксиса Svelte 5 (см. [руководство](/misc/v5-migration-guide)).
+
+### `self-closing-tags`
+
+Заменяет все самозакрывающиеся не-void элементы в файлах `.svelte`. Подробности в [пулреквесте](https://github.com/sveltejs/kit/pull/12128).
+
+### `svelte-4`
+
+Обновляет приложение Svelte 3 до Svelte 4 (см. [руководство](/misc/v4-migration-guide)).
+
+### `sveltekit-2`
+
+Обновляет приложение SvelteKit 1 до SvelteKit 2 (см. [руководство](https://svelte.dev/docs/kit/migrating-to-sveltekit-2)).
+
+### `package`
+
+Обновляет библиотеку с `@sveltejs/package` версии 1 до версии 2. Подробности в [пулреквесте](https://github.com/sveltejs/kit/pull/8922).
+
+### `routes`
+
+Обновляет приложение pre-release SvelteKit для использования файловой маршрутизации SvelteKit 1. Обсуждение в [пулреквесте](https://github.com/sveltejs/kit/discussions/5774).
