@@ -1,0 +1,67 @@
+---
+title: sv add
+origin: https://svelte.dev/docs/cli/sv-add
+sidebar:
+  order: 1
+---
+
+`sv create` добавляет новую функциональность в существующий проект.
+
+## Использование
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem icon="seti:npm" label="npm">
+    ```sh
+    npx sv add
+    ```
+    ```sh
+    npx sv add [дополнения]
+    ```
+  </TabItem>
+  <TabItem icon="pnpm" label="pnpm">
+    ```sh
+    pnpx sv add
+    ```
+    ```sh
+    pnpx sv add [дополнения]
+    ```
+  </TabItem>
+  <TabItem icon="seti:yarn" label="yarn">
+    ```sh
+    yarn dlx sv add
+    ```
+    ```sh
+    yarn dlx sv add [дополнения]
+    ```
+  </TabItem>
+</Tabs>
+
+## Параметры
+
+### `-C`, `--cwd`
+
+Путь к корневой папке проекта Svelte(Kit)
+
+### `--no-preconditions`
+
+Пропустить проверку предварительных условий
+
+### `--no-install`
+
+Пропустить установку зависимостей
+
+## Официальные дополнения
+
+- `drizzle`
+- `eslint`
+- `sveltekit-adapter`
+- `lucia`
+- `mdsvex`
+- `paraglide`
+- `playwright`
+- `prettier`
+- `storybook`
+- `tailwindcss`
+- `vitest`
