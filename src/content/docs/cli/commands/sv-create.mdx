@@ -1,0 +1,59 @@
+---
+title: sv create
+origin: https://svelte.dev/docs/cli/sv-create
+sidebar:
+  order: 0
+---
+
+`sv create` создаёт новый проект SvelteKit с возможностью [настройки дополнительных функций](/cli/commands/sv-add#официальные-дополнения).
+
+## Использование
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem icon="seti:npm" label="npm">
+    ```sh
+    npx sv create [параметры] [путь]
+    ```
+  </TabItem>
+  <TabItem icon="pnpm" label="pnpm">
+    ```sh
+    pnpx sv create [параметры] [путь]
+    ```
+  </TabItem>
+  <TabItem icon="seti:yarn" label="yarn">
+    ```sh
+    yarn dlx sv create [параметры] [путь]
+    ```
+  </TabItem>
+</Tabs>
+
+## Параметры
+
+### `--template <название>`
+
+Выбрать шаблон проекта:
+
+- `minimal` — минимальная заготовка для нового приложения
+- `demo` — демо-приложение с игрой в угадывание слов, работающей без JavaScript
+- `library` — шаблон для библиотеки Svelte с настройкой `svelte-package`
+
+### `--types <вариант>`
+
+Настроить проверку типов в проекте:
+
+- `ts` — по умолчанию для файлов `.ts` и компонентов `.svelte` с использованием `lang="ts"`
+- `jsdoc` — применяет [синтаксис JSDoc](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html) для типов
+
+### `--no-types`
+
+Отключить проверку типов. Не рекомендуется!
+
+### `--no-add-ons`
+
+Выполнить команду без интерактивного запроса дополнений
+
+### `--no-install`
+
+Пропустить установку зависимостей
