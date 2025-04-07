@@ -1,0 +1,192 @@
+---
+title: sv check
+origin: https://svelte.dev/docs/cli/sv-check
+sidebar:
+  order: 2
+---
+
+`sv check` обнаруживает ошибки и предупреждения в вашем проекте, такие как:
+
+- Неиспользуемый CSS
+- Подсказки по доступности
+- Ошибки компилятора JavaScript/TypeScript
+
+Требуется Node.js версии 16 или выше.
+
+## Установка
+
+Необходимо установить пакет `svelte-check` в проекте:
+
+import { PackageManagers } from 'starlight-package-managers';
+
+<PackageManagers pkg="svelte-check" dev />
+
+## Использование
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem icon="seti:npm" label="npm">
+    ```sh
+    npx sv check
+    ```
+  </TabItem>
+  <TabItem icon="pnpm" label="pnpm">
+    ```sh
+    pnpx sv check
+    ```
+  </TabItem>
+  <TabItem icon="seti:yarn" label="yarn">
+    ```sh
+    yarn dlx sv check
+    ```
+  </TabItem>
+</Tabs>
+
+## Параметры
+
+### `--workspace <путь>`
+
+Путь к рабочей области. Проверяются все поддиректории, кроме `node_modules` и указанных в `--ignore`.
+
+### `--output <формат>`
+
+Формат вывода ошибок и предупреждений. См. [Машиночитаемый вывод](#машиночитаемый-вывод).
+
+- `human`
+- `human-verbose`
+- `machine`
+- `machine-verbose`
+
+### `--watch`
+
+Не завершать процесс и отслеживать изменения.
+
+### `--preserveWatchOutput`
+
+Не очищать экран в режиме `watch`.
+
+### `--tsconfig <путь>`
+
+Путь к файлу `tsconfig` или `jsconfig`. Может быть относительным (относительно рабочей директории) или абсолютным. При использовании проверяются только файлы, соответствующие шаблонам `files`/`include`/`exclude` в конфиге. Также включается проверка ошибок в файлах TypeScript/JavaScript. Если не указано, производится поиск `jsconfig`/`tsconfig.json` в родительских директориях.
+
+### `--no-tsconfig`
+
+Используйте, если нужно проверять только Svelte-файлы в текущей директории (файлы `.js`/`.ts` проверяться не будут).
+
+### `--ignore <пути>`
+
+Файлы/директории для игнорирования (относительно корневой директории рабочей области). Пути указываются через запятую в кавычках. Пример:
+
+```bash
+npx sv check --ignore "dist,build"
+```
+
+Действует только с `--no-tsconfig`. При использовании с `--tsconfig` влияет только на отслеживаемые файлы, но не на диагностируемые (которые определяются `tsconfig.json`).
+
+### `--fail-on-warnings`
+
+Завершать процесс с кодом ошибки при наличии предупреждений.
+
+### `--compiler-warnings <предупреждения>`
+
+Список в формате `код:действие` в кавычках, где код — код предупреждения компилятора, а действие — `ignore` или `error`:
+
+```bash
+npx sv check --compiler-warnings "css_unused_selector:ignore,a11y_missing_attribute:error"
+```
+
+### `--diagnostic-sources <источники>`
+
+Список источников диагностики через запятую в кавычках. По умолчанию активны все:
+
+- `js` (включая TypeScript)
+- `svelte`
+- `css`
+
+Пример:
+
+```bash
+npx sv check --diagnostic-sources "js,svelte"
+```
+
+### `--threshold <уровень>`
+
+Фильтрация диагностики:
+
+- `warning` (по умолчанию) — показывать ошибки и предупреждения
+- `error` — только ошибки
+
+## Устранение проблем
+
+См. документацию [language-tools](https://github.com/sveltejs/language-tools/blob/master/docs/README.md) для настройки препроцессора и других вопросов.
+
+## Машиночитаемый вывод
+
+При использовании `--output machine` или `machine-verbose` вывод форматируется для удобства обработки (например, в CI-пайплайнах).
+
+Каждая строка — отдельная запись. Колонки разделены пробелом. Первая колонка — timestamp в миллисекундах, вторая — тип записи. Остальные колонки зависят от типа записи.
+
+Первая строка типа `START` содержит путь к рабочей директории (в кавычках):
+
+```
+1590680325583 START "/home/user/language-tools/packages/language-server/test/plugins/typescript/testfiles"
+```
+
+Далее следуют записи `ERROR`/`WARNING`. Их структура зависит от формата вывода.
+
+При использовании формата `machine` вывод будет содержать:
+
+- имя файла (относительно рабочей директории)
+- номер строки и столбца начала ошибки
+- текст сообщения об ошибке
+
+Имя файла и сообщение заключаются в кавычки.
+
+Пример:
+
+```
+1590680326283 ERROR "codeactions.svelte" 1:16 "Cannot find module 'blubb' or its corresponding type declarations."
+1590680326778 WARNING "imported-file.svelte" 0:37 "Component has unused export property 'prop'. If it is for external reference only, please consider using `export const prop`"
+```
+
+При использовании формата `machine-verbose` вывод включает:
+
+- имя файла (относительно рабочей директории)
+- позиции начала и конца ошибки
+- сообщение об ошибке
+- код диагностики
+- человекочитаемое описание кода
+- источник диагностики (например, `svelte`/`typescript`)
+
+Каждая запись представляет собой строку в формате [NDJSON](https://en.wikipedia.org/wiki/JSON_streaming#Newline-Delimited_JSON) с префиксом в виде временной метки.
+
+Пример:
+
+```
+1590680326283 {"type":"ERROR","fn":"codeaction.svelte","start":{"line":1,"character":16},"end":{"line":1,"character":23},"message":"Cannot find module 'blubb' or its corresponding type declarations.","code":2307,"source":"js"}
+1590680326778 {"type":"WARNING","filename":"imported-file.svelte","start":{"line":0,"character":37},"end":{"line":0,"character":51},"message":"Component has unused export property 'prop'. If it is for external reference only, please consider using `export
+const prop`","code":"unused-export-let","source":"svelte"}
+```
+
+Завершающей строкой вывода является сообщение `COMPLETED`, содержащее сводную статистику проверки:
+
+```
+1590680326807 COMPLETED 20 FILES 21 ERRORS 1 WARNINGS 3 FILES_WITH_PROBLEMS
+```
+
+При возникновении ошибки выполнения приложения, она будет отображена в виде записи типа `FAILURE`:
+
+```
+1590680328921 FAILURE "Connection closed"
+```
+
+## Благодарности
+
+Инструмент Vue [VTI](https://github.com/vuejs/vetur/tree/master/vti), который лег в основу ёsvelte-checkё
+
+## Часто задаваемые вопросы и ответы
+
+### Почему нет опции для проверки отдельных файлов (например, только изменённых)?
+
+`svelte-check` требует полного обзора проекта для корректной работы. Например, если переименовать пропс компонента, но не обновить его использования — эти места станут ошибками, но они будут пропущены при проверке только изменённых файлов.
