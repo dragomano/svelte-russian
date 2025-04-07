@@ -16,9 +16,9 @@ import { ShowcaseText, ShowcaseYouTube } from 'starlight-showcases'
       description: 'Официальная документация',
     },
     {
-      href: 'https://github.com/ronsen/laravel-svelte-starter',
-      title: 'laravel-svelte-starter',
-      description: 'Стартовый шаблон с использованием Laravel и Svelte',
+      href: 'https://php.dragomano.ru/znakomstvo-s-populyarnymi-js-freymvorkami-chast-5/',
+      title: 'Создание компонента Todos на Svelte.js',
+      description: 'Знакомство с современными JS фреймворками - Svelte.js',
     },
   ]}
 />
@@ -32,6 +32,11 @@ import { ShowcaseText, ShowcaseYouTube } from 'starlight-showcases'
         'Руны — мастхэв или...? Проверяем! State, derived, props, effect, if / else',
     },
     {
+      href: 'https://www.youtube.com/watch?v=U1mqI9QfcCo',
+      title: 'Svelte 5 и его руны - быстрый старт!',
+      description: 'Знакомимся с фреймворком Svelte и делаем на нем небольшое приложение, используя основные инструменты для разработки - руны пропсов, стейта и эффектов.',
+    },
+    {
       href: 'https://youtu.be/zojEMeQGGHs?si=rvkP_MFZ7wmqTkI1',
       title: 'Svelte Tutorial for Beginners [English]',
       description: 'Серия из 35 уроков по Svelte для начинающих',
@@ -41,17 +46,39 @@ import { ShowcaseText, ShowcaseYouTube } from 'starlight-showcases'
       title: 'Svelte 5 Basics [English]',
       description: 'Complete Svelte 5 Course for Beginners',
     },
-    {
-      href: 'https://www.youtube.com/watch?v=U1mqI9QfcCo',
-      title: 'Svelte 5 и его руны - быстрый старт!',
-      description: 'Знакомимся с фреймворком Svelte и делаем на нем небольшое приложение, используя основные инструменты для разработки - руны пропсов, стейта и эффектов.',
-    },
   ]}
 />
 
 :::note
   Для закадрового перевода англоязычных роликов, если ваш браузер не имеет такой фичи, можно воспользоваться [этим расширением](https://github.com/ilyhalight/voice-over-translation).
 :::
+
+## Полезные библиотеки и компоненты
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <LinkCard
+    title="laravel-svelte-starter"
+    description="Стартовый шаблон с использованием Laravel и Svelte."
+    href="https://github.com/ronsen/laravel-svelte-starter"
+  />
+  <LinkCard
+    title="kampsy/ui"
+    description="Библиотека компонентов для Svelte 5, созданная под влиянием Geist от Vercel, продумана до мелочей, чтобы обеспечивать единообразный и гармоничный пользовательский опыт в вебе."
+    href="https://github.com/kampsy/ui"
+  />
+  <LinkCard
+    title="UI Ingredients"
+    description="Библиотека компонентов для Svelte, работающая на основе Zag, без привязки стилей."
+    href="https://github.com/calvo-jp/ui-ingredients"
+  />
+  <LinkCard
+    title="Runed"
+    description="Набор инструментов, раскрывающий мощь рун Svelte в ваших приложениях."
+    href="https://github.com/svecosystem/runed"
+  />
+</CardGrid>
 
 :::tip[У вас есть что добавить?]
   Присылайте ссылки на полезные ресурсы, посвящённые Svelte 5
