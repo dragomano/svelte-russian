@@ -4,6 +4,7 @@ import starlight from '@astrojs/starlight';
 import starlightLinksValidator from 'starlight-links-validator';
 import starlightThemeNova from 'starlight-theme-nova';
 import svelte from '@astrojs/svelte';
+import starlightSidebarTopics from 'starlight-sidebar-topics';
 
 // https://astro.build/config
 export default defineConfig({
@@ -14,6 +15,78 @@ export default defineConfig({
         errorOnRelativeLinks: false,
       }),
       starlightThemeNova(),
+      starlightSidebarTopics(
+        [
+          {
+            label: 'Svelte',
+            link: '/introduction/overview/',
+            icon: 'open-book',
+            items: [
+              {
+                label: 'Введение',
+                autogenerate: { directory: 'introduction' },
+              },
+              {
+                label: 'Руны',
+                autogenerate: { directory: 'runes' },
+              },
+              {
+                label: 'Синтаксис шаблонов',
+                collapsed: true,
+                autogenerate: { directory: 'template-syntax' },
+              },
+              {
+                label: 'Стилизация',
+                autogenerate: { directory: 'styling' },
+              },
+              {
+                label: 'Специальные элементы',
+                collapsed: true,
+                autogenerate: { directory: 'special-elements' },
+              },
+              {
+                label: 'Рантайм',
+                collapsed: true,
+                autogenerate: { directory: 'runtime' },
+              },
+              {
+                label: 'Разное',
+                autogenerate: { directory: 'misc' },
+              },
+              {
+                label: 'Справочник',
+                collapsed: true,
+                autogenerate: { directory: 'reference' },
+              },
+              {
+                label: 'Обучающие статьи и ролики',
+                link: 'learning',
+              },
+            ],
+          },
+          {
+            label: 'SvelteKit',
+            link: 'https://svelte.dev/docs/kit',
+            icon: 'seti:svelte',
+          },
+          {
+            id: 'cli',
+            label: 'Консольные команды',
+            link: '/cli/introduction/overview',
+            icon: 'seti:shell',
+            items: [
+              {
+                label: 'Общая информация',
+                autogenerate: { directory: 'cli/introduction' },
+              },
+              {
+                label: 'Команды',
+                autogenerate: { directory: 'cli/commands' },
+              },
+            ],
+          },
+        ],
+      ),
     ],
     title: 'Svelte по-русски',
     description: 'Документация Svelte 5 на русском языке.',
@@ -48,45 +121,5 @@ export default defineConfig({
     components: {
       LastUpdated: './src/components/LastUpdated.astro',
     },
-    sidebar: [
-      {
-        label: 'Введение',
-        autogenerate: { directory: 'introduction' },
-      },
-      {
-        label: 'Руны',
-        autogenerate: { directory: 'runes' },
-      },
-      {
-        label: 'Синтаксис шаблонов',
-        collapsed: true,
-        autogenerate: { directory: 'template-syntax' },
-      },
-      {
-        label: 'Стилизация',
-        autogenerate: { directory: 'styling' },
-      },
-      {
-        label: 'Специальные элементы',
-        collapsed: true,
-        autogenerate: { directory: 'special-elements' },
-      },
-      {
-        label: 'Рантайм',
-        autogenerate: { directory: 'runtime' },
-      },
-      {
-        label: 'Разное',
-        autogenerate: { directory: 'misc' },
-      },
-      {
-        label: 'Справочник',
-        autogenerate: { directory: 'reference' },
-      },
-      {
-        label: 'Обучающие статьи и ролики',
-        link: 'learning',
-      },
-    ],
   }), svelte()],
 });
