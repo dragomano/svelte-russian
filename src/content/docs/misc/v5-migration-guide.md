@@ -456,14 +456,14 @@ sidebar:
   <ul>
     {#each items as entry}
       <li>
--        <slot item={entry} />
-+        {@render item(entry)}
+-       <slot item={entry} />
++       {@render item(entry)}
       </li>
     {/each}
   </ul>
 {:else}
--   <slot name="empty" />
-+   {@render empty?.()}
+-  <slot name="empty" />
++  {@render empty?.()}
 {/if}
 ```
 
