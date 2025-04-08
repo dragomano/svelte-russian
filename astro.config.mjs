@@ -14,7 +14,18 @@ export default defineConfig({
       starlightLinksValidator({
         errorOnRelativeLinks: false,
       }),
-      starlightThemeNova(),
+      /* starlightThemeNova({
+        nav: [
+          {
+            label: 'Учебник',
+            href: 'https://svelte.dev/tutorial',
+          },
+          {
+            label: 'Песочница',
+            href: 'https://svelte.dev/playground',
+          }
+        ]
+      }), */
       starlightSidebarTopics(
         [
           {
@@ -112,9 +123,9 @@ export default defineConfig({
       replacesTitle: true,
       alt: 'Логотип Svelte',
     },
-    social: {
-      github: 'https://github.com/dragomano/svelte-russian',
-    },
+    social: [
+      { icon: 'github', label: 'GitHub', href: 'https://github.com/dragomano/svelte-russian' },
+    ],
     editLink: {
       baseUrl: 'https://github.com/dragomano/svelte-russian/edit/main/',
     },
