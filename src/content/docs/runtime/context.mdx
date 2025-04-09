@@ -126,7 +126,7 @@ Svelte предупредит вас, если вы сделаете что-то
     // context.js
     import { getContext, setContext } from 'svelte';
 
-    let key = {};
+    const key = {};
 
     /** @param {User} user */
     export function setUserContext(user) {
@@ -143,7 +143,8 @@ Svelte предупредит вас, если вы сделаете что-то
     // context.ts
     import { getContext, setContext } from 'svelte';
 
-    let key = {};
+    const key = {};
+
     export function setUserContext(user: User) {
       setContext(key, user);
     }
