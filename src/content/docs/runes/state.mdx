@@ -313,3 +313,67 @@ let b = $state(2);
 </Tabs>
 
 ...хотя если вы обнаружите, что пишете код подобным образом, подумайте о том, чтобы перейти на [классы](#классы).
+
+## Передача состояния между модулями
+
+Вы можете объявлять состояние в файлах `.svelte.js` и `.svelte.ts`, но экспортировать это состояние можно только если оно не переназначается напрямую. Другими словами, так делать нельзя:
+
+```js
+// state.svelte.js
+export let count = $state(0);
+
+export function increment() {
+  count += 1;
+}
+```
+
+Это происходит потому, что все ссылки на `count` преобразуются компилятором Svelte — приведённый выше код примерно эквивалентен следующему:
+
+```js title="state.svelte.js (вывод компилятора)"
+export let count = $.state(0);
+
+export function increment() {
+  $.set(count, $.get(count) + 1);
+}
+```
+
+:::note
+Вы можете увидеть код, генерируемый Svelte, переключившись на вкладку «JS output» в [песочнице](https://svelte.dev/playground).
+:::
+
+Поскольку компилятор обрабатывает только один файл за раз, если другой файл импортирует `count`, Svelte не знает, что нужно обернуть каждое обращение в `$.get` и `$.set`:
+
+```js
+import { count } from './state.svelte.js';
+
+console.log(typeof count); // 'object', не 'number'
+```
+
+Это оставляет вам два варианта для совместного использования состояния между модулями — либо не переназначать его...
+
+```js
+// Это разрешено — поскольку мы обновляем
+// `counter.count`, а не сам `counter`,
+// Svelte не оборачивает его в `$.state`
+export const counter = $state({
+  count: 0
+});
+
+export function increment() {
+  counter.count += 1;
+}
+```
+
+...либо не экспортировать его напрямую:
+
+```js
+let count = $state(0);
+
+export function getCount() {
+  return count;
+}
+
+export function increment() {
+  count += 1;
+}
+```
