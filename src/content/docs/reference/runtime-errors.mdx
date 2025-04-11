@@ -226,6 +226,12 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 В данном случае `List.svelte` использует `{@render children(item)}`, что означает ожидание *сниппетов* от родительского компонента. Однако `Parent.svelte` использует устаревшую директиву `let:`. Эти API несовместимы, отсюда и ошибка.
 
+### invalid_snippet_arguments
+
+```
+A snippet function was passed invalid arguments. Snippets should only be instantiated via `{@render ...}`
+```
+
 ### lifecycle_outside_component
 
 ```
