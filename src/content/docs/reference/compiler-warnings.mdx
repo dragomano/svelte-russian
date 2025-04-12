@@ -876,15 +876,16 @@ Using `<slot>` to render parent content is deprecated. Use `{@render ...}` tags 
 ### state_referenced_locally
 
 ```
-State referenced in its own scope will never update. Did you mean to reference it inside a closure?
+This reference only captures the initial value of `%name%`. Did you mean to reference it inside a %type% instead?
 ```
 
-Это предупреждение возникает, когда компилятор обнаруживает:
-- Реактивную переменную
-- Её переприсваивание
-- Использование переменной в той же области видимости, но в нереактивном контексте
+Это предупреждение возникает, когда компилятор обнаруживает следующее:
 
-В этом случае переприсваивание состояния не будет замечено получателями. Например, если передать состояние в функцию, она не получит обновлений:
+- Реактивная переменная объявлена
+- ...затем переназначена...
+- ...и используется в той же области видимости
+
+Это «разрывает связь» с исходным объявлением состояния. Например, если вы передадите состояние в функцию, функция потеряет доступ к состоянию после его переназначения:
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
