@@ -2,7 +2,6 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import starlightLinksValidator from 'starlight-links-validator';
-import starlightThemeNova from 'starlight-theme-nova';
 import svelte from '@astrojs/svelte';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
 
@@ -14,18 +13,6 @@ export default defineConfig({
       starlightLinksValidator({
         errorOnRelativeLinks: false,
       }),
-      /* starlightThemeNova({
-        nav: [
-          {
-            label: 'Учебник',
-            href: 'https://svelte.dev/tutorial',
-          },
-          {
-            label: 'Песочница',
-            href: 'https://svelte.dev/playground',
-          }
-        ]
-      }), */
       starlightSidebarTopics(
         [
           {
