@@ -157,6 +157,8 @@ JavaScript-выражение можно включить в текст, обе�
 {expression}
 ```
 
+Выражения, имеющие значение `null` или `undefined`, будут опущены; все остальные [приведены к строкам](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String#string_coercion).
+
 Фигурные скобки можно включить в шаблон Svelte, используя их [HTML-сущности](https://developer.mozilla.org/docs/Glossary/Entity): `&lbrace;`, `&lcub;`, или `&#123;` для `{` и `&rbrace;`, `&rcub;`, или `&#125;` для `}`.
 
 Если вы используете регулярное выражение (`RegExp`) в [литеральной нотации](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/RegExp#literal_notation_and_constructor), вам нужно обернуть его в скобки:
