@@ -63,9 +63,16 @@ export default defineConfig({
             ],
           },
           {
+            id: 'kit',
             label: 'SvelteKit',
-            link: 'https://svelte.dev/docs/kit',
+            link: '/kit/getting-started/introduction',
             icon: 'seti:svelte',
+            items: [
+              {
+                label: 'Начало работы',
+                autogenerate: { directory: 'kit/getting-started' },
+              },
+            ],
           },
           {
             id: 'cli',
