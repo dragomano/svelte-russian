@@ -64,7 +64,7 @@ my-project/
 - `hooks.server.js` содержит серверные [хуки](https://svelte.dev/docs/kit/hooks).
 - `service-worker.js` содержит ваш [service worker](https://svelte.dev/docs/kit/service-workers).
 
-(Наличие файлов с расширениями `.js` или `.ts` зависит от того, выбрали ли вы TypeScript при создании проекта. Переключаться между JavaScript и TypeScript в документации можно с помощью переключателя внизу страницы.)
+(Наличие файлов с расширениями `.js` или `.ts` зависит от того, выбрали ли вы TypeScript при создании проекта.)
 
 Если при создании проекта вы добавили [Vitest](https://vitest.dev), ваши модульные тесты будут располагаться в директории `src` с расширением `.test.js`.
 
