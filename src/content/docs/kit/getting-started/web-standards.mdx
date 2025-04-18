@@ -1,0 +1,153 @@
+---
+title: Веб-стандарты
+origin: https://svelte.dev/docs/kit/web-standards
+sidebar:
+  order: 4
+---
+
+В этой документации вы встретите ссылки на стандартные [Web API](https://developer.mozilla.org/ru/docs/Web/API), поверх которых построен SvelteKit. Вместо изобретения велосипедов мы _используем платформу_, что означает применимость ваших существующих навыков веб-разработки. И наоборот — изучение SvelteKit сделает вас лучше как разработчика.
+
+Эти API доступны во всех современных браузерах и многих небраузерных средах вроде Cloudflare Workers, Deno и Vercel Functions. Во время разработки и в [адаптерах](https://svelte.dev/docs/kit/adapters) для Node-сред (включая AWS Lambda) они реализованы через полифиллы где это необходимо (хотя Node активно добавляет поддержку веб-стандартов).
+
+Особое внимание стоит уделить следующим разделам:
+
+## Fetch API
+
+SvelteKit использует [`fetch`](https://developer.mozilla.org/ru/docs/Web/API/fetch) для получения данных из сети. Данный метод доступен в [хуках](https://svelte.dev/docs/kit/hooks), [серверных роутах](https://svelte.dev/docs/kit/routing#server) и браузере.
+
+:::note
+Особая версия `fetch` доступна в [`load`-функциях](https://svelte.dev/docs/kit/load), [серверных хуках](https://svelte.dev/docs/kit/hooks#Server-hooks) и [API-роутах](https://svelte.dev/docs/kit/routing#server) для прямого вызова эндпойнтов при SSR без HTTP-запросов, с сохранением авторизации. (Для авторизованных запросов вне `load` нужно явно передавать заголовки `cookie`/`authorization`). Также позволяет делать относительные запросы, тогда как обычный `fetch` требует полный URL.
+:::
+
+Помимо самого `fetch`, [Fetch API](https://developer.mozilla.org/ru/docs/Web/API/Fetch_API) включает:
+
+### Request
+
+Экземпляр [`Request`](https://developer.mozilla.org/ru/docs/Web/API/Request) доступен в хуках и серверных роутах как `event.request`. Содержит методы вроде `request.json()` и `request.formData()` для получения отправленных данных.
+
+### Response
+
+Экземпляр [`Response`](https://developer.mozilla.org/ru/docs/Web/API/Response) возвращается из `await fetch(...)` и обработчиков в `+server.js`. По сути, SvelteKit-приложение — это машина для преобразования `Request` в `Response`.
+
+### Headers
+
+Интерфейс [`Headers`](https://developer.mozilla.org/ru/docs/Web/API/Headers) позволяет читать входящие `request.headers` и устанавливать исходящие `response.headers`. Для удобства можно использовать [функцию `json`](https://svelte.dev/docs/kit/@sveltejs-kit#json), которая автоматически устанавливает правильные заголовки. Например:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/routes/what-is-my-user-agent/+server.js
+    import { json } from '@sveltejs/kit';
+
+    /** @type {import('./$types').RequestHandler} */
+    export function GET({ request }) {
+      // записываем все заголовки
+      console.log(...request.headers);
+
+      // создаем JSON Response, используя полученный заголовок
+      return json({
+        // получаем конкретный заголовок
+        userAgent: request.headers.get('user-agent')
+      }, {
+        // устанавливаем заголовок ответа
+        headers: { 'x-custom-header': 'potato' }
+      });
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/what-is-my-user-agent/+server.ts
+    import { json } from '@sveltejs/kit';
+    import type { RequestHandler } from './$types';
+
+    export const GET: RequestHandler = ({ request }) => {
+      // записываем все заголовки
+      console.log(...request.headers);
+
+      // создаем JSON Response, используя полученный заголовок
+      return json({
+        // получаем конкретный заголовок
+        userAgent: request.headers.get('user-agent')
+      }, {
+        // устанавливаем заголовок ответа
+        headers: { 'x-custom-header': 'potato' }
+      });
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+## FormData
+
+При работе с отправкой нативных HTML-форм вы будете иметь дело с объектами [`FormData`](https://developer.mozilla.org/ru/docs/Web/API/FormData).
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/routes/hello/+server.js
+    import { json } from '@sveltejs/kit';
+
+    /** @type {import('./$types').RequestHandler} */
+    export async function POST(event) {
+      const body = await event.request.formData();
+
+      // выводим в консоль все поля
+      console.log([...body]);
+
+      return json({
+        // получаем значение конкретного поля
+        name: body.get('name') ?? 'world'
+      });
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/hello/+server.ts
+    import { json } from '@sveltejs/kit';
+    import type { RequestHandler } from './$types';
+
+    export const POST: RequestHandler = async (event) => {
+      const body = await event.request.formData();
+
+      // выводим в консоль все поля
+      console.log([...body]);
+
+      return json({
+        // получаем значение конкретного поля
+        name: body.get('name') ?? 'world'
+      });
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+## Stream API
+
+В большинстве случаев ваши эндпойнты будут возвращать полные данные, как в примере с `userAgent` выше. Однако иногда может потребоваться вернуть ответ, который слишком велик для обработки в памяти целиком или доставляется частями. Для таких случаев платформа предоставляет [потоки](https://developer.mozilla.org/ru/docs/Web/API/Streams_API) — [ReadableStream](https://developer.mozilla.org/ru/docs/Web/API/ReadableStream), [WritableStream](https://developer.mozilla.org/ru/docs/Web/API/WritableStream) и [TransformStream](https://developer.mozilla.org/ru/docs/Web/API/TransformStream).
+
+## URL API
+
+URL представлены интерфейсом [`URL`](https://developer.mozilla.org/ru/docs/Web/API/URL), который включает полезные свойства, такие как `origin`, `pathname` (и в браузере — `hash`). Этот интерфейс встречается в различных местах:
+- `event.url` в [хуках](https://svelte.dev/docs/kit/hooks) и [серверных маршрутах](https://svelte.dev/docs/kit/routing#server)
+- [`page.url`](https://svelte.dev/docs/kit/$app-state) на [страницах](https://svelte.dev/docs/kit/routing#page)
+- Параметры `from` и `to` в [`beforeNavigate` и `afterNavigate`](https://svelte.dev/docs/kit/$app-navigation)
+
+### URLSearchParams
+
+При работе с URL вы можете получить доступ к параметрам запроса через `url.searchParams`, который является экземпляром [`URLSearchParams`](https://developer.mozilla.org/ru/docs/Web/API/URLSearchParams):
+
+```js
+const foo = url.searchParams.get('foo');
+```
+
+## Web Crypto
+
+[Web Crypto API](https://developer.mozilla.org/ru/docs/Web/API/Web_Crypto_API) доступен через глобальный объект `crypto`. Он используется внутри SvelteKit для заголовков [Content Security Policy (CSP)](https://svelte.dev/docs/kit/configuration#csp), но вы также можете применять его для таких задач, как генерация UUID:
+
+```js
+const uuid = crypto.randomUUID();
+```
