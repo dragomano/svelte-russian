@@ -1,0 +1,50 @@
+---
+title: Создание проекта
+origin: https://svelte.dev/docs/kit/creating-a-project
+sidebar:
+  order: 1
+---
+
+Самый простой способ начать создавать приложение на SvelteKit — выполнить команду:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem icon="seti:npm" label="npm">
+    ```sh
+    npx sv create my-app
+    cd my-app
+    npm install
+    npm run dev
+    ```
+  </TabItem>
+  <TabItem icon="pnpm" label="pnpm">
+    ```sh
+    pnpx sv create myapp
+    cd myapp
+    pnpm install
+    pnpm run dev
+    ```
+  </TabItem>
+  <TabItem icon="seti:yarn" label="yarn">
+    ```sh
+    yarn dlx sv create myapp
+    cd myapp
+    yarn install
+    yarn dev
+    ```
+  </TabItem>
+</Tabs>
+
+Первая команда создаст каркас нового проекта в директории `my-app`, предложив вам настроить базовые инструменты вроде TypeScript. Смотрите раздел [интеграции](https://svelte.dev/docs/kit/integrations) для настройки дополнительных инструментов. Последующие команды установят зависимости и запустят сервер на `localhost:5173`.
+
+Есть две базовые концепции:
+
+- Каждая страница вашего приложения — это [компонент Svelte](/introduction/overview)
+- Страницы создаются путём добавления файлов в директорию `src/routes` вашего проекта. Они будут рендериться на сервере, чтобы первая загрузка приложения была максимально быстрой, после чего управление переходит клиентскому приложению
+
+Попробуйте отредактировать файлы, чтобы понять, как всё работает.
+
+## Настройка редактора
+
+Мы рекомендуем использовать [Visual Studio Code (VS Code)](https://code.visualstudio.com/download) с [расширением Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode), но [также есть поддержка для многих других редакторов](https://sveltesociety.dev/resources#editor-support).
