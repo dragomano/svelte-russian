@@ -72,6 +72,10 @@ export default defineConfig({
                 label: 'Начало работы',
                 autogenerate: { directory: 'kit/getting-started' },
               },
+              {
+                label: 'Основные концепции',
+                autogenerate: { directory: 'kit/core-concepts' },
+              },
             ],
           },
           {
