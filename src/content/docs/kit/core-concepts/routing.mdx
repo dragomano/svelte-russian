@@ -1,0 +1,772 @@
+---
+title: Маршрутизация
+origin: https://svelte.dev/docs/kit/routing
+sidebar:
+  order: 0
+---
+
+Основой SvelteKit является _файловый маршрутизатор_. Маршруты вашего приложения (то есть URL-пути, доступные пользователям) определяются структурой директорий в вашем проекте:
+
+- `src/routes` — корневой маршрут
+- `src/routes/about` создаёт маршрут `/about`
+- `src/routes/blog/[slug]` создаёт маршрут с _параметром_ `slug`, который позволяет динамически загружать данные при запросе страницы, например `/blog/hello-world`
+
+:::note
+Вы можете изменить директорию `src/routes` на другую, отредактировав [конфигурацию проекта](https://svelte.dev/docs/kit/configuration).
+:::
+
+Каждая директория маршрута содержит один или несколько _файлов маршрутов_, которые можно распознать по префиксу `+`.
+
+Далее мы подробно рассмотрим эти файлы, но вот несколько простых правил, которые помогут понять, как работает маршрутизация в SvelteKit:
+
+* Все файлы могут выполняться на сервере
+* Все файлы выполняются на клиенте, кроме `+server`
+* Файлы `+layout` и `+error` применяются как к текущей директории, так и ко всем вложенным
+
+## +page
+
+### +page.svelte
+
+Компонент `+page.svelte` определяет страницу вашего приложения. По умолчанию страницы рендерятся как на сервере ([SSR](https://svelte.dev/docs/kit/glossary#SSR)) при первом запросе, так и в браузере ([CSR](https://svelte.dev/docs/kit/glossary#CSR)) при последующей навигации.
+
+```svelte
+// src/routes/+page.svelte
+<h1>Приветствую и добро пожаловать на мой сайт!</h1>
+<a href="/about">О моем сайте</a>
+```
+
+```svelte
+// src/routes/about/+page.svelte
+<h1>О моем сайте</h1>
+<p>TODO...</p>
+<a href="/">Главная</a>
+```
+
+:::note
+SvelteKit использует обычные HTML-элементы `<a>` для навигации между маршрутами, вместо специального компонента `<Link>`, характерного для других фреймворков.
+:::
+
+Страницы могут получать данные из `load`-функций через проп `data`.
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/blog/[slug]/+page.svelte
+    <script>
+      /** @type {import('./$types').PageProps} */
+      let { data } = $props();
+    </script>
+
+    <h1>{data.title}</h1>
+    <div>{@html data.content}</div>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/blog/[slug]/+page.svelte
+    <script lang="ts">
+      import type { PageProps } from './$types';
+
+      let { data }: PageProps = $props();
+    </script>
+
+    <h1>{data.title}</h1>
+    <div>{@html data.content}</div>
+    ```
+  </TabItem>
+</Tabs>
+
+:::warning
+`PageProps` был добавлен в версии 2.16.0. В более ранних версиях нужно было вручную типизировать свойство `data` с помощью `PageData`, см. [$types](#types).
+
+В Svelte 4 использовался синтаксис `export let data`.
+:::
+
+### +page.js
+
+Часто странице требуется загрузить данные перед рендерингом. Для этого добавляется модуль `+page.js`, экспортирующий функцию `load`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/[slug]/+page.js
+    import { error } from '@sveltejs/kit';
+
+    /** @type {import('./$types').PageLoad} */
+    export function load({ params }) {
+      if (params.slug === 'hello-world') {
+        return {
+          title: 'Привет, мир!',
+          content: 'Добро пожаловать на наш блог. Lorem ipsum dolor sit amet...'
+        };
+      }
+
+      error(404, 'Страница не найдена');
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/[slug]/+page.ts
+    import { error } from '@sveltejs/kit';
+    import type { PageLoad } from './$types';
+
+    export const load: PageLoad = ({ params }) => {
+      if (params.slug === 'hello-world') {
+        return {
+          title: 'Привет, мир!',
+          content: 'Добро пожаловать на наш блог. Lorem ipsum dolor sit amet...'
+        };
+      }
+
+      error(404, 'Страница не найдена');
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Эта функция работает в связке с `+page.svelte`, что означает её выполнение:
+
+- на сервере во время серверного рендеринга (SSR)
+- в браузере при клиентской навигации (CSR)
+
+Подробное описание API доступно в разделе [`load`](https://svelte.dev/docs/kit/load).
+
+Помимо `load`, модуль `+page.js` может экспортировать значения для настройки поведения страницы:
+
+- `export const prerender = true` или `false`, или `'auto'`
+- `export const ssr = true` или `false`
+- `export const csr = true` или `false`
+
+Подробнее об этих настройках читайте в разделе [Параметры страницы](https://svelte.dev/docs/kit/page-options).
+
+### +page.server.js
+
+Если ваша функция `load` должна выполняться **только на сервере** — например, когда необходимо:
+получать данные из базы данных или обращаться к защищённым [переменным окружения](https://svelte.dev/docs/kit/$env-static-private) (например, API-ключам) — то вы можете:
+
+1. Переименовать `+page.js` → `+page.server.js`
+2. Изменить тип `PageLoad` → `PageServerLoad`
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/[slug]/+page.server.js
+    import { error } from '@sveltejs/kit';
+
+    /** @type {import('./$types').PageServerLoad} */
+    export async function load({ params }) {
+      const post = await getPostFromDatabase(params.slug);
+
+      if (post) {
+        return post;
+      }
+
+      error(404, 'Страница не найдена');
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/[slug]/+page.server.ts
+    import { error } from '@sveltejs/kit';
+    import type { PageServerLoad } from './$types';
+
+    export const load: PageServerLoad = async ({ params }) => {
+      const post = await getPostFromDatabase(params.slug);
+
+      if (post) {
+        return post;
+      }
+
+      error(404, 'Страница не найдена');
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+При клиентской навигации SvelteKit будет загружать эти данные с сервера, что означает:
+
+- возвращаемое значение должно быть сериализуемо с помощью [devalue](https://github.com/rich-harris/devalue)
+- полное описание API доступно в разделе [`load`](https://svelte.dev/docs/kit/load)
+
+Как и `+page.js`, модуль `+page.server.js` может экспортировать [параметры страницы](https://svelte.dev/docs/kit/page-options):
+- `prerender`
+- `ssr`
+- `csr`
+
+Файл `+page.server.js` также может экспортировать _actions_ (серверные действия). Если `load` позволяет читать данные с сервера, то `actions` позволяют записывать данные _на_ сервер через элемент `<form>` - подробнее см. в разделе [Действия форм](https://svelte.dev/docs/kit/form-actions)
+
+## +error
+
+При возникновении ошибки в `load` SvelteKit отображает страницу ошибки по умолчанию. Её можно переопределить для каждого маршрута, добавив файл `+error.svelte`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/blog/[slug]/+error.svelte
+    <script>
+      import { page } from '$app/state';
+    </script>
+
+    <h1>{page.status}: {page.error.message}</h1>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/blog/[slug]/+error.svelte
+    <script lang="ts">
+      import { page } from '$app/state';
+    </script>
+
+    <h1>{page.status}: {page.error.message}</h1>
+    ```
+  </TabItem>
+</Tabs>
+
+:::warning
+`$app/state` был добавлен в SvelteKit 2.12. В более ранних версиях или при использовании Svelte 4 следует использовать `$app/stores`.
+:::
+
+SvelteKit будет «подниматься по дереву» в поисках ближайшей границы ошибки:
+
+1. Если указанный выше файл не существует, будет проверен `src/routes/blog/+error.svelte`
+2. Затем `src/routes/+error.svelte`
+3. И только затем отобразится стандартная страница ошибки
+
+Если и это не сработает (или если ошибка возникла в функции `load` корневого `+layout`, который находится "выше" корневого `+error`), SvelteKit переключится на статическую резервную страницу ошибки. Её можно кастомизировать, создав файл `src/error.html`.
+
+Особые случаи:
+
+- При ошибке в `load` функции `+layout(.server).js` используется ближайший `+error.svelte` файл _выше_ этого макета (не рядом с ним)
+- Для 404 ошибок используется `src/routes/+error.svelte` (или стандартная страница ошибки, если файл не существует)
+
+:::note
+`+error.svelte` _не_ используется при ошибках в:
+  - [`handle`](https://svelte.dev/docs/kit/hooks#Server-hooks-handle)
+  - обработчиках запросов [+server.js](#server)
+:::
+
+Подробнее об обработке ошибок можно прочитать [здесь](https://svelte.dev/docs/kit/errors).
+
+## +layout
+
+До сих пор мы рассматривали страницы как полностью независимые компоненты — при навигации текущий компонент `+page.svelte` уничтожается и заменяется новым.
+
+Однако во многих приложениях есть элементы, которые должны отображаться на _каждой_ странице, такие как:
+
+- главное меню
+- подвал (футер)
+
+Вместо того чтобы дублировать их в каждом `+page.svelte`, мы можем вынести их в _макеты_.
+
+### +layout.svelte
+
+Чтобы создать макет, который будет применяться ко всем страницам, создайте файл `src/routes/+layout.svelte`. Стандартный макет (который SvelteKit использует, если вы не предоставите свой собственный) выглядит следующим образом...
+
+```svelte
+<script>
+  let { children } = $props();
+</script>
+
+{@render children()}
+```
+
+...но мы можем добавить любую разметку, стили и поведение. Единственное обязательное требование — компонент должен содержать тег `@render` для отображения содержимого страницы. Например, добавим навигационную панель:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/+layout.svelte
+    <script>
+      let { children } = $props();
+    </script>
+
+    <nav>
+      <a href="/">Главная</a>
+      <a href="/about">О сайте</a>
+      <a href="/settings">Настройки</a>
+    </nav>
+
+    {@render children()}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/+layout.svelte
+    <script lang="ts">
+      let { children } = $props();
+    </script>
+
+    <nav>
+      <a href="/">Главная</a>
+      <a href="/about">О сайте</a>
+      <a href="/settings">Настройки</a>
+    </nav>
+
+    {@render children()}
+    ```
+  </TabItem>
+</Tabs>
+
+Если мы создадим страницы для следующих маршрутов:
+
+- `/` (главная страница)
+- `/about` (страница «О сайте»)
+- `/settings` (страница настроек)
+
+```html
+// src/routes/+page.svelte
+<h1>Главная<</h1>
+```
+
+```html
+// src/routes/about/+page.svelte
+<h1>О сайте</h1>
+```
+
+```html
+// src/routes/settings/+page.svelte
+<h1>Настройки</h1>
+```
+
+...навигация будет оставаться видимой, и переход между тремя страницами будет приводить только к замене содержимого `<h1>`.
+
+Макеты могут быть _вложенными_. Предположим, у нас есть не просто страница `/settings`, а вложенные страницы вроде `/settings/profile` и `/settings/notifications` с общим подменю (реальный пример: [github.com/settings](https://github.com/settings)).
+
+Мы можем создать макет, который применяется только к страницам внутри `/settings` (при этом наследуя корневой макет с основной навигацией):
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/settings/+layout.svelte
+    <script>
+      /** @type {import('./$types').LayoutProps} */
+      let { data, children } = $props();
+    </script>
+
+    <h1>Настройки</h1>
+
+    <div class="submenu">
+      {#each data.sections as section}
+        <a href="/settings/{section.slug}">{section.title}</a>
+      {/each}
+    </div>
+
+    {@render children()}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/settings/+layout.svelte
+    <script lang="ts">
+      import type { LayoutProps } from './$types';
+
+      let { data, children }: LayoutProps = $props();
+    </script>
+
+    <h1>Настройки</h1>
+
+    <div class="submenu">
+      {#each data.sections as section}
+        <a href="/settings/{section.slug}">{section.title}</a>
+      {/each}
+    </div>
+
+    {@render children()}
+    ```
+  </TabItem>
+</Tabs>
+
+:::warning
+`LayoutProps` был добавлен в версии 2.16.0. В более ранних версиях требовалось [вручную типизировать свойства](#types).
+:::
+
+Как заполняется `data`, можно увидеть в примере `+layout.js` из следующего раздела ниже.
+
+По умолчанию каждый макет наследует родительский макет. Если это нежелательно, могут помочь [расширенные макеты](https://svelte.dev/docs/kit/advanced-routing#Advanced-layouts).
+
+### +layout.js
+
+Аналогично тому, как `+page.svelte` получает данные из `+page.js`, компонент `+layout.svelte` может получать данные из функции [`load`](https://svelte.dev/docs/kit/load) в `+layout.js`.
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/settings/+layout.js
+    /** @type {import('./$types').LayoutLoad} */
+    export function load() {
+      return {
+        sections: [
+          { slug: 'profile', title: 'Профиль' },
+          { slug: 'notifications', title: 'Уведомления' }
+        ]
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/settings/+layout.ts
+    import type { LayoutLoad } from './$types';
+
+    export const load: LayoutLoad = () => {
+      return {
+        sections: [
+          { slug: 'profile', title: 'Профиль' },
+          { slug: 'notifications', title: 'Уведомления' }
+        ]
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Если `+layout.js` экспортирует [параметры страницы](https://svelte.dev/docs/kit/page-options) — `prerender`, `ssr` и `csr` — они будут использоваться как значения по умолчанию для дочерних страниц.
+
+Данные, возвращаемые из функции `load` макета, также доступны всем его дочерним страницам:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/settings/profile/+page.svelte
+    <script>
+      /** @type {import('./$types').PageProps} */
+      let { data } = $props();
+
+      console.log(data.sections); // [{ slug: 'profile', title: 'Profile' }, ...]
+    </script>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/settings/profile/+page.svelte
+    <script lang="ts">
+      import type { PageProps } from './$types';
+
+      let { data }: PageProps = $props();
+
+      console.log(data.sections); // [{ slug: 'profile', title: 'Profile' }, ...]
+    </script>
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Часто данные макета остаются неизменными при навигации между страницами. SvelteKit интеллектуально перезапускает функции [`load`](https://svelte.dev/docs/kit/load) только при необходимости.
+:::
+
+### +layout.server.js
+
+Для выполнения функции `load` макета на сервере переместите её в `+layout.server.js` и измените тип `LayoutLoad` на `LayoutServerLoad`.
+
+Как и `+layout.js`, файл `+layout.server.js` может экспортировать [параметры страницы](https://svelte.dev/docs/kit/page-options) — `prerender`, `ssr` и `csr`.
+
+## +server
+
+Помимо страниц, вы можете определять маршруты с помощью файла `+server.js` (иногда называемого «API-роутом» или «эндпойнтом»), что даёт полный контроль над ответом. Файл `+server.js` экспортирует функции, соответствующие HTTP-методам: `GET`, `POST`, `PATCH`, `PUT`, `DELETE`, `OPTIONS` и `HEAD`, которые принимают аргумент `RequestEvent` и возвращают объект [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response).
+
+Например, можно создать маршрут `/api/random-number` с обработчиком `GET`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/api/random-number/+server.js
+    import { error } from '@sveltejs/kit';
+
+    /** @type {import('./$types').RequestHandler} */
+    export function GET({ url }) {
+      const min = Number(url.searchParams.get('min') ?? '0');
+      const max = Number(url.searchParams.get('max') ?? '1');
+
+      const d = max - min;
+
+      if (isNaN(d) || d < 0) {
+        error(400, 'параметры `min` и `max` должны быть числами, причем `min` должен быть меньше `max`');
+      }
+
+      const random = min + Math.random() * d;
+
+      return new Response(String(random));
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/api/random-number/+server.ts
+    import { error } from '@sveltejs/kit';
+    import type { RequestHandler } from './$types';
+
+    export const GET: RequestHandler = ({ url }) => {
+      const min = Number(url.searchParams.get('min') ?? '0');
+      const max = Number(url.searchParams.get('max') ?? '1');
+
+      const d = max - min;
+
+      if (isNaN(d) || d < 0) {
+        error(400, 'параметры `min` и `max` должны быть числами, причем `min` должен быть меньше `max`');
+      }
+
+      const random = min + Math.random() * d;
+
+      return new Response(String(random));
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Первый аргумент `Response` может быть [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream), что позволяет передавать большие объёмы данных потоком или создавать server-sent events (за исключением платформ с буферизацией ответов, таких как AWS Lambda).
+
+Вы можете использовать методы [`error`](https://svelte.dev/docs/kit/@sveltejs-kit#error), [`redirect`](https://svelte.dev/docs/kit/@sveltejs-kit#redirect) и [`json`](https://svelte.dev/docs/kit/@sveltejs-kit#json) из `@sveltejs/kit` для удобства (но это не обязательно).
+
+При возникновении ошибки (либо через `error(...)`, либо непредвиденной) ответ будет представлен в виде JSON-описания ошибки или резервной страницы ошибки (которую можно настроить через `src/error.html`) в зависимости от заголовка `Accept`. В этом случае компонент [`+error.svelte`](#error) _не_ будет отображен. Подробнее об обработке ошибок можно прочитать [здесь](https://svelte.dev/docs/kit/errors).
+
+:::note
+При создании обработчика `OPTIONS` учтите, что Vite автоматически добавляет заголовки `Access-Control-Allow-Origin` и `Access-Control-Allow-Methods` — в продакшене они не будут присутствовать, если вы не добавите их вручную.
+:::
+
+:::note
+Файлы `+layout` не влияют на `+server.js`. Если вам нужно выполнить какую-то логику перед каждым запросом, добавьте её в хук [`handle`](https://svelte.dev/docs/kit/hooks#Server-hooks-handle).
+:::
+
+### Получение данных
+
+Экспортируя обработчики `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS` или `HEAD`, файлы `+server.js` могут использоваться для создания полноценного API:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/add/+page.svelte
+    <script>
+      let a = 0;
+      let b = 0;
+      let total = 0;
+
+      async function add() {
+        const response = await fetch('/api/add', {
+          method: 'POST',
+          body: JSON.stringify({ a, b }),
+          headers: {
+            'content-type': 'application/json'
+          }
+        });
+
+        total = await response.json();
+      }
+    </script>
+
+    <input type="number" bind:value={a}> +
+    <input type="number" bind:value={b}> =
+    {total}
+
+    <button onclick={add}>Подсчитать</button>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/add/+page.svelte
+    <script lang="ts">
+      let a = 0;
+      let b = 0;
+      let total = 0;
+
+      async function add() {
+        const response = await fetch('/api/add', {
+          method: 'POST',
+          body: JSON.stringify({ a, b }),
+          headers: {
+            'content-type': 'application/json'
+          }
+        });
+
+        total = await response.json();
+      }
+    </script>
+
+    <input type="number" bind:value={a}> +
+    <input type="number" bind:value={b}> =
+    {total}
+
+    <button onclick={add}>Подсчитать</button>
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/api/add/+server.js
+    import { json } from '@sveltejs/kit';
+
+    /** @type {import('./$types').RequestHandler} */
+    export async function POST({ request }) {
+      const { a, b } = await request.json();
+      return json(a + b);
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/api/add/+server.ts
+    import { json } from '@sveltejs/kit';
+    import type { RequestHandler } from './$types';
+
+    export const POST: RequestHandler = async ({ request }) => {
+      const { a, b } = await request.json();
+      return json(a + b);
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Как правило, [действия форм](https://svelte.dev/docs/kit/form-actions) являются более предпочтительным способом отправки данных из браузера на сервер.
+:::
+
+:::note
+Если экспортирован обработчик `GET`, запрос `HEAD` вернет значение `content-length` тела ответа обработчика `GET`.
+:::
+
+### Обработчик `fallback`
+
+Экспорт обработчика `fallback` позволяет обрабатывать любые необработанные методы запросов, включая такие методы как `MOVE`, для которых нет отдельных экспортов из `+server.js`.
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/api/add/+server.js
+    import { json, text } from '@sveltejs/kit';
+
+    /** @type {import('./$types').RequestHandler} */
+    export async function POST({ request }) {
+      const { a, b } = await request.json();
+      return json(a + b);
+    }
+
+    // Данный обработчик будет отвечать на запросы PUT, PATCH, DELETE и аналогичные
+    /** @type {import('./$types').RequestHandler} */
+    export async function fallback({ request }) {
+      return text(`Я перехватил ваш запрос ${request.method}!`);
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/api/add/+server.ts
+    import { json, text } from '@sveltejs/kit';
+    import type { RequestHandler } from './$types';
+
+    export const POST: RequestHandler = async ({ request }) => {
+      const { a, b } = await request.json();
+      return json(a + b);
+    };
+
+    // Данный обработчик будет отвечать на запросы PUT, PATCH, DELETE и аналогичные
+    export const fallback: RequestHandler = async ({ request }) => {
+      return text(`Я перехватил ваш запрос ${request.method}!`);
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Для запросов `HEAD` обработчик `GET` имеет приоритет над обработчиком `fallback`.
+:::
+
+### Согласование содержимого
+
+Файлы `+server.js` могут располагаться в том же каталоге, что и файлы `+page`, позволяя одному маршруту быть либо страницей, либо API-эндпойнтом. Правила определения:
+
+- Запросы `PUT`/`PATCH`/`DELETE`/`OPTIONS` всегда обрабатываются `+server.js`, так как они не применимы к страницам
+- Запросы `GET`/`POST`/`HEAD` обрабатываются как запросы страниц, если заголовок `accept` указывает приоритет `text/html` (т. е. это запрос страницы из браузера), в противном случае они обрабатываются `+server.js`
+- Ответы на `GET`-запросы включают заголовок `Vary: Accept`, чтобы прокси и браузеры кэшировали HTML и JSON ответы раздельно
+
+## $types
+
+Во всех приведённых примерах мы импортировали типы из файла `$types.d.ts`. Этот файл автоматически генерируется SvelteKit в скрытой директории при использовании TypeScript (или JavaScript с аннотациями типов JSDoc), обеспечивая безопасность типов при работе с корневыми файлами.
+
+Например, аннотация `let { data } = $props()` с типом `PageProps` (или `LayoutProps` для файла `+layout.svelte`) указывает TypeScript, что тип `data` соответствует данным, возвращаемым из функции `load`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/blog/[slug]/+page.svelte
+    <script>
+      /** @type {import('./$types').PageProps} */
+      let { data } = $props();
+    </script>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/blog/[slug]/+page.svelte
+    <script lang="ts">
+      import type { PageProps } from './$types';
+
+      let { data }: PageProps = $props();
+    </script>
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Типы `PageProps` и `LayoutProps`, добавленные в версии 2.16.0, являются сокращением для типизации пропа `data` как `PageData` или `LayoutData`, а также других пропсов, таких как `form` для страниц или `children` для макетов. В более ранних версиях эти свойства приходилось типизировать вручную. Например, для страницы:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // +page.svelte
+    /** @type {{ data: import('./$types').PageData, form: import('./$types').ActionData }} */
+    let { data, form } = $props();
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // +page.svelte
+    import type { PageData, ActionData } from './$types';
+
+    let { data, form }: { data: PageData, form: ActionData } = $props();
+    ```
+  </TabItem>
+</Tabs>
+
+Или для макета:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // +layout.svelte
+    /** @type {{ data: import('./$types').LayoutData, children: Snippet }} */
+    let { data, children } = $props();
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // +layout.svelte
+    import type { LayoutData } from './$types';
+
+    let { data, children }: { data: LayoutData, children: Snippet } = $props();
+    ```
+  </TabItem>
+</Tabs>
+:::
+
+В свою очередь, аннотация функции `load` с помощью `PageLoad`, `PageServerLoad`, `LayoutLoad` или `LayoutServerLoad` (для `+page.js`, `+page.server.js`, `+layout.js` и `+layout.server.js` соответственно) гарантирует правильную типизацию параметров `params` и возвращаемого значения.
+
+Если вы используете VS Code или другую IDE с поддержкой Language Server Protocol и TypeScript плагинов, вы можете _полностью_ опустить эти типы! Инструментарий Svelte для IDE автоматически подставит правильные типы, обеспечивая проверку типов без их явного указания. Это также работает с нашей командной строкой `svelte-check`.
+
+Подробнее об опускании `$types` можно прочитать в [нашем блоге](https://svelte.dev/blog/zero-config-type-safety).
+
+## Другие файлы
+
+Все остальные файлы в директории маршрута игнорируются SvelteKit. Это позволяет располагать компоненты и вспомогательные модули рядом с маршрутами, которые их используют.
+
+Если компоненты и модули нужны нескольким маршрутам, рекомендуется размещать их в [`$lib`](https://svelte.dev/docs/kit/$lib).
+
+## Дополнительные материалы
+
+- [Руководство: Маршрутизация](https://svelte.dev/tutorial/kit/pages)
+- [Руководство: API-маршруты](https://svelte.dev/tutorial/kit/get-handlers)
+- [Документация: Продвинутая маршрутизация](https://svelte.dev/docs/kit/advanced-routing)
