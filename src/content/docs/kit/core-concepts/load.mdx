@@ -1,0 +1,1295 @@
+---
+title: Загрузка данных
+origin: https://svelte.dev/docs/kit/load
+sidebar:
+  order: 1
+---
+
+Перед отрисовкой компонента [`+page.svelte`](/kit/core-concepts/routing#pagesvelte) (и содержащих его компонентов [`+layout.svelte`](/kit/core-concepts/routing#layoutsvelte)) часто требуется получить данные. Это реализуется через функции `load`.
+
+## Данные страницы
+
+Рядом с файлом `+page.svelte` может находиться `+page.js`, экспортирующий функцию `load`. Её возвращаемое значение доступно странице через проп `data`:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/[slug]/+page.js
+    /** @type {import('./$types').PageLoad} */
+    export function load({ params }) {
+      return {
+        post: {
+          title: `Title for ${params.slug} goes here`,
+          content: `Content for ${params.slug} goes here`
+        }
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/[slug]/+page.ts
+    import type { PageLoad } from './$types';
+
+    export const load: PageLoad = ({ params }) => {
+      return {
+        post: {
+          title: `Title for ${params.slug} goes here`,
+          content: `Content for ${params.slug} goes here`
+        }
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/blog/[slug]/+page.svelte
+    <script>
+      /** @type {import('./$types').PageProps} */
+      let { data } = $props();
+    </script>
+
+    <h1>{data.post.title}</h1>
+    <div>{@html data.post.content}</div>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/blog/[slug]/+page.svelte
+    <script lang="ts">
+      import type { PageProps } from './$types';
+
+      let { data }: PageProps = $props();
+    </script>
+
+    <h1>{data.post.title}</h1>
+    <div>{@html data.post.content}</div>
+    ```
+  </TabItem>
+</Tabs>
+
+:::caution
+До версии 2.16.0 пропсы страницы и макета приходилось типизировать отдельно:
+
+```js
+// file: +page.svelte
+/** @type {{ data: import('./$types').PageData }} */
+let { data } = $props();
+```
+В Svelte 4 вместо этого следует использовать `export let data`.
+:::
+
+Благодаря сгенерированному модулю `$types` мы получаем полную типобезопасность.
+
+Функция `load` в файле `+page.js` выполняется как на сервере, так и в браузере (если не используется `export const ssr = false`, в этом случае она [выполняется только в браузере](https://svelte.dev/docs/kit/page-options#ssr)). Если ваша функция `load` должна _всегда_ выполняться на сервере (например, потому что использует приватные переменные окружения или обращается к базе данных), её следует поместить в файл `+page.server.js`.
+
+Более реалистичная версия функции `load` для поста в блоге, которая выполняется только на сервере и получает данные из базы, может выглядеть так:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/[slug]/+page.server.js
+    import * as db from '$lib/server/database';
+
+    /** @type {import('./$types').PageServerLoad} */
+    export async function load({ params }) {
+      return {
+        post: await db.getPost(params.slug)
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/[slug]/+page.server.ts
+    import * as db from '$lib/server/database';
+    import type { PageServerLoad } from './$types';
+
+    export const load: PageServerLoad = async ({ params }) => {
+      return {
+        post: await db.getPost(params.slug)
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Обратите внимание, что тип изменился с `PageLoad` на `PageServerLoad`, поскольку серверные функции `load` имеют доступ к дополнительным аргументам. Чтобы понять, когда использовать `+page.js`, а когда `+page.server.js`, см. раздел [Универсальные и серверные](#универсальные-и-серверные).
+
+## Данные макета
+
+Ваши файлы `+layout.svelte` также могут загружать данные через `+layout.js` или `+layout.server.js`.
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/[slug]/+layout.server.js
+    import * as db from '$lib/server/database';
+
+    /** @type {import('./$types').LayoutServerLoad} */
+    export async function load() {
+      return {
+        posts: await db.getPostSummaries()
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/[slug]/+layout.server.ts
+    import * as db from '$lib/server/database';
+    import type { LayoutServerLoad } from './$types';
+
+    export const load: LayoutServerLoad = async () => {
+      return {
+        posts: await db.getPostSummaries()
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/blog/[slug]/+layout.svelte
+    <script>
+      /** @type {import('./$types').LayoutProps} */
+      let { data, children } = $props();
+    </script>
+
+    <main>
+      <!-- отображаем +page.svelte -->
+      {@render children()}
+    </main>
+
+    <aside>
+      <h2>Больше постов</h2>
+      <ul>
+        {#each data.posts as post}
+          <li>
+            <a href="/blog/{post.slug}">
+              {post.title}
+            </a>
+          </li>
+        {/each}
+      </ul>
+    </aside>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/blog/[slug]/+layout.svelte
+    <script lang="ts">
+      import type { LayoutProps } from './$types';
+
+      let { data, children }: LayoutProps = $props();
+    </script>
+
+    <main>
+      <!-- отображаем +page.svelte -->
+      {@render children()}
+    </main>
+
+    <aside>
+      <h2>Больше постов</h2>
+      <ul>
+        {#each data.posts as post}
+          <li>
+            <a href="/blog/{post.slug}">
+              {post.title}
+            </a>
+          </li>
+        {/each}
+      </ul>
+    </aside>
+    ```
+  </TabItem>
+</Tabs>
+
+:::caution
+`LayoutProps` был добавлен в версии 2.16.0. В более ранних версиях свойства приходилось типизировать отдельно:
+
+```js
+// file: +layout.svelte
+/** @type {{ data: import('./$types').LayoutData, children: Snippet }} */
+let { data, children } = $props();
+```
+:::
+
+Данные, возвращаемые из функций `load` макета, доступны:
+- Дочерним компонентам `+layout.svelte`
+- Компоненту `+page.svelte`
+- Самому макету, которому они «принадлежат»
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/blog/[slug]/+page.svelte
+    <script>
+      import { page } from '$app/state';
+
+      /** @type {import('./$types').PageProps} */
+      let { data } = $props();
+
+      // мы можем получить доступ к `data.posts`, так как эти данные возвращаются
+      // из родительской функции `load` макета
+      let index = $derived(data.posts.findIndex(post => post.slug === page.params.slug));
+      let next = $derived(data.posts[index + 1]);
+    </script>
+
+    <h1>{data.post.title}</h1>
+    <div>{@html data.post.content}</div>
+
+    {#if next}
+      <p>Следующий пост: <a href="/blog/{next.slug}">{next.title}</a></p>
+    {/if}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/blog/[slug]/+page.svelte
+    <script lang="ts">
+      import { page } from '$app/state';
+      import type { PageProps } from './$types';
+
+      let { data }: PageProps = $props();
+
+      // мы можем получить доступ к `data.posts`, так как эти данные возвращаются
+      // из родительской функции `load` макета
+      let index = $derived(data.posts.findIndex(post => post.slug === page.params.slug));
+      let next = $derived(data.posts[index + 1]);
+    </script>
+
+    <h1>{data.post.title}</h1>
+    <div>{@html data.post.content}</div>
+
+    {#if next}
+      <p>Следующий пост: <a href="/blog/{next.slug}">{next.title}</a></p>
+    {/if}
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Если несколько функций `load` возвращают данные с одинаковыми ключами, «побеждает» последнее значение — результат вызова функции `load` макета с `{ a: 1, b: 2 }` и функции `load` страницы с `{ b: 3, c: 4 }` будет `{ a: 1, b: 3, c: 4 }`.
+:::
+
+## page.data
+
+Компонент `+page.svelte` и каждый родительский компонент `+layout.svelte` имеют доступ к своим данным и всем данным своих родителей.
+
+В некоторых случаях может потребоваться обратное — родительскому макету может понадобиться доступ к данным страницы или дочернего макета. Например, корневой макет может захотеть получить доступ к свойству `title`, возвращаемому функцией `load` из `+page.js` или `+page.server.js`. Это можно сделать через `page.data`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/+layout.svelte
+    <script>
+      import { page } from '$app/state';
+    </script>
+
+    <svelte:head>
+      <title>{page.data.title}</title>
+    </svelte:head>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/+layout.svelte
+    <script lang="ts">
+      import { page } from '$app/state';
+    </script>
+
+    <svelte:head>
+      <title>{page.data.title}</title>
+    </svelte:head>
+    ```
+  </TabItem>
+</Tabs>
+
+Тип для `page.data` предоставляется через `App.PageData`.
+
+:::caution
+`$app/state` был добавлен в SvelteKit 2.12. В более ранних версиях или при использовании Svelte 4 следует использовать `$app/stores`.
+Он предоставляет хранилище `page` с таким же интерфейсом, на которое можно подписаться, например: `$page.data.title`.
+:::
+
+## Универсальные и серверные
+
+Как мы видели, существует два типа функций `load`:
+
+* Файлы `+page.js` и `+layout.js` экспортируют _универсальные_ функции `load`, выполняемые и на сервере, и в браузере
+* Файлы `+page.server.js` и `+layout.server.js` экспортируют _серверные_ функции `load`, выполняемые только на стороне сервера
+
+Концептуально они представляют одно и то же, но есть несколько важных отличий, о которых следует знать.
+
+### Когда какая функция `load` выполняется?
+
+Серверные функции `load` _всегда_ выполняются на сервере.
+
+По умолчанию универсальные функции `load` выполняются:
+1. На сервере во время SSR при первом посещении страницы
+2. Затем в браузере во время гидратации (с повторным использованием ответов [fetch-запросов](#выполнение-fetch-запросов))
+3. Все последующие вызовы — исключительно в браузере
+
+Поведение можно настроить через [параметры страницы](https://svelte.dev/docs/kit/page-options). При отключении [SSR](https://svelte.dev/docs/kit/page-options#ssr) универсальные `load` функции _всегда_ выполняются на клиенте.
+
+Если маршрут содержит и универсальные, и серверные `load` функции, серверная выполняется первой.
+
+Функция `load` вызывается во время выполнения, кроме случаев [пререндеринга](https://svelte.dev/docs/kit/page-options#prerender) — тогда она вызывается при сборке.
+
+### Входные параметры
+
+Оба типа `load` функций получают доступ к:
+- Свойствам запроса (`params`, `route`, `url`)
+- Функциям (`fetch`, `setHeaders`, `parent`, `depends`, `untrack`)
+
+Серверные `load` получают `ServerLoadEvent` с:
+- `clientAddress`, `cookies`, `locals`, `platform`, `request` (из `RequestEvent`)
+
+Универсальные `load` получают `LoadEvent` с:
+- Свойством `data` (результат серверной `load`, если она есть)
+
+### Возвращаемые значения
+
+Универсальная `load` может вернуть любой объект, включая:
+- Пользовательские классы
+- Конструкторы компонентов
+
+Серверная `load` должна возвращать данные, сериализуемые через [devalue](https://github.com/rich-harris/devalue):
+- JSON-совместимые структуры
+- `BigInt`, `Date`, `Map`, `Set`, `RegExp`
+- Циклические ссылки
+- Промисы ([потоковая передача](#потоковая-передача-промисов))
+
+### Когда что использовать
+
+Серверные функции `load` удобны, когда нужно:
+- Получить данные напрямую из базы данных или файловой системы
+- Использовать приватные переменные окружения
+
+Универсальные функции `load` полезны, когда нужно:
+- Загружать данные через `fetch` из внешнего API (без приватных данных)
+- Возвращать несериализуемые объекты (например, конструкторы Svelte-компонентов)
+
+В редких случаях может потребоваться использовать оба типа вместе — например, когда нужно вернуть экземпляр кастомного класса, инициализированного серверными данными. При совместном использовании результат серверной `load` передаётся не напрямую на страницу, а в универсальную `load` функцию (через свойство `data`):
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/+page.server.js
+    /** @type {import('./$types').PageServerLoad} */
+    export async function load() {
+      return {
+        serverMessage: 'привет от серверной функции `load`'
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/+page.server.ts
+    import type { PageServerLoad } from './$types';
+
+    export const load: PageServerLoad = async () => {
+      return {
+        serverMessage: 'привет от серверной функции `load`'
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/+page.js
+    /** @type {import('./$types').PageLoad} */
+    export async function load({ data }) {
+      return {
+        serverMessage: data.serverMessage,
+        universalMessage: 'привет от универсальной функции `load`'
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/+page.ts
+    import type { PageLoad } from './$types';
+    export const load: PageLoad = async ({ data }) => {
+      return {
+        serverMessage: data.serverMessage,
+        universalMessage: 'привет от универсальной функции `load`'
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+## Использование данных URL
+
+Часто функция `load` так или иначе зависит от URL. Для этого функция `load` предоставляет доступ к `url`, `route` и `params`.
+
+### url
+
+Экземпляр [`URL`](https://developer.mozilla.org/ru/docs/Web/API/URL), содержащий свойства:
+- `origin`
+- `hostname`
+- `pathname`
+- `searchParams` (разобранная query-строка как [`URLSearchParams`](https://developer.mozilla.org/ru/docs/Web/API/URLSearchParams))
+
+`url.hash` недоступен во время `load` на сервере.
+
+:::note
+В некоторых средах эти данные получают из заголовков запроса при SSR. Например, при использовании [adapter-node](https://svelte.dev/docs/kit/adapter-node) может потребоваться дополнительная настройка для корректного определения URL.
+:::
+
+### route
+
+Содержит имя текущей директории маршрута относительно `src/routes`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/a/[b]/[...c]/+page.js
+    /** @type {import('./$types').PageLoad} */
+    export function load({ route }) {
+      console.log(route.id); // '/a/[b]/[...c]'
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/a/[b]/[...c]/+page.ts
+    import type { PageLoad } from './$types';
+
+    export const load: PageLoad = ({ route }) => {
+      console.log(route.id); // '/a/[b]/[...c]'
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+### params
+
+Объект `params` формируется на основе `url.pathname` и `route.id`.
+
+Для примера, при `route.id` равном `/a/[b]/[...c]` и `url.pathname` равном `/a/x/y/z`, объект `params` будет выглядеть так:
+
+```json
+{
+  "b": "x",
+  "c": "y/z"
+}
+```
+
+## Выполнение fetch-запросов
+
+Для получения данных из внешнего API или обработчика `+server.js` можно использовать предоставляемую функцию `fetch`, которая работает аналогично [нативному fetch API](https://developer.mozilla.org/ru/docs/Web/API/fetch) с некоторыми дополнительными возможностями:
+
+- Позволяет выполнять авторизованные запросы на сервере, наследуя заголовки `cookie` и `authorization` из исходного запроса страницы.
+- Поддерживает относительные URL на сервере (обычно `fetch` требует указания origin в серверном контексте).
+- Внутренние запросы (например к маршрутам `+server.js`) выполняются напрямую на сервере без HTTP-вызова.
+- При SSR ответы автоматически встраиваются в HTML через перехват методов `text`, `json` и `arrayBuffer` объекта `Response`. Заголовки не сериализуются, если явно не указано в [`filterSerializedResponseHeaders`](https://svelte.dev/docs/kit/hooks#Server-hooks-handle).
+- При гидратации данные читаются из HTML, обеспечивая согласованность и избегая повторных запросов (консольные предупреждения при использовании браузерного `fetch` вместо `load` `fetch` связаны именно с этим).
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/items/[id]/+page.js
+    /** @type {import('./$types').PageLoad} */
+    export async function load({ fetch, params }) {
+      const res = await fetch(`/api/items/${params.id}`);
+      const item = await res.json();
+
+      return { item };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/items/[id]/+page.ts
+    import type { PageLoad } from './$types';
+
+    export const load: PageLoad = async ({ fetch, params }) => {
+      const res = await fetch(`/api/items/${params.id}`);
+      const item = await res.json();
+
+      return { item };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+## Куки
+
+Серверная функция `load` может получать и устанавливать [`куки`](https://svelte.dev/docs/kit/@sveltejs-kit#Cookies).
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/+layout.server.js
+    import * as db from '$lib/server/database';
+
+    /** @type {import('./$types').LayoutServerLoad} */
+    export async function load({ cookies }) {
+      const sessionid = cookies.get('sessionid');
+
+      return {
+        user: await db.getUser(sessionid)
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/+layout.server.ts
+    import * as db from '$lib/server/database';
+    import type { LayoutServerLoad } from './$types';
+
+    export const load: LayoutServerLoad = async ({ cookies }) => {
+      const sessionid = cookies.get('sessionid');
+
+      return {
+        user: await db.getUser(sessionid)
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Куки будут передаваться через предоставленную функцию `fetch` только если целевой хост совпадает с доменом приложения SvelteKit или является его поддоменом.
+
+Например, если SvelteKit обслуживает `my.domain.com`:
+- domain.com НЕ получит куки
+- my.domain.com получит куки
+- api.domain.com НЕ получит куки
+- sub.my.domain.com получит куки
+
+Другие куки не будут передаваться при `credentials: 'include'`, потому что SvelteKit не знает, к какому домену относится каждый куки (браузер не передаёт эту информацию), поэтому их передача небезопасна. Используйте [хук handleFetch](https://svelte.dev/docs/kit/hooks#Server-hooks-handleFetch) для обхода этого ограничения.
+
+## Заголовки
+
+Как серверные, так и универсальные функции `load` имеют доступ к функции `setHeaders`, которая на сервере позволяет устанавливать заголовки ответа. (В браузере `setHeaders` не имеет эффекта.) Это полезно, например, для кэширования страницы:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/products/+page.js
+    /** @type {import('./$types').PageLoad} */
+    export async function load({ fetch, setHeaders }) {
+      const url = `https://cms.example.com/products.json`;
+      const response = await fetch(url);
+
+      // Заголовки устанавливаются только во время SSR, кэшируя HTML страницы
+      // на тот же срок, что и исходные данные.
+      setHeaders({
+        age: response.headers.get('age'),
+        'cache-control': response.headers.get('cache-control')
+      });
+
+      return response.json();
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/products/+page.ts
+    import type { PageLoad } from './$types';
+    export const load: PageLoad = async ({ fetch, setHeaders }) => {
+      const url = `https://cms.example.com/products.json`;
+      const response = await fetch(url);
+
+      // Заголовки устанавливаются только во время SSR, кэшируя HTML страницы
+      // на тот же срок, что и исходные данные.
+      setHeaders({
+        age: response.headers.get('age'),
+        'cache-control': response.headers.get('cache-control')
+      });
+
+      return response.json();
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Установка одного и того же заголовка несколько раз (даже в разных функциях `load`) вызовет ошибку. Каждый заголовок можно установить только один раз через `setHeaders`. Нельзя добавлять заголовок `set-cookie` через `setHeaders` — вместо этого используйте `cookies.set(name, value, options)`.
+
+## Использование родительских данных
+
+Иногда функции `load` требуется доступ к данным из родительской функции `load`, что можно сделать через `await parent()`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/+layout.js
+    /** @type {import('./$types').LayoutLoad} */
+    export function load() {
+      return { a: 1 };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/+layout.ts
+    import type { LayoutLoad } from './$types';
+
+    export const load: LayoutLoad = () => {
+      return { a: 1 };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/abc/+layout.js
+    /** @type {import('./$types').LayoutLoad} */
+    export async function load({ parent }) {
+      const { a } = await parent();
+      return { b: a + 1 };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/abc/+layout.ts
+    import type { LayoutLoad } from './$types';
+
+    export const load: LayoutLoad = async ({ parent }) => {
+      const { a } = await parent();
+      return { b: a + 1 };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/abc/+page.js
+    /** @type {import('./$types').PageLoad} */
+    export async function load({ parent }) {
+      const { a, b } = await parent();
+      return { c: a + b };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/abc/+page.ts
+    import type { PageLoad } from './$types';
+
+    export const load: PageLoad = async ({ parent }) => {
+      const { a, b } = await parent();
+      return { c: a + b };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/abc/+page.svelte
+    <script>
+      /** @type {import('./$types').PageProps} */
+      let { data } = $props();
+    </script>
+
+    <!-- отобразит `1 + 2 = 3` -->
+    <p>{data.a} + {data.b} = {data.c}</p>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/abc/+page.svelte
+    <script lang="ts">
+      import type { PageProps } from './$types';
+
+      let { data }: PageProps = $props();
+    </script>
+
+    <!-- отобразит `1 + 2 = 3` -->
+    <p>{data.a} + {data.b} = {data.c}</p>
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Обратите внимание, что функция `load` в `+page.js` получает объединённые данные из всех родительских `load` функций макетов, а не только из непосредственного родителя.
+:::
+
+В `+page.server.js` и `+layout.server.js` функция `parent` возвращает данные из родительских файлов `+layout.server.js`.
+
+В `+page.js` или `+layout.js` она возвращает данные из родительских `+layout.js`. Однако отсутствующий `+layout.js` обрабатывается как функция `({ data }) => data`, что означает также возврат данных из родительских `+layout.server.js`, которые не «перекрыты» файлом `+layout.js`.
+
+Старайтесь избегать каскада запросов при использовании `await parent()`. Например, здесь `getData(params)` не зависит от результата вызова `parent()`, поэтому следует вызывать её первой, чтобы не задерживать рендеринг:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // +page.js
+    /** @type {import('./$types').PageLoad} */
+    export async function load({ params, parent }) {
+      const parentData = await parent();
+      const data = await getData(params);
+      const parentData = await parent();
+
+      return {
+        ...data,
+        meta: { ...parentData.meta, ...data.meta }
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // +page.ts
+    import type { PageLoad } from './$types';
+
+    export const load: PageLoad = async ({ params, parent }) => {
+      const parentData = await parent();
+      const data = await getData(params);
+      const parentData = await parent();
+
+      return {
+        ...data,
+        meta: { ...parentData.meta, ...data.meta }
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+## Ошибки
+
+Если во время выполнения `load` произойдёт ошибка, будет отображён ближайший [`+error.svelte`](/kit/core-concepts/routing#error). Для [_ожидаемых_](https://svelte.dev/docs/kit/errors#Expected-errors) ошибок используйте хелпер `error` из `@sveltejs/kit`, чтобы указать HTTP-статус и опциональное сообщение:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/admin/+layout.server.js
+    import { error } from '@sveltejs/kit';
+
+    /** @type {import('./$types').LayoutServerLoad} */
+    export function load({ locals }) {
+      if (!locals.user) {
+        error(401, 'not logged in');
+      }
+
+      if (!locals.user.isAdmin) {
+        error(403, 'not an admin');
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/admin/+layout.server.ts
+    import { error } from '@sveltejs/kit';
+    import type { LayoutServerLoad } from './$types';
+
+    export const load: LayoutServerLoad = ({ locals }) => {
+      if (!locals.user) {
+        error(401, 'not logged in');
+      }
+
+      if (!locals.user.isAdmin) {
+        error(403, 'not an admin');
+      }
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Вызов `error(...)` генерирует исключение, что позволяет легко прервать выполнение внутри вспомогательных функций.
+
+При возникновении [_неожиданной_](https://svelte.dev/docs/kit/errors#Unexpected-errors) ошибки SvelteKit вызовет [`handleError`](https://svelte.dev/docs/kit/hooks#Shared-hooks-handleError) и обработает её как 500 Internal Error.
+
+:::note
+[В SvelteKit 1.x](https://svelte.dev/docs/kit/migrating-to-sveltekit-2#redirect-and-error-are-no-longer-thrown-by-you) нужно было самостоятельно вызывать `throw` для ошибок
+:::
+
+## Перенаправления
+
+Для редиректа пользователей используйте хелпер `redirect` из `@sveltejs/kit`, указав целевой URL и статус-код `3xx`. Как и `error(...)`, вызов `redirect(...)` генерирует исключение, что позволяет легко прервать выполнение внутри вспомогательных функций.
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/user/+layout.server.js
+    import { redirect } from '@sveltejs/kit';
+
+    /** @type {import('./$types').LayoutServerLoad} */
+    export function load({ locals }) {
+      if (!locals.user) {
+        redirect(307, '/login');
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/user/+layout.server.ts
+    import { redirect } from '@sveltejs/kit';
+    import type { LayoutServerLoad } from './$types';
+
+    export const load: LayoutServerLoad = ({ locals }) => {
+      if (!locals.user) {
+        redirect(307, '/login');
+      }
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Не используйте `redirect()` внутри блока `try {...}`, так как перенаправление немедленно вызовет выполнение `catch`.
+:::
+
+В браузере вы также можете программно выполнить навигацию вне функции `load`, используя [`goto`](https://svelte.dev/docs/kit/$app-navigation#goto) из [`$app.navigation`](https://svelte.dev/docs/kit/$app-navigation).
+
+:::note
+[В SvelteKit 1.x](https://svelte.dev/docs/kit/migrating-to-sveltekit-2#redirect-and-error-are-no-longer-thrown-by-you) нужно было самостоятельно вызывать `throw` для `redirect`
+:::
+
+## Потоковая передача промисов
+
+При использовании серверной функции `load` промисы будут передаваться в браузер по мере их выполнения. Это особенно полезно для медленных или не критичных данных, так как позволяет начать отрисовку страницы до получения всех данных:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/[slug]/+page.server.js
+    /** @type {import('./$types').PageServerLoad} */
+    export async function load({ params }) {
+      return {
+        // Убедитесь, что `await` выполняется в конце, иначе
+        // мы не сможем начать загрузку комментариев до загрузки поста
+        comments: loadComments(params.slug),
+        post: await loadPost(params.slug)
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/[slug]/+page.server.ts
+    import type { PageServerLoad } from './$types';
+
+    export const load: PageServerLoad = async ({ params }) => {
+      return {
+        // Убедитесь, что `await` выполняется в конце, иначе
+        // мы не сможем начать загрузку комментариев до загрузки поста
+        comments: loadComments(params.slug),
+        post: await loadPost(params.slug)
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Это полезно, например, для создания состояний загрузки со скелетоном:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/blog/[slug]/+page.svelte
+    <script>
+      /** @type {import('./$types').PageProps} */
+      let { data } = $props();
+    </script>
+
+    <h1>{data.post.title}</h1>
+    <div>{@html data.post.content}</div>
+
+    {#await data.comments}
+      Загрузка комментариев...
+    {:then comments}
+      {#each comments as comment}
+        <p>{comment.content}</p>
+      {/each}
+    {:catch error}
+      <p>Ошибка загрузки комментариев: {error.message}</p>
+    {/await}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/blog/[slug]/+page.svelte
+    <script lang="ts">
+      import type { PageProps } from './$types';
+
+      let { data }: PageProps = $props();
+    </script>
+
+    <h1>{data.post.title}</h1>
+    <div>{@html data.post.content}</div>
+
+    {#await data.comments}
+      Загрузка комментариев...
+    {:then comments}
+      {#each comments as comment}
+        <p>{comment.content}</p>
+      {/each}
+    {:catch error}
+      <p>Ошибка загрузки комментариев: {error.message}</p>
+    {/await}
+    ```
+  </TabItem>
+</Tabs>
+
+При потоковой передаче данных важно правильно обрабатывать отклонённые промисы. В частности, сервер может завершиться с ошибкой `unhandled promise rejection`, если лениво загружаемый промис завершится ошибкой до начала рендеринга (когда ошибка ещё не перехвачена) и ошибка никак не обрабатывается. При использовании `fetch` SvelteKit непосредственно в функции `load`, SvelteKit позаботится об этом случае. Для других промисов достаточно прикрепить `catch`-обработчик без действий (`noop`), чтобы пометить промис как обработанный.
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/+page.server.js
+    /** @type {import('./$types').PageServerLoad} */
+    export function load({ fetch }) {
+      const ok_manual = Promise.reject();
+      ok_manual.catch(() => {});
+
+      return {
+        ok_manual,
+        ok_fetch: fetch('/fetch/that/could/fail'),
+        dangerous_unhandled: Promise.reject()
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/+page.server.ts
+    import type { PageServerLoad } from './$types';
+
+    export const load: PageServerLoad = ({ fetch }) => {
+      const ok_manual = Promise.reject();
+      ok_manual.catch(() => {});
+
+      return {
+        ok_manual,
+        ok_fetch: fetch('/fetch/that/could/fail'),
+        dangerous_unhandled: Promise.reject()
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+На платформах без поддержки потоковой передачи (например AWS Lambda или Firebase) ответы будут буферизироваться. Это означает, что страница отобразится только после разрешения всех промисов. При использовании прокси (например NGINX) убедитесь, что он не буферизирует ответы от проксируемого сервера.
+:::
+
+:::note
+Потоковая передача данных работает только при включённом JavaScript. Следует избегать возврата промисов из универсальной функции `load` при SSR, так как они не передаются потоком — вместо этого промис воссоздаётся при повторном запуске функции в браузере.
+:::
+
+:::note
+Заголовки и статус ответа нельзя изменить после начала потоковой передачи, поэтому нельзя использовать `setHeaders` или выполнять редиректы внутри потокового промиса.
+:::
+
+:::note
+[В SvelteKit 1.x](https://svelte.dev/docs/kit/migrating-to-sveltekit-2#Top-level-promises-are-no-longer-awaited) промисы верхнего уровня автоматически ожидались, и только вложенные промисы передавались потоком.
+:::
+
+## Параллельная загрузка
+
+При рендеринге страницы (или переходе на нее) SvelteKit выполняет все функции `load` параллельно, избегая каскада запросов. При клиентской навигации результаты вызовов серверных функций `load` объединяются в один ответ. После завершения всех функций `load` страница отрисовывается.
+
+## Повторный запуск функций `load`
+
+SvelteKit отслеживает зависимости каждой функции `load`, чтобы избежать её избыточного выполнения при навигации.
+
+Например, для пары функций `load` вида...
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/[slug]/+page.server.js
+    import * as db from '$lib/server/database';
+
+    /** @type {import('./$types').PageServerLoad} */
+    export async function load({ params }) {
+      return {
+        post: await db.getPost(params.slug)
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/[slug]/+page.server.ts
+    import * as db from '$lib/server/database';
+    import type { PageServerLoad } from './$types';
+
+    export const load: PageServerLoad = async ({ params }) => {
+      return {
+        post: await db.getPost(params.slug)
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/[slug]/+layout.server.js
+    import * as db from '$lib/server/database';
+
+    /** @type {import('./$types').LayoutServerLoad} */
+    export async function load() {
+      return {
+        posts: await db.getPostSummaries()
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/[slug]/+layout.server.ts
+    import * as db from '$lib/server/database';
+    import type { LayoutServerLoad } from './$types';
+
+    export const load: LayoutServerLoad = async () => {
+      return {
+        posts: await db.getPostSummaries()
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+...функция в `+page.server.js` перезапустится при переходе с `/blog/trying-the-raw-meat-diet` на `/blog/i-regret-my-choices`, так как изменился `params.slug`. Функция в `+layout.server.js` не перезапустится, так как данные остаются актуальными. Другими словами, `db.getPostSummaries()` не будет вызван повторно.
+
+Функция `load`, вызывающая `await parent()`, также перезапустится, если перезапустится родительская функция `load`.
+
+Отслеживание зависимостей не применяется _после_ возврата из функции `load` — например, обращение к `params.x` внутри вложенного [промиса](#потоковая-передача-промисов) не вызовет перезапуск функции при изменении `params.x`. (Не беспокойтесь, в режиме разработки вы получите предупреждение, если случайно сделаете это.) Вместо этого обращайтесь к параметру в основном теле функции `load`.
+
+Параметры поиска отслеживаются независимо от остальной части URL. Например, обращение к `event.url.searchParams.get("x")` в функции `load` вызовет её перезапуск при переходе с `?x=1` на `?x=2`, но не при переходе с `?x=1&y=1` на `?x=1&y=2`.
+
+### Исключение зависимостей из отслеживания
+
+В редких случаях может потребоваться исключить что-то из механизма отслеживания зависимостей. Это можно сделать с помощью предоставленной функции `untrack`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/+page.js
+    /** @type {import('./$types').PageLoad} */
+    export async function load({ untrack, url }) {
+      // Исключаем url.pathname из отслеживания, чтобы изменения пути не вызывали повторный запуск
+      if (untrack(() => url.pathname === '/')) {
+        return { message: 'Welcome!' };
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/+page.ts
+    import type { PageLoad } from './$types';
+
+    export const load: PageLoad = async ({ untrack, url }) => {
+      // Исключаем url.pathname из отслеживания, чтобы изменения пути не вызывали повторный запуск
+      if (untrack(() => url.pathname === '/')) {
+        return { message: 'Welcome!' };
+      }
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+### Ручной перезапуск
+
+Вы также можете перезапустить функции `load` для текущей страницы с помощью:
+- [`invalidate(url)`](https://svelte.dev/docs/kit/$app-navigation#invalidate) — перезапускает все `load` функции, зависящие от `url`
+- [`invalidateAll()`](https://svelte.dev/docs/kit/$app-navigation#invalidateAll) — перезапускает все `load` функции
+
+Серверные `load` функции никогда не зависят автоматически от полученного `url`, чтобы избежать утечки секретов клиенту.
+
+Функция `load` зависит от `url`, если вызывает:
+- `fetch(url)`
+- `depends(url)`
+
+Примечание: `url` может быть кастомным идентификатором, начинающимся с `[a-z]:`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/random-number/+page.js
+    /** @type {import('./$types').PageLoad} */
+    export async function load({ fetch, depends }) {
+      // Функция load перезапустится при вызове `invalidate('https://api.example.com/random-number')
+      const response = await fetch('https://api.example.com/random-number');
+
+      // ...или при вызове `invalidate('app:random')`
+      depends('app:random');
+
+      return {
+        number: await response.json()
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/random-number/+page.ts
+    import type { PageLoad } from './$types';
+
+    export const load: PageLoad = async ({ fetch, depends }) => {
+      // Функция load перезапустится при вызове `invalidate('https://api.example.com/random-number')
+      const response = await fetch('https://api.example.com/random-number');
+
+      // ...или при вызове `invalidate('app:random')`
+      depends('app:random');
+
+      return {
+        number: await response.json()
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/random-number/+page.svelte
+    <script>
+      import { invalidate, invalidateAll } from '$app/navigation';
+
+      /** @type {import('./$types').PageProps} */
+      let { data } = $props();
+
+      function rerunLoadFunction() {
+        // Любое из этих действий приведёт к повторному выполнению функции `load`
+        invalidate('app:random');
+        invalidate('https://api.example.com/random-number');
+        invalidate(url => url.href.includes('random-number'));
+        invalidateAll();
+      }
+    </script>
+
+    <p>Случайное число: {data.number}</p>
+    <button onclick={rerunLoadFunction}>Обновить случайное число</button>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/random-number/+page.svelte
+    <script lang="ts">
+      import { invalidate, invalidateAll } from '$app/navigation';
+      import type { PageProps } from './$types';
+
+      let { data }: PageProps = $props();
+
+      function rerunLoadFunction() {
+        // Любое из этих действий приведёт к повторному выполнению функции `load`
+        invalidate('app:random');
+        invalidate('https://api.example.com/random-number');
+        invalidate(url => url.href.includes('random-number'));
+        invalidateAll();
+      }
+    </script>
+
+    <p>Случайное число: {data.number}</p>
+    <button onclick={rerunLoadFunction}>Обновить случайное число</button>
+    ```
+  </TabItem>
+</Tabs>
+
+### Когда функции `load` выполняются повторно?
+
+Подведём итоги: функция `load` выполнится повторно в следующих случаях:
+
+- Она ссылается на свойство `params`, значение которого изменилось
+- Она ссылается на свойство `url` (например, `url.pathname` или `url.search`), значение которого изменилось. Свойства `request.url` не отслеживаются
+- Она вызывает `url.searchParams.get(...)`, `url.searchParams.getAll(...)` или `url.searchParams.has(...)`, и соответствующий параметр изменился. Доступ к другим свойствам `url.searchParams` имеет тот же эффект, что и доступ к `url.search`.
+- Она вызывает `await parent()`, и родительская функция `load` выполнилась повторно
+- Дочерняя функция `load` вызывает `await parent()` и выполняется повторно, а родитель является серверной функцией load
+- Она объявила зависимость от конкретного URL через [`fetch`](#выполнение-fetch-запросов) (только универсальные load) или [`depends`](https://svelte.dev/docs/kit/@sveltejs-kit#LoadEvent), и этот URL был помечен как недействительный с помощью [`invalidate(url)`](https://svelte.dev/docs/kit/$app-navigation#invalidate)
+- Все активные функции `load` были принудительно перезапущены с помощью [`invalidateAll()`](https://svelte.dev/docs/kit/$app-navigation#invalidateAll)
+
+Изменения `params` и `url` могут происходить в результате:
+- Клика по ссылке `<a href="..">`
+- Взаимодействия с [`<form>`](https://svelte.dev/docs/kit/form-actions#GET-vs-POST)
+- Вызова [`goto`](https://svelte.dev/docs/kit/$app-navigation#goto)
+- Вызова [`redirect`](https://svelte.dev/docs/kit/@sveltejs-kit#redirect)
+
+Примечание: повторное выполнение функции `load` обновит проп `data` в соответствующем `+layout.svelte` или `+page.svelte`, но не приведёт к повторному созданию компонента. Таким образом, внутреннее состояние сохраняется. Если это нежелательно, можно сбросить состояние в колбэке [`afterNavigate`](https://svelte.dev/docs/kit/$app-navigation#afterNavigate) и/или обернуть компонент в блок [`{#key ...}`](/template-syntax/key).
+
+## Влияние на аутентификацию
+
+Две особенности загрузки данных важны для проверки авторизации:
+1. Функции `load` макетов не выполняются при каждом запросе (например, при клиентской навигации между дочерними маршрутами) [(Когда функции load выполняются повторно?)](#когда-функции-load-выполняются-повторно)
+2. Функции `load` макетов и страниц выполняются параллельно, если не вызван `await parent()`. Если функция `load` макета завершится ошибкой, функция `load` страницы всё равно выполнится, но клиент не получит возвращённых данных
+
+Возможные стратегии для гарантии проверки авторизации перед защищённым кодом:
+
+**Для предотвращения каскада запросов и сохранения кэша макетов:**
+- Используйте [хуки](https://svelte.dev/docs/kit/hooks) для защиты маршрутов до выполнения любых функций `load`
+- Используйте проверки авторизации непосредственно в функциях `load` файлов `+page.server.js` для защиты конкретных маршрутов
+
+**Размещение проверки в `+layout.server.js` требует:**
+- Чтобы все дочерние страницы вызывали `await parent()` перед защищённым кодом
+- Если не все дочерние страницы зависят от данных из `await parent()`, другие варианты будут более производительными
+
+## Использование `getRequestEvent`
+
+При выполнении серверных функций `load` объект `event`, передаваемый функции в качестве аргумента, также можно получить с помощью [`getRequestEvent`](https://svelte.dev/docs/kit/$app-server#getRequestEvent). Это позволяет общей логике (например, проверкам авторизации) получать информацию о текущем запросе без необходимости её явной передачи.
+
+Например, у вас может быть функция, требующая авторизации пользователя и перенаправляющая на `/login`, если пользователь не авторизован:
+
+```js
+// src/lib/server/auth.js
+import { redirect } from '@sveltejs/kit';
+import { getRequestEvent } from '$app/server';
+
+export function requireLogin() {
+  const { locals, url } = getRequestEvent();
+
+  // предполагается, что `locals.user` заполняется в `handle`
+  if (!locals.user) {
+    const redirectTo = url.pathname + url.search;
+    const params = new URLSearchParams({ redirectTo });
+
+    redirect(307, `/login?${params}`);
+  }
+
+  return locals.user;
+}
+```
+
+Теперь вы можете вызывать `requireLogin` в любой функции `load` (или, например, в [действиях формы](https://svelte.dev/docs/kit/form-actions)), чтобы гарантировать, что пользователь авторизован:
+
+```js
+// +page.server.js
+import { requireLogin } from '$lib/server/auth';
+
+export function load() {
+  const user = requireLogin();
+
+  // Здесь `user` гарантированно является объектом пользователя, так как
+  // в противном случае `requireLogin` выполнил бы редирект и мы бы сюда не попали
+  return {
+    message: `hello ${user.name}!`
+  };
+}
+```
+
+## Дополнительные материалы
+
+- [Руководство: Загрузка данных](https://svelte.dev/tutorial/kit/page-data)
+- [Руководство: Ошибки и перенаправления](https://svelte.dev/tutorial/kit/error-basics)
+- [Руководство: Продвинутая загрузка](https://svelte.dev/tutorial/kit/await-parent)
