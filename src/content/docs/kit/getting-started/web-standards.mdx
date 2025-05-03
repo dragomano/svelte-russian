@@ -16,7 +16,7 @@ sidebar:
 SvelteKit использует [`fetch`](https://developer.mozilla.org/ru/docs/Web/API/fetch) для получения данных из сети. Данный метод доступен в [хуках](https://svelte.dev/docs/kit/hooks), [серверных роутах](/kit/core-concepts/routing#server) и браузере.
 
 :::note
-Особая версия `fetch` доступна в [`load`-функциях](https://svelte.dev/docs/kit/load), [серверных хуках](https://svelte.dev/docs/kit/hooks#Server-hooks) и [API-роутах](/kit/core-concepts/routing#server) для прямого вызова эндпойнтов при SSR без HTTP-запросов, с сохранением авторизации. (Для авторизованных запросов вне `load` нужно явно передавать заголовки `cookie`/`authorization`). Также позволяет делать относительные запросы, тогда как обычный `fetch` требует полный URL.
+Особая версия `fetch` доступна в [`load`-функциях](/kit/core-concepts/load), [серверных хуках](https://svelte.dev/docs/kit/hooks#Server-hooks) и [API-роутах](/kit/core-concepts/routing#server) для прямого вызова эндпойнтов при SSR без HTTP-запросов, с сохранением авторизации. (Для авторизованных запросов вне `load` нужно явно передавать заголовки `cookie`/`authorization`). Также позволяет делать относительные запросы, тогда как обычный `fetch` требует полный URL.
 :::
 
 Помимо самого `fetch`, [Fetch API](https://developer.mozilla.org/ru/docs/Web/API/Fetch_API) включает:
