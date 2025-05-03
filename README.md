@@ -29,6 +29,7 @@
 - legacy mode — режим совместимости
 - runes mode — режим рун
 - endpoint — эндпойнт
+- waterfall of requests — каскад запросов
 
 ## Чем вы можете помочь
 
