@@ -229,49 +229,49 @@ let { data, children } = $props();
 
 <Tabs syncKey="starlight-package-managers-pkg">
   <TabItem label="JS">
-    ```svelte
+    ```diff lang="svelte"
     // src/routes/blog/[slug]/+page.svelte
     <script>
-      import { page } from '$app/state';
+    +  import { page } from '$app/state';
 
       /** @type {import('./$types').PageProps} */
       let { data } = $props();
 
-      // мы можем получить доступ к `data.posts`, так как эти данные возвращаются
-      // из родительской функции `load` макета
-      let index = $derived(data.posts.findIndex(post => post.slug === page.params.slug));
-      let next = $derived(data.posts[index + 1]);
+    +  // мы можем получить доступ к `data.posts`, так как эти данные возвращаются
+    +  // из родительской функции `load` макета
+    +  let index = $derived(data.posts.findIndex(post => post.slug === page.params.slug));
+    +  let next = $derived(data.posts[index + 1]);
     </script>
 
     <h1>{data.post.title}</h1>
     <div>{@html data.post.content}</div>
 
-    {#if next}
-      <p>Следующий пост: <a href="/blog/{next.slug}">{next.title}</a></p>
-    {/if}
+    +{#if next}
+    +  <p>Следующий пост: <a href="/blog/{next.slug}">{next.title}</a></p>
+    +{/if}
     ```
   </TabItem>
   <TabItem label="TS">
-    ```svelte
+    ```diff lang="svelte"
     // src/routes/blog/[slug]/+page.svelte
     <script lang="ts">
-      import { page } from '$app/state';
+    +  import { page } from '$app/state';
       import type { PageProps } from './$types';
 
       let { data }: PageProps = $props();
 
-      // мы можем получить доступ к `data.posts`, так как эти данные возвращаются
-      // из родительской функции `load` макета
-      let index = $derived(data.posts.findIndex(post => post.slug === page.params.slug));
-      let next = $derived(data.posts[index + 1]);
+    +  // мы можем получить доступ к `data.posts`, так как эти данные возвращаются
+    +  // из родительской функции `load` макета
+    +  let index = $derived(data.posts.findIndex(post => post.slug === page.params.slug));
+    +  let next = $derived(data.posts[index + 1]);
     </script>
 
     <h1>{data.post.title}</h1>
     <div>{@html data.post.content}</div>
 
-    {#if next}
-      <p>Следующий пост: <a href="/blog/{next.slug}">{next.title}</a></p>
-    {/if}
+    +{#if next}
+    +  <p>Следующий пост: <a href="/blog/{next.slug}">{next.title}</a></p>
+    +{/if}
     ```
   </TabItem>
 </Tabs>
@@ -736,13 +736,13 @@ let { data, children } = $props();
 
 <Tabs syncKey="starlight-package-managers-pkg">
   <TabItem label="JS">
-    ```js
+    ```diff lang="js"
     // +page.js
     /** @type {import('./$types').PageLoad} */
     export async function load({ params, parent }) {
-      const parentData = await parent();
+    -  const parentData = await parent();
       const data = await getData(params);
-      const parentData = await parent();
+    +  const parentData = await parent();
 
       return {
         ...data,
@@ -752,14 +752,14 @@ let { data, children } = $props();
     ```
   </TabItem>
   <TabItem label="TS">
-    ```ts
+    ```diff lang="ts"
     // +page.ts
     import type { PageLoad } from './$types';
 
     export const load: PageLoad = async ({ params, parent }) => {
-      const parentData = await parent();
+    -  const parentData = await parent();
       const data = await getData(params);
-      const parentData = await parent();
+    +  const parentData = await parent();
 
       return {
         ...data,
@@ -1223,7 +1223,7 @@ SvelteKit отслеживает зависимости каждой функц�
 
 Изменения `params` и `url` могут происходить в результате:
 - Клика по ссылке `<a href="..">`
-- Взаимодействия с [`<form>`](https://svelte.dev/docs/kit/form-actions#GET-vs-POST)
+- Взаимодействия с [`<form>`](/kit/core-concepts/form-actions/#get-против-post)
 - Вызова [`goto`](https://svelte.dev/docs/kit/$app-navigation#goto)
 - Вызова [`redirect`](https://svelte.dev/docs/kit/@sveltejs-kit#redirect)
 
@@ -1271,7 +1271,7 @@ export function requireLogin() {
 }
 ```
 
-Теперь вы можете вызывать `requireLogin` в любой функции `load` (или, например, в [действиях формы](https://svelte.dev/docs/kit/form-actions)), чтобы гарантировать, что пользователь авторизован:
+Теперь вы можете вызывать `requireLogin` в любой функции `load` (или, например, в [действиях формы](/kit/core-concepts/form-actions)), чтобы гарантировать, что пользователь авторизован:
 
 ```js
 // +page.server.js
