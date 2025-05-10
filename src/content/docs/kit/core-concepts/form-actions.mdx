@@ -1,0 +1,820 @@
+---
+title: Действия формы
+origin: https://svelte.dev/docs/kit/form-actions
+sidebar:
+  order: 2
+---
+
+Файл `+page.server.js` может экспортировать _действия_ (actions), позволяющие отправлять данные на сервер методом `POST` с помощью элемента `<form>`.
+
+При использовании `<form>` клиентский JavaScript не обязателен, но вы можете легко _постепенно улучшать_ взаимодействие с формой с помощью JavaScript для лучшей интерактивности.
+
+## Действия по умолчанию
+
+В простейшем случае страница объявляет действие `default`:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/login/+page.server.js
+    /** @satisfies {import('./$types').Actions} */
+    export const actions = {
+      default: async (event) => {
+        // TODO авторизовываем пользователя
+      }
+    };
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/login/+page.server.ts
+    import type { Actions } from './$types';
+
+    export const actions = {
+      default: async (event) => {
+        // TODO авторизовываем пользователя
+      }
+    } satisfies Actions;
+    ```
+  </TabItem>
+</Tabs>
+
+Чтобы вызвать это действие со страницы `/login`, просто добавьте `<form>` — JavaScript не требуется:
+
+```svelte
+// src/routes/login/+page.svelte
+<form method="POST">
+  <label>
+    Имейл
+    <input name="email" type="email">
+  </label>
+  <label>
+    Пароль
+    <input name="password" type="password">
+  </label>
+  <button>Войти</button>
+</form>
+```
+
+При нажатии кнопки браузер отправит данные формы на сервер через `POST`-запрос, выполняя действие по умолчанию.
+
+:::note
+Действия всегда используют `POST`-запросы, так как `GET`-запросы не должны иметь побочных эффектов.
+:::
+
+Действие также можно вызвать с других страниц (например, если в навигации корневого макета есть виджет входа), указав атрибут `action` с путём к странице:
+
+```svelte
+// src/routes/+layout.svelte
+<form method="POST" action="/login">
+  <!-- содержимое -->
+</form>
+```
+
+## Именованные действия
+
+Вместо одного действия `default` страница может содержать несколько именованных действий:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```diff lang="js"
+    // src/routes/login/+page.server.js
+    /** @satisfies {import('./$types').Actions} */
+    export const actions = {
+    -  default: async (event) => {
+    +  login: async (event) => {
+        // TODO авторизовываем пользователя
+      },
+    +  register: async (event) => {
+    +    // TODO регистрируем пользователя
+    +  }
+    };
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```diff lang="ts"
+    // src/routes/login/+page.server.ts
+    import type { Actions } from './$types';
+
+    export const actions = {
+    -  default: async (event) => {
+    +  login: async (event) => {
+        // TODO авторизовываем пользователя
+      },
+    +  register: async (event) => {
+    +    // TODO регистрируем пользователя
+    +  }
+    } satisfies Actions;
+    ```
+  </TabItem>
+</Tabs>
+
+Для вызова именованного действия добавьте query-параметр с именем, начинающимся с символа `/`:
+
+```svelte
+// src/routes/login/+page.svelte
+<form method="POST" action="?/register">
+```
+
+```svelte
+// src/routes/+layout.svelte
+<form method="POST" action="/login?/register">
+```
+
+Помимо атрибута `action`, можно использовать атрибут `formaction` на кнопке, чтобы отправить те же данные формы в другое действие, отличное от указанного в родительском элементе `<form>`:
+
+```svelte {12} "action="?/login""
+// src/routes/login/+page.svelte
+<form method="POST" action="?/login">
+  <label>
+    Имейл
+    <input name="email" type="email">
+  </label>
+  <label>
+    Пароль
+    <input name="password" type="password">
+  </label>
+  <button>Войти</button>
+  <button formaction="?/register">Зарегистрироваться</button>
+</form>
+```
+
+:::note
+Нельзя одновременно использовать действия по умолчанию и именованные действия, потому что при POST-запросе к именованному действию без редиректа параметр сохраняется в URL. Это означает, что следующий POST-запрос по умолчанию будет обработан как предыдущее именованное действие.
+:::
+
+## Структура действия
+
+Каждое действие получает объект `RequestEvent`, позволяющий:
+- Читать данные через `request.formData()`
+- Обрабатывать запрос (например, авторизовать пользователя, установив куки)
+- Возвращать данные, которые станут доступны:
+  - Через свойство `form` на соответствующей странице
+  - Через `page.form` во всём приложении до следующего обновления
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/login/+page.server.js
+    import * as db from '$lib/server/db';
+
+    /** @type {import('./$types').PageServerLoad} */
+    export async function load({ cookies }) {
+      const user = await db.getUserFromSession(cookies.get('sessionid'));
+      return { user };
+    }
+
+    /** @satisfies {import('./$types').Actions} */
+    export const actions = {
+      login: async ({ cookies, request }) => {
+        const data = await request.formData();
+        const email = data.get('email');
+        const password = data.get('password');
+
+        const user = await db.getUser(email);
+        cookies.set('sessionid', await db.createSession(user), { path: '/' });
+
+        return { success: true };
+      },
+      register: async (event) => {
+        // TODO регистрируем пользователя
+      }
+    };
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/login/+page.server.ts
+    import * as db from '$lib/server/db';
+    import type { PageServerLoad, Actions } from './$types';
+
+    export const load: PageServerLoad = async ({ cookies }) => {
+      const user = await db.getUserFromSession(cookies.get('sessionid'));
+      return { user };
+    };
+    export const actions = {
+      login: async ({ cookies, request }) => {
+        const data = await request.formData();
+        const email = data.get('email');
+        const password = data.get('password');
+
+        const user = await db.getUser(email);
+        cookies.set('sessionid', await db.createSession(user), { path: '/' });
+
+        return { success: true };
+      },
+      register: async (event) => {
+        // TODO регистрируем пользователя
+      }
+    } satisfies Actions;
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/login/+page.svelte
+    <script>
+      /** @type {import('./$types').PageProps} */
+      let { data, form } = $props();
+    </script>
+
+    {#if form?.success}
+      <!-- это временное сообщение; оно существует потому, что страница была отрисована
+            в ответ на отправку формы. оно исчезнет при обновлении страницы -->
+      <p>Успешный вход! С возвращением, {data.user.name}</p>
+    {/if}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/login/+page.svelte
+    <script lang="ts">
+      import type { PageProps } from './$types';
+
+      let { data, form }: PageProps = $props();
+    </script>
+
+    {#if form?.success}
+      <!-- это временное сообщение; оно существует потому, что страница была отрисована
+            в ответ на отправку формы. оно исчезнет при обновлении страницы -->
+      <p>Успешный вход! С возвращением, {data.user.name}</p>
+    {/if}
+    ```
+  </TabItem>
+</Tabs>
+
+:::caution
+`PageProps` был добавлен в версии 2.16.0. В более ранних версиях нужно было типизировать свойства `data` и `form` отдельно:
+
+```js
+// +page.svelte
+/** @type {{ data: import('./$types').PageData, form: import('./$types').ActionData }} */
+let { data, form } = $props();
+```
+
+В Svelte 4 вместо этого следует использовать `export let data` и `export let form` для объявления свойств.
+:::
+
+### Ошибки валидации
+
+Если запрос не может быть обработан из-за неверных данных, вы можете вернуть ошибки валидации вместе с ранее отправленными значениями формы, чтобы пользователь мог попробовать снова. Функция `fail` позволяет вернуть HTTP-статус (обычно 400 или 422 для ошибок валидации) вместе с данными. Код статуса доступен через `page.status`, а данные через `form`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```diff lang="js"
+    // src/routes/login/+page.server.js
+    +import { fail } from '@sveltejs/kit';
+    import * as db from '$lib/server/db';
+
+    /** @satisfies {import('./$types').Actions} */
+    export const actions = {
+      login: async ({ cookies, request }) => {
+        const data = await request.formData();
+        const email = data.get('email');
+        const password = data.get('password');
+
+    +    if (!email) {
+    +      return fail(400, { email, missing: true });
+    +    }
+
+        const user = await db.getUser(email);
+
+    +    if (!user || user.password !== db.hash(password)) {
+    +      return fail(400, { email, incorrect: true });
+    +    }
+
+        cookies.set('sessionid', await db.createSession(user), { path: '/' });
+
+        return { success: true };
+      },
+      register: async (event) => {
+        // TODO регистрируем пользователя
+      }
+    };
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```diff lang="ts"
+    // src/routes/login/+page.server.ts
+    +import { fail } from '@sveltejs/kit';
+    import * as db from '$lib/server/db';
+    import type { Actions } from './$types';
+
+    export const actions = {
+      login: async ({ cookies, request }) => {
+        const data = await request.formData();
+        const email = data.get('email');
+        const password = data.get('password');
+
+    +    if (!email) {
+    +      return fail(400, { email, missing: true });
+    +    }
+
+        const user = await db.getUser(email);
+
+    +    if (!user || user.password !== db.hash(password)) {
+    +      return fail(400, { email, incorrect: true });
+    +    }
+
+        cookies.set('sessionid', await db.createSession(user), { path: '/' });
+
+        return { success: true };
+      },
+      register: async (event) => {
+        // TODO регистрируем пользователя
+      }
+    } satisfies Actions;
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Обратите внимание, что в целях безопасности мы возвращаем только имейл (не пароль) обратно на страницу.
+:::
+
+```svelte {3-4}
+// src/routes/login/+page.svelte
+<form method="POST" action="?/login">
+  {#if form?.missing}<p class="error">Имейл обязателен</p>{/if}
+  {#if form?.incorrect}<p class="error">Неверные учётные данные!</p>{/if}
+  <label>
+    Имейл
+    <input name="email" type="email" value={form?.email ?? ''}>
+  </label>
+  <label>
+    Пароль
+    <input name="password" type="password">
+  </label>
+  <button>Войти</button>
+  <button formaction="?/register">Зарегистрироваться</button>
+</form>
+```
+
+Возвращаемые данные должны быть сериализуемы в JSON. Кроме этого требования, структура полностью зависит от вас. Например, если на странице несколько форм, можно различать их с помощью свойства `id` или аналогичного.
+
+### Перенаправления
+
+Перенаправления (и ошибки) работают так же, как в [`load`](/kit/core-concepts/load/#перенаправления):
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```diff lang="js" " redirect " " url "
+    // src/routes/login/+page.server.js
+    import { fail, redirect } from '@sveltejs/kit';
+    import * as db from '$lib/server/db';
+
+    /** @satisfies {import('./$types').Actions} */
+    export const actions = {
+      login: async ({ cookies, request, url }) => {
+        const data = await request.formData();
+        const email = data.get('email');
+        const password = data.get('password');
+
+        const user = await db.getUser(email);
+        if (!user) {
+          return fail(400, { email, missing: true });
+        }
+
+        if (user.password !== db.hash(password)) {
+          return fail(400, { email, incorrect: true });
+        }
+
+        cookies.set('sessionid', await db.createSession(user), { path: '/' });
+
+    +    if (url.searchParams.has('redirectTo')) {
+    +      redirect(303, url.searchParams.get('redirectTo'));
+    +    }
+
+        return { success: true };
+      },
+      register: async (event) => {
+        // TODO регистрируем пользователя
+      }
+    };
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```diff lang="ts" " redirect " " url "
+    // src/routes/login/+page.server.ts
+    import { fail, redirect } from '@sveltejs/kit';
+    import * as db from '$lib/server/db';
+    import type { Actions } from './$types';
+
+    export const actions = {
+      login: async ({ cookies, request, url }) => {
+        const data = await request.formData();
+        const email = data.get('email');
+        const password = data.get('password');
+
+        const user = await db.getUser(email);
+        if (!user) {
+          return fail(400, { email, missing: true });
+        }
+
+        if (user.password !== db.hash(password)) {
+          return fail(400, { email, incorrect: true });
+        }
+
+        cookies.set('sessionid', await db.createSession(user), { path: '/' });
+
+    +    if (url.searchParams.has('redirectTo')) {
+    +      redirect(303, url.searchParams.get('redirectTo'));
+    +    }
+
+        return { success: true };
+      },
+      register: async (event) => {
+        // TODO регистрируем пользователя
+      }
+    } satisfies Actions;
+    ```
+  </TabItem>
+</Tabs>
+
+## Загрузка данных
+
+После выполнения действия страница перерисовывается (если не произошло перенаправление или непредвиденная ошибка), а результат действия становится доступен странице через проп `form`. Это означает, что функции `load` страницы выполняются после завершения действия.
+
+Обратите внимание, что `handle` выполняется до вызова действия и не запускается повторно перед функциями `load`. Следовательно, если вы используете `handle` для заполнения `event.locals` на основе куки, вы должны обновлять `event.locals` при установке или удалении куки в действии:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/hooks.server.js
+    /** @type {import('@sveltejs/kit').Handle} */
+    export async function handle({ event, resolve }) {
+      event.locals.user = await getUser(event.cookies.get('sessionid'));
+      return resolve(event);
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/hooks.server.ts
+    import type { Handle } from '@sveltejs/kit';
+
+    export const handle: Handle = async ({ event, resolve }) => {
+      event.locals.user = await getUser(event.cookies.get('sessionid'));
+      return resolve(event);
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/account/+page.server.js
+    /** @type {import('./$types').PageServerLoad} */
+    export function load(event) {
+      return {
+        user: event.locals.user
+      };
+    }
+
+    /** @satisfies {import('./$types').Actions} */
+    export const actions = {
+      logout: async (event) => {
+        event.cookies.delete('sessionid', { path: '/' });
+        event.locals.user = null;
+      }
+    };
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/account/+page.server.ts
+    import type { PageServerLoad, Actions } from './$types';
+
+    export const load: PageServerLoad = (event) => {
+      return {
+        user: event.locals.user
+      };
+    };
+    export const actions = {
+      logout: async (event) => {
+        event.cookies.delete('sessionid', { path: '/' });
+        event.locals.user = null;
+      }
+    } satisfies Actions;
+    ```
+  </TabItem>
+</Tabs>
+
+## Прогрессивное улучшение
+
+В предыдущих разделах мы создали действие `/login`, которое [работает без клиентского JavaScript](https://kryogenix.org/code/browser/everyonehasjs.html) — без единого `fetch`. Это отлично, но когда JavaScript _доступен_, мы можем постепенно улучшать взаимодействие с формами для лучшей интерактивности.
+
+### use:enhance
+
+Самый простой способ прогрессивного улучшения формы — добавить действие `use:enhance`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte {3} "use:enhance"
+    // src/routes/login/+page.svelte
+    <script>
+      import { enhance } from '$app/forms';
+
+      /** @type {import('./$types').PageProps} */
+      let { form } = $props();
+    </script>
+
+    <form method="POST" use:enhance>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte {3} "use:enhance"
+    // src/routes/login/+page.svelte
+    <script lang="ts">
+      import { enhance } from '$app/forms';
+      import type { PageProps } from './$types';
+
+      let { form }: PageProps = $props();
+    </script>
+
+    <form method="POST" use:enhance>
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+`use:enhance` работает только с формами, имеющими `method="POST"` и указывающими на действия в `+page.server.js`. Не работает с `method="GET"` (значение по умолчанию для форм без указанного метода). Попытка использовать `use:enhance` с формами без `method="POST"` или отправкой в `+server.js` вызовет ошибку.
+:::
+
+:::note
+Да, немного запутанно, что и действие `enhance`, и `<form action>` называются «действием». Эти документации переполнены действиями. Извините.
+:::
+
+Без аргументов `use:enhance` эмулирует нативное поведение браузера, но без перезагрузки страницы. Оно:
+
+1. Обновляет `form`, `page.form` и `page.status` при успешном ответе или ошибке валидации (только если действие на текущей странице)
+2. Сбрасывает форму
+3. Инвалидирует все данные через `invalidateAll` при успехе
+4. Вызывает `goto` при редиректе
+5. Показывает ближайшую границу `+error` при ошибке
+6. [Восстанавливает фокус](https://svelte.dev/docs/kit/accessibility#Focus-management)
+
+### Настройка `use:enhance`
+
+Для кастомизации можно передать `SubmitFunction`, которая:
+- Выполняется перед отправкой формы
+- Может вернуть колбэк (получающий `ActionResult`)
+
+При возврате колбэка стандартное поведение отключается. Для его восстановления вызовите `update`.
+
+```svelte
+<form
+  method="POST"
+  use:enhance={({ formElement, formData, action, cancel, submitter }) => {
+    // `formElement` - текущий элемент `<form>`
+    // `formData` - объект `FormData`, который будет отправлен
+    // `action` - URL, на который отправляется форма
+    // вызов `cancel()` предотвратит отправку
+    // `submitter` - `HTMLElement`, инициировавший отправку формы
+
+    return async ({ result, update }) => {
+      // `result` - объект `ActionResult`
+      // `update` - функция, запускающая стандартную логику (которая выполнилась бы без этого колбэка)
+    };
+  }}
+>
+```
+
+Эти функции можно использовать для отображения/скрытия индикаторов загрузки и т. д.
+
+При возврате колбэка может потребоваться воспроизвести часть стандартного поведения `use:enhance`, но без инвалидации данных. Это можно сделать через `applyAction`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```diff lang="svelte" "applyAction"
+    // src/routes/login/+page.svelte
+    <script>
+      import { enhance, applyAction } from '$app/forms';
+
+      /** @type {import('./$types').PageProps} */
+      let { form } = $props();
+    </script>
+
+    <form
+      method="POST"
+      use:enhance={({ formElement, formData, action, cancel }) => {
+        return async ({ result }) => {
+          // `result` — объект `ActionResult`
+    +      if (result.type === 'redirect') {
+    +        goto(result.location);
+    +      } else {
+    +        await applyAction(result);
+    +      }
+        };
+      }}
+    >
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```diff lang="svelte" "applyAction"
+    // src/routes/login/+page.svelte
+    <script lang="ts">
+      import { enhance, applyAction } from '$app/forms';
+      import type { PageProps } from './$types';
+
+      let { form }: PageProps = $props();
+    </script>
+
+    <form
+      method="POST"
+      use:enhance={({ formElement, formData, action, cancel }) => {
+        return async ({ result }) => {
+          // `result` — объект `ActionResult`
+    +      if (result.type === 'redirect') {
+    +        goto(result.location);
+    +      } else {
+    +        await applyAction(result);
+    +      }
+        };
+      }}
+    >
+    ```
+  </TabItem>
+</Tabs>
+
+Поведение `applyAction(result)` зависит от `result.type`:
+
+- `success`, `failure` — устанавливает `page.status` в `result.status` и обновляет `form` и `page.form` до `result.data` (в отличие от `update` в `enhance`, работает независимо от страницы отправки)
+- `redirect` — вызывает `goto(result.location, { invalidateAll: true })`
+- `error` — отображает ближайшую границу `+error` с `result.error`
+
+Во всех случаях [фокус будет сброшен](https://svelte.dev/docs/kit/accessibility#Focus-management).
+
+### Пользовательский обработчик событий
+
+Мы также можем реализовать прогрессивное улучшение вручную, без `use:enhance`, используя стандартный обработчик событий для `<form>`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/login/+page.svelte
+    <script>
+      import { invalidateAll, goto } from '$app/navigation';
+      import { applyAction, deserialize } from '$app/forms';
+
+      /** @type {import('./$types').PageProps} */
+      let { form } = $props();
+
+      /** @param {SubmitEvent & { currentTarget: EventTarget & HTMLFormElement}} event */
+      async function handleSubmit(event) {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+
+        const response = await fetch(event.currentTarget.action, {
+          method: 'POST',
+          body: data
+        });
+
+        /** @type {import('@sveltejs/kit').ActionResult} */
+        const result = deserialize(await response.text());
+
+        if (result.type === 'success') {
+          // перезапускаем все функции `load` после успешного обновления
+          await invalidateAll();
+        }
+
+        applyAction(result);
+      }
+    </script>
+
+    <form method="POST" onsubmit={handleSubmit}>
+      <!-- содержимое -->
+    </form>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/login/+page.svelte
+    <script lang="ts">
+      import { invalidateAll, goto } from '$app/navigation';
+      import { applyAction, deserialize } from '$app/forms';
+      import type { PageProps } from './$types';
+      import type { ActionResult } from '@sveltejs/kit';
+
+      let { form }: PageProps = $props();
+      async function handleSubmit(event: SubmitEvent & { currentTarget: EventTarget & HTMLFormElement}) {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+
+        const response = await fetch(event.currentTarget.action, {
+          method: 'POST',
+          body: data
+        });
+        const result: ActionResult = deserialize(await response.text());
+
+        if (result.type === 'success') {
+          // перезапускаем все функции `load` после успешного обновления
+          await invalidateAll();
+        }
+
+        applyAction(result);
+      }
+    </script>
+
+    <form method="POST" onsubmit={handleSubmit}>
+      <!-- содержимое -->
+    </form>
+    ```
+  </TabItem>
+</Tabs>
+
+Обратите внимание, что перед обработкой ответа необходимо выполнить `deserialize` из `$app/forms`. Одного `JSON.parse()` недостаточно, так как действия форм (как и функции `load`) поддерживают возврат объектов `Date` и `BigInt`.
+
+Если у вас есть `+server.js` рядом с `+page.server.js`, `fetch`-запросы по умолчанию направляются туда. Для отправки `POST` в действие из `+page.server.js` используйте кастомный заголовок `x-sveltekit-action`:
+
+```js {4-6}
+const response = await fetch(this.action, {
+  method: 'POST',
+  body: data,
+  headers: {
+    'x-sveltekit-action': 'true'
+  }
+});
+```
+
+## Альтернативы
+
+Действия форм — предпочтительный способ отправки данных на сервер благодаря возможности прогрессивного улучшения, но вы также можете использовать файлы [`+server.js`](/kit/core-concepts/routing/#server) для создания (например) JSON API. Вот как может выглядеть такое взаимодействие:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/send-message/+page.svelte
+    <script>
+      function rerun() {
+        fetch('/api/ci', {
+          method: 'POST'
+        });
+      }
+    </script>
+
+    <button onclick={rerun}>Перезапуск CI</button>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/send-message/+page.svelte
+    <script lang="ts">
+      function rerun() {
+        fetch('/api/ci', {
+          method: 'POST'
+        });
+      }
+    </script>
+
+    <button onclick={rerun}>Перезапуск CI</button>
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/api/ci/+server.js
+    /** @type {import('./$types').RequestHandler} */
+    export function POST() {
+      // что-то делаем
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/api/ci/+server.ts
+    import type { RequestHandler } from './$types';
+    export const POST: RequestHandler = () => {
+      // что-то делаем
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+## GET против POST
+
+Как мы видели, для вызова действия формы необходимо использовать `method="POST"`.
+
+Некоторым формам не нужно отправлять (`POST`) данные на сервер — например, формам поиска. Для них можно использовать `method="GET"` (или вообще не указывать метод), и SvelteKit будет обрабатывать их как элементы `<a>`, используя клиентский роутер вместо полной перезагрузки страницы:
+
+```html
+<form action="/search">
+  <label>
+    Поиск
+    <input name="q">
+  </label>
+</form>
+```
+
+Отправка этой формы приведёт к переходу на `/search?q=...` и вызову вашей функции `load`, но не вызовет действие. Как и с элементами `<a>`, вы можете использовать атрибуты [`data-sveltekit-reload`](https://svelte.dev/docs/kit/link-options#data-sveltekit-reload), [`data-sveltekit-replacestate`](https://svelte.dev/docs/kit/link-options#data-sveltekit-replacestate), [`data-sveltekit-keepfocus`](https://svelte.dev/docs/kit/link-options#data-sveltekit-keepfocus) и [`data-sveltekit-noscroll`](https://svelte.dev/docs/kit/link-options#data-sveltekit-noscroll) на элементе `<form>` для управления поведением роутера.
+
+## Дополнительные материалы
+
+- [Руководство: Формы](https://svelte.dev/tutorial/kit/the-form-element)
