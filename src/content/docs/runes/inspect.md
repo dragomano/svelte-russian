@@ -1,5 +1,6 @@
 ---
 title: $inspect
+origin: https://svelte.dev/docs/svelte/$inspect
 sidebar:
   order: 6
 ---
@@ -13,7 +14,7 @@ sidebar:
 ```svelte
 <script>
   let count = $state(0);
-  let message = $state('hello');
+  let message = $state('привет');
 
   $inspect(count, message); // будет выводить в консоль, когда изменяются `count` или `message`
 </script>
@@ -50,11 +51,12 @@ $inspect(stuff).with(console.trace);
 
 Эта руна, добавленная в версии 5.14, позволяет _отслеживать_ окружение в процессе разработки. Каждый раз, когда функция выполняется повторно в контексте [effect](/runes/effect/) или [derived](/runes/derived/), в консоль будет выводиться информация о том, какие части реактивного состояния вызвали срабатывание эффекта.
 
-```svelte "$inspect.trace();"
+```svelte {5-6}
 <script>
   import { doSomeWork } from './elsewhere';
 
   $effect(() => {
+    // $inspect.trace должен быть первым оператором в теле функции
     $inspect.trace();
     doSomeWork();
   });
