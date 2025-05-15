@@ -2,7 +2,7 @@
 title: "style:"
 origin: https://svelte.dev/docs/svelte/style
 sidebar:
-  order: 15
+  order: 16
 ---
 
 Директива `style:` предоставляет сокращенный способ установки нескольких стилей на элемент.

@@ -2,7 +2,7 @@
 title: "{@const ...}"
 origin: https://svelte.dev/docs/svelte/@const
 sidebar:
-  order: 8
+  order: 9
 ---
 
 Тег `{@const ...}` определяет локальную константу:
