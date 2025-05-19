@@ -827,6 +827,38 @@ Cannot reassign or bind to snippet parameter
 This snippet is shadowing the prop `%prop%` with the same name
 ```
 
+### state_field_duplicate
+
+```
+`%name%` has already been declared on this class
+```
+
+Присваивание полю класса, которое использует руну `$state` или `$derived`, считается _объявлением поля состояния_. Объявление может происходить в теле класса...
+
+```js
+class Counter {
+	count = $state(0);
+}
+```
+
+...или внутри конструктора...
+
+```js
+class Counter {
+	constructor() {
+		this.count = $state(0);
+	}
+}
+```
+
+...но это может происходить только один раз.
+
+### state_field_invalid_assignment
+
+```
+Cannot assign to a state field before its declaration
+```
+
 ### state_invalid_export
 
 ```
@@ -836,7 +868,7 @@ Cannot export state from a module if it is reassigned. Either export a function 
 ### state_invalid_placement
 
 ```
-`%rune%(...)` can only be used as a variable declaration initializer or a class field
+`%rune%(...)` can only be used as a variable declaration initializer, a class field declaration, or the first assignment to a class field at the top level of the constructor.
 ```
 
 ### store_invalid_scoped_subscription
