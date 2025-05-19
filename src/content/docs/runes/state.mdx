@@ -68,15 +68,14 @@ todos[0].done = !todos[0].done;
 
 ### Классы
 
-Вы также можете использовать `$state` в полях класса (как публичных, так и приватных):
+Вы также можете использовать `$state` в полях класса (как публичных, так и приватных) или в качестве первого присваивания свойства непосредственно внутри `constructor`:
 
 ```js
 class Todo {
   done = $state(false);
-  text = $state();
 
   constructor(text) {
-    this.text = text;
+    this.text = $state(text);
   }
 
   reset() {
