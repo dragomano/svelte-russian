@@ -276,3 +276,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 ## Программное создание привязок
 
 Для добавления привязок к объекту, который будет распространён на компонент или элемент, используйте [`createAttachmentKey`](https://svelte.dev/docs/svelte/svelte-attachments#createAttachmentKey).
+
+## Преобразование действий в привязки
+
+Если вы используете библиотеку, которая предоставляет только действия, вы можете преобразовать их в привязки с помощью [`fromAction`](https://svelte.dev/docs/svelte/svelte-attachments#fromAction), что позволяет, например, использовать их с компонентами.
