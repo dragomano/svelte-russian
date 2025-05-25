@@ -253,11 +253,11 @@ $effect(() => {
 
 Если вы используете эффект, потому что хотите иметь возможность переопределять производное значение (например, для создания оптимистичного UI), обратите внимание, что [производные значения можно напрямую переопределять](/runes/derived#переопределение-производных-значений), начиная со Svelte 5.25.
 
-Вас может привлечь идея создать сложные связи между эффектами, чтобы связать одно значение с другим. В следующем примере представлены два поля ввода для «потраченных денег» и «оставшихся денег», которые взаимосвязаны. Если вы измените одно из них, другое должно обновиться соответственно. Не используйте эффекты для этого ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAACpVRy26DMBD8FcvKgUhtoIdeHBwp31F6MGSJkBbHwksEQvx77aWQqooq9bgzOzP7mGTdIHipPiZJowOpGJAv0po2VmfnDv4OSBErjYdneHWzBJaCjcx91TWOToUtCIEE3cig0OIty44r5l1oDtjOkyFIsv3GINQ_CNYyGegd1DVUlCR7oU9iilDUcP8S8roYs9n8p2wdYNVFm4csTx872BxNCcjr5I11fdgonEkXsjP2CoUUZWMv6m6wBz2x7yxaM-iJvWeRsvSbSVeUy5i0uf8vKA78NIeJLSZWv1I8jQjLdyK4XuTSeIdmVKJGGI4LdjVOiezwDu1yG74My8PLCQaSiroe5s_5C2PHrkVGAgAA)):
+Вас может привлечь идея создать сложные связи между эффектами, чтобы связать одно значение с другим. В следующем примере представлены два поля ввода для «потраченных денег» и «оставшихся денег», которые взаимосвязаны. Если вы измените одно из них, другое должно обновиться соответственно. Не используйте эффекты для этого ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE5WRTWrDMBCFryKGLBJoY3fRjWIHeoiu6i6UZBwEY0VE49TB-O6VxrFTSih0qe_Ne_OjHpxpEDS8O7ZMeIAnqC1hAP3RA1990hKI_Fb55v06XJA4sZ0J-IjvT47RcYyBIuzP1vO2chVHHFjxiQ2pUr3k-SZRQlbBx_LIFoEN4zJfzQph_UMQr4hRXmBd456Xy5Uqt6pPKHmkfmzyPAZL2PCnbRpg8qWYu63I7lu4gswOSRYqrPNt3CgeqqzgbNwRK1A76w76YqjFspfcQTWmK3vJHlQm1puSTVSeqdOc_r9GaeCHfUSY26TXry6Br4RSK3C6yMEGT-aqVU3YbUZ2NF6rfP2KzXgbuYzY46czdgyazy0On_FlLH3F-UDXhgIO35UGlA1rAgAA)):
 
 ```svelte
 <script>
-  let total = 100;
+  const total = 100;
   let spent = $state(0);
   let left = $state(total);
 
@@ -281,51 +281,17 @@ $effect(() => {
 </label>
 ```
 
-Вместо этого используйте обратные вызовы, где это возможно ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAACo1SMW6EMBD8imWluFMSIEUaDiKlvy5lSOHjlhOSMRZeTiDkv8deMEEJRcqdmZ1ZjzzxqpZgePo5cRw18JQA_sSVaPz0rnVk7iDRYxdhYA8vW4Wg0NnwzJRdrfGtUAVKQIYtCsly9pIkp4AZ7cQOezAoEA7JcWUkVBuCdol0dNWrEutWsV5fHfnhPQ5wZJMnCwyejxCh6G6A0V3IHk4zu_jOxzzPBxBld83PTr7xXrb3rUNw8PbiYJ3FP22oTIoLSComq5XuXTeu8LzgnVA3KDgj13wiQ8taRaJ82rzXskYM-URRlsXktejjgNLoo9e4fyf70_8EnwncySX1GuunX6kGRwnzR_BgaPNaGy3FmLJKwrCUeBM6ZUn0Cs2mOlp3vwthQJ5i14P9st9vZqQlsQIAAA==)):
+Вместо этого используйте колбэки `oninput` или — что ещё лучше — [привязки функций](/template-syntax/bind/#привязки-функций), где это возможно ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE5VRvW7CMBB-FcvqECQK6dDFJEgsnfoGTQdDLsjSxVjxhYKivHvPBwFUsXS8774_nwftbQva6I_e78gdvNo6Xzu_j3quG4cQtfkaNJ1DIiWA8atkE8IiHgEpYVsb4Rm-O3gCT2yji7jrXKB15StiOJKiA1lUpXrL81VCEUjFwHTGXiJZgiyf3TYIjSxq6NwR6uyifr0ohMbEZnpHH2rWf7ImS8KZGtK6osl_UqelRIyVL5b3ir5AuwWUtoXzoee6fIWy0p31e6i0XMocLfZQDuI6qtaeykGcR7UU6XWznFAZU9LN_X9B2UyVayk9f3ji0-REugen6U9upDOCcAWcLlS7GNCejWoQTqsLtrfBqHzxDu3DrUTOf0xwIm2o62H85sk6_OHG2jQWI4y_3byXXGMCAAA=)):
 
-```svelte
+```svelte {6-8} "bind:value={() => left, updateLeft}"
 <script>
-  let total = 100;
+  const total = 100;
   let spent = $state(0);
-  let left = $state(total);
+  let left = $derived(total - spent);
 
-  function updateSpent(e) {
-    spent = +e.target.value;
-    left = total - spent;
-  }
-
-  function updateLeft(e) {
-    left = +e.target.value;
+  function updateLeft(left) {
     spent = total - left;
   }
-</script>
-
-<label>
-  <input type="range" value={spent} oninput={updateSpent} max={total} />
-  {spent}/{total} потрачено
-</label>
-
-<label>
-  <input type="range" value={left} oninput={updateLeft} max={total} />
-  {left}/{total} осталось
-</label>
-```
-
-Если вам по какой-либо причине нужно использовать привязки (например, когда вы хотите нечто вроде «записываемого `$derived`»), рассмотрите возможность использования геттеров и сеттеров для синхронизации состояния ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAACpWRwW6DMBBEf8WyekikFOihFwcq9TvqHkyyQUjGsfCCQMj_XnvBNKpy6Qn2DTOD1wu_tRocF18Lx9kCFwT4iRvVxenT2syNoDGyWjl4xi93g2AwxPDSXfrW4oc0EjUgwzsqzSr2VhTnxJwNHwf24lAhHIpjVDZNwy1KS5wlNoGMSg9wOCYksQccerMlv65p51X0p_Xpdt_4YEy9yTkmV3z4MJT579-bUqsaNB2kbI0dwlnCgirJe2UakJzVrbkKaqkWivasU1O1ULxnOVk3JU-Uxti0p_-vKO4no_enbQ_yXhnZn0aHs4b1jiJMK7q2zmo1C3bTMG3LaZQVrMjeoSPgaUtkDxePMCEX2Ie6b_8D4WyJJEwCAAA=)):
-
-```svelte
-<script>
-  let total = 100;
-  let spent = $state(0);
-
-  let left = {
-    get value() {
-      return total - spent;
-    },
-    set value(v) {
-      spent = total - v;
-    }
-  };
 </script>
 
 <label>
@@ -334,8 +300,8 @@ $effect(() => {
 </label>
 
 <label>
-  <input type="range" bind:value={left.value} max={total} />
-  {left.value}/{total} осталось
+  <input type="range" bind:value={() => left, updateLeft} max={total} />
+  {left}/{total} осталось
 </label>
 ```
 
