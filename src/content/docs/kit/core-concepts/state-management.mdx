@@ -1,0 +1,322 @@
+---
+title: Управление состоянием
+origin: https://svelte.dev/docs/kit/state-management
+sidebar:
+  order: 4
+---
+
+Если вы привыкли создавать клиентские приложения, управление состоянием в приложении, которое работает и на сервере, и на клиенте, может показаться сложным. В этом разделе приведены советы, как избежать некоторых распространённых проблем.
+
+## Избегайте общего состояния на сервере
+
+Браузеры _отслеживают состояние_ — оно сохраняется в памяти по мере взаимодействия пользователя с приложением. Серверы же, напротив, _не имеют состояния_ — содержимое ответа полностью определяется содержимым запроса.
+
+По крайней мере, в теории. На практике серверы часто работают длительное время и используются множеством пользователей. Поэтому важно не хранить данные в общих переменных. Например, рассмотрим этот код:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // +page.server.js
+    let user;
+
+    /** @type {import('./$types').PageServerLoad} */
+    export function load() {
+      return { user };
+    }
+
+    /** @satisfies {import('./$types').Actions} */
+    export const actions = {
+      default: async ({ request }) => {
+        const data = await request.formData();
+
+        // НЕ ДЕЛАЙТЕ ТАК!
+        user = {
+          name: data.get('name'),
+          embarrassingSecret: data.get('secret')
+        };
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // +page.server.ts
+    import type { PageServerLoad, Actions } from './$types';
+    let user;
+
+    export const load: PageServerLoad = () => {
+      return { user };
+    };
+
+    export const actions = {
+      default: async ({ request }) => {
+        const data = await request.formData();
+
+        // НЕ ДЕЛАЙТЕ ТАК!
+        user = {
+          name: data.get('name'),
+          embarrassingSecret: data.get('secret')
+        };
+      }
+    } satisfies Actions
+    ```
+  </TabItem>
+</Tabs>
+
+Переменная `user` является общей для всех, кто подключается к этому серверу. Если Алиса отправит неловкий секрет, а Боб посетит страницу после неё, Боб узнает секрет Алисы. Кроме того, когда Алиса вернётся на сайт позже в тот же день, сервер может перезапуститься, и её данные будут потеряны.
+
+Вместо этого вам следует _аутентифицировать_ пользователя с помощью [`куки`](/kit/core-concepts/load/#куки) и сохранять данные в базе данных.
+
+## Отсутствие побочных эффектов в load
+
+По той же причине ваши функции `load` должны быть _чистыми_ — без побочных эффектов (за исключением разве что случайных `console.log(...)`). Например, у вас может возникнуть соблазн записать данные в хранилище или глобальное состояние внутри функции `load`, чтобы затем использовать это значение в ваших компонентах:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // +page.js
+    import { user } from '$lib/user';
+
+    /** @type {import('./$types').PageLoad} */
+    export async function load({ fetch }) {
+      const response = await fetch('/api/user');
+
+      // НЕ ДЕЛАЙТЕ ТАК!
+      user.set(await response.json());
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // +page.ts
+    import { user } from '$lib/user';
+    import type { PageLoad } from './$types';
+
+    export const load: PageLoad = async ({ fetch }) => {
+      const response = await fetch('/api/user');
+
+      // НЕ ДЕЛАЙТЕ ТАК!
+      user.set(await response.json());
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Как и в предыдущем примере, это помещает информацию одного пользователя в место, доступное _всем_ пользователям. Вместо этого просто возвращайте данные...
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // +page.js
+    /** @type {import('./$types').PageServerLoad} */
+    export async function load({ fetch }) {
+      const response = await fetch('/api/user');
+
+      return {
+        user: await response.json()
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // +page.ts
+    import type { PageServerLoad } from './$types';
+
+    export const load: PageServerLoad = async ({ fetch }) => {
+      const response = await fetch('/api/user');
+
+      return {
+        user: await response.json()
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+...и передавайте их в компоненты, которым они нужны, или используйте [`page.data`](/kit/core-concepts/load/#pagedata).
+
+Если вы не используете SSR (рендеринг на стороне сервера), то нет риска случайно предоставить данные одного пользователя другому. Однако вам всё равно следует избегать побочных эффектов в функциях `load` — ваше приложение станет гораздо проще для понимания без них.
+
+## Использование состояния и хранилищ с контекстом
+
+Возможно, вам интересно, как мы можем использовать `page.data` и другие [состояния приложения](https://svelte.dev/docs/kit/$app-state) (или [хранилища приложения](https://svelte.dev/docs/kit/$app-stores)), если глобальное состояние использовать нельзя. Ответ в том, что состояние и хранилища приложения на сервере используют [Context API Svelte](https://svelte.dev/tutorial/svelte/context-api) — состояние (или хранилище) прикрепляется к дереву компонентов с помощью `setContext`, а при подписке извлекается через `getContext`. Мы можем сделать то же самое с нашим собственным состоянием:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/+layout.svelte
+    <script>
+      import { setContext } from 'svelte';
+
+      /** @type {import('./$types').LayoutProps} */
+      let { data } = $props();
+
+      // Передаем функцию, ссылающуюся на наше состояние,
+      // в контекст для доступа дочерних компонентов
+      setContext('user', () => data.user);
+    </script>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/+layout.svelte
+    <script lang="ts">
+      import { setContext } from 'svelte';
+      import type { LayoutProps } from './$types';
+      let { data }: LayoutProps = $props();
+
+      // Передаем функцию, ссылающуюся на наше состояние,
+      // в контекст для доступа дочерних компонентов
+      setContext('user', () => data.user);
+    </script>
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/user/+page.svelte
+    <script>
+      import { getContext } from 'svelte';
+
+      // Получаем хранилище пользователя из контекста
+      const user = getContext('user');
+    </script>
+
+    <p>Приветствуем, {user().name}</p>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/user/+page.svelte
+    <script lang="ts">
+      import { getContext } from 'svelte';
+
+      // Получаем хранилище пользователя из контекста
+      const user = getContext('user');
+    </script>
+
+    <p>Приветствуем, {user().name}</p>
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Мы передаем функцию в `setContext`, чтобы сохранить реактивность между границами компонентов. Подробнее об этом можно прочитать [здесь](/runes/state/#передача-состояния-в-функции)
+:::
+
+:::danger
+Вы также можете использовать хранилища из `svelte/store` для этих целей, но при использовании Svelte 5 рекомендуется использовать универсальную реактивность.
+:::
+
+Обновление значения состояния на основе контекста на страницах или в компонентах более глубокого уровня во время рендеринга через SSR не повлияет на значение в родительском компоненте, так как он уже был отрендерен к моменту обновления значения состояния. В отличие от этого, на клиенте (когда включен CSR, что является значением по умолчанию) значение будет распространяться, и компоненты, страницы и макеты выше в иерархии будут реагировать на новое значение. Поэтому, чтобы избежать «мигания» значений во время обновления состояния при гидратации, обычно рекомендуется передавать состояние вниз в компоненты, а не вверх.
+
+Если вы не используете SSR (и можете гарантировать, что не будете использовать SSR в будущем), то можете безопасно хранить состояние в общем модуле, не используя Context API.
+
+## Состояние компонентов и страниц сохраняется
+
+Когда вы перемещаетесь по приложению, SvelteKit повторно использует существующие компоненты макетов и страниц. Например, если у вас есть маршрут вида...
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/blog/[slug]/+page.svelte
+    <script>
+      /** @type {import('./$types').PageProps} */
+      let { data } = $props();
+
+      // ЭТОТ КОД СОДЕРЖИТ ОШИБКИ!
+      const wordCount = data.content.split(' ').length;
+      const estimatedReadingTime = wordCount / 250;
+    </script>
+
+    <header>
+      <h1>{data.title}</h1>
+      <p>Время чтения: {Math.round(estimatedReadingTime)} мин.</p>
+    </header>
+
+    <div>{@html data.content}</div>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/blog/[slug]/+page.svelte
+    <script lang="ts">
+      import type { PageProps } from './$types';
+
+      let { data }: PageProps = $props();
+
+      // ЭТОТ КОД СОДЕРЖИТ ОШИБКИ!
+      const wordCount = data.content.split(' ').length;
+      const estimatedReadingTime = wordCount / 250;
+    </script>
+
+    <header>
+      <h1>{data.title}</h1>
+      <p>Время чтения: {Math.round(estimatedReadingTime)} мин.</p>
+    </header>
+
+    <div>{@html data.content}</div>
+    ```
+  </TabItem>
+</Tabs>
+
+...то переход с `/blog/my-short-post` на `/blog/my-long-post` не приведет к уничтожению и повторному созданию макета, страницы и любых других компонентов. Вместо этого проп `data` (а следовательно, `data.title` и `data.content`) обновится (как и в любом другом компоненте Svelte), и, поскольку код не выполняется заново, методы жизненного цикла, такие как `onMount` и `onDestroy`, не запустятся снова, а `estimatedReadingTime` не будет пересчитан.
+
+Вместо этого нам нужно сделать значение [_реактивным_](https://svelte.dev/tutorial/svelte/state):
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/blog/[slug]/+page.svelte
+    <script>
+      /** @type {import('./$types').PageProps} */
+      let { data } = $props();
+
+      let wordCount = $derived(data.content.split(' ').length);
+      let estimatedReadingTime = $derived(wordCount / 250);
+    </script>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/blog/[slug]/+page.svelte
+    <script lang="ts">
+      import type { PageProps } from './$types';
+
+      let { data }: PageProps = $props();
+
+      let wordCount = $derived(data.content.split(' ').length);
+      let estimatedReadingTime = $derived(wordCount / 250);
+    </script>
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Если ваш код в `onMount` и `onDestroy` должен выполняться снова после навигации, вы можете использовать [afterNavigate](https://svelte.dev/docs/kit/$app-navigation#afterNavigate) и [beforeNavigate](https://svelte.dev/docs/kit/$app-navigation#beforeNavigate) соответственно.
+:::
+
+Повторное использование компонентов таким образом означает, что такие вещи как состояние прокрутки боковой панели сохраняются, и вы можете легко анимировать изменения значений. В случае, если вам действительно нужно полностью уничтожить и пересоздать компонент при навигации, вы можете использовать этот подход:
+
+```js
+<script>
+  import { page } from '$app/state';
+</script>
+
+{#key page.url.pathname}
+  <BlogPost title={data.title} content={data.title} />
+{/key}
+```
+
+## Хранение состояния в URL
+
+Если у вас есть состояние, которое должно сохраняться при перезагрузке и/или влиять на SSR (например, фильтры или правила сортировки в таблице), параметры URL (например, `?sort=price&order=ascending`) — это хорошее место для их хранения. Вы можете поместить их в атрибуты `<a href="...">` или `<form action="...">`, либо установить программно через `goto('?key=value')`. Доступ к ним можно получить внутри функций `load` через параметр `url`, а в компонентах — через `page.url.searchParams`.
+
+## Хранение временного состояния в снимках
+
+Некоторые состояния интерфейса, такие как «открыт ли аккордеон?», являются временными — если пользователь уйдёт со страницы или обновит её, не страшно, если состояние будет потеряно. В некоторых случаях вам _нужно_, чтобы данные сохранялись, если пользователь перейдёт на другую страницу и вернётся обратно, но хранение состояния в URL или базе данных было бы излишним. Для этого SvelteKit предоставляет [снимки состояния](https://svelte.dev/docs/kit/snapshots), которые позволяют связать состояние компонента с записью в истории.
