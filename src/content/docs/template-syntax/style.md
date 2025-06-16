@@ -37,8 +37,9 @@ sidebar:
 <div style:color|important="red">...</div>
 ```
 
-Когда директивы `style:` комбинируются с атрибутами `style`, директивы будут иметь приоритет:
+Когда директивы `style:` комбинируются с атрибутами `style`, директивы будут иметь приоритет — даже над свойствами с `!important`:
 
 ```svelte
-<div style="color: blue;" style:color="red">Это будет красным</div>
+<div style:color="red" style="color: blue">Это будет красным</div>
+<div style:color="red" style="color: blue !important">Это всё равно будет красным</div>
 ```
