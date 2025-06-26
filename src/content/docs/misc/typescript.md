@@ -86,9 +86,9 @@ export default config;
 
 При использовании TypeScript убедитесь, что ваш `tsconfig.json` настроен правильно.
 
-- Установите [`target`](https://www.typescriptlang.org/tsconfig/#target) не ниже `ES2022`, или `target` не ниже `ES2015` вместе с [`useDefineForClassFields`](https://www.typescriptlang.org/tsconfig/#useDefineForClassFields). Это гарантирует, что объявления рун в полях класса не будут нарушены, что может привести к сбоям в компиляторе Svelte.
+- Используйте [`target`](https://www.typescriptlang.org/tsconfig/#target) не ниже `ES2015`, чтобы классы не компилировались в функции.
 - Установите [`verbatimModuleSyntax`](https://www.typescriptlang.org/tsconfig/#verbatimModuleSyntax) в `true`, чтобы импорты оставались без изменений.
-- Установите [`isolatedModules`](https://www.typescriptlang.org/tsconfig/#isolatedModules) в `true`, чтобы каждый файл рассматривался изолированно. У TypeScript есть несколько функций, которые требуют анализа и компиляции между файлами, что компилятор Svelte и инструменты, такие как Vite, не делают.
+- Установите [`isolatedModules`](https://www.typescriptlang.org/tsconfig/#isolatedModules) в `true`, чтобы каждый файл рассматривался изолированно. В TypeScript есть несколько функций, которые требуют межфайлового анализа и компиляции, чего компилятор Svelte и инструменты вроде Vite не делают.
 
 ## Типизация `$props`
 
