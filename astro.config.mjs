@@ -76,6 +76,10 @@ export default defineConfig({
                 label: 'Основные концепции',
                 autogenerate: { directory: 'kit/core-concepts' },
               },
+              {
+                label: 'Сборка и развёртывание',
+                autogenerate: { directory: 'kit/build-and-deploy' },
+              },
             ],
           },
           {
