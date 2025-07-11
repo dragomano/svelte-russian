@@ -11,13 +11,13 @@
   "dependencies": {
     "@astrojs/starlight": "^0.34.4",
     "@astrojs/svelte": "^7.1.0",
-    "astro": "^5.10.1",
-    "sharp": "^0.34.2",
+    "astro": "^5.11.0",
+    "sharp": "^0.34.3",
     "starlight-links-validator": "^0.17.0",
     "starlight-package-managers": "^0.11.0",
     "starlight-showcases": "^0.3.0",
     "starlight-sidebar-topics": "^0.6.0",
-    "svelte": "^5.34.9",
+    "svelte": "^5.35.6",
     "typescript": "^5.8.3"
   }
 }
