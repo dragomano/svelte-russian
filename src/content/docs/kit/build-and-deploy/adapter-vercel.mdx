@@ -1,0 +1,262 @@
+---
+title: Vercel
+origin: https://svelte.dev/docs/kit/adapter-vercel
+sidebar:
+  order: 9
+---
+
+Для развёртывания на платформе Vercel используйте [`adapter-vercel`](https://github.com/sveltejs/kit/tree/main/packages/adapter-vercel).
+
+Этот адаптер устанавливается по умолчанию при использовании [`adapter-auto`](/kit/build-and-deploy/adapter-auto), но добавление его напрямую в проект позволяет задать параметры, специфичные для Vercel.
+
+## Использование
+
+Установите адаптер с помощью команды `npm i -D @sveltejs/adapter-vercel`, затем добавьте его в файл `svelte.config.js`:
+
+```js
+// svelte.config.js
+import adapter from '@sveltejs/adapter-vercel';
+
+export default {
+  kit: {
+    adapter: adapter({
+      // список возможных параметров см. ниже
+    })
+  }
+};
+```
+
+## Конфигурация развёртывания
+
+Для управления тем, как ваши маршруты развёртываются на Vercel в виде функций, вы можете указать конфигурацию развёртывания либо через опцию, показанную выше, либо с помощью [`export const config`](/kit/core-concepts/page-options/#config) в файлах `+server.js`, `+page(.server).js` и `+layout(.server).js`.
+
+Например, вы можете развернуть некоторые части вашего приложения как [Edge-функции](https://vercel.com/docs/concepts/functions/edge-functions)...
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // about/+page.js
+    /** @type {import('@sveltejs/adapter-vercel').Config} */
+    export const config = {
+      runtime: 'edge'
+    };
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // about/+page.ts
+    import type { Config } from '@sveltejs/adapter-vercel';
+
+    export const config: Config = {
+      runtime: 'edge'
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+...а другие как [облачные функции](https://vercel.com/docs/concepts/functions/serverless-functions) (обратите внимание, что при указании `config` внутри `layout`, она применяется ко всем дочерним страницам):
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // admin/+layout.js
+    /** @type {import('@sveltejs/adapter-vercel').Config} */
+    export const config = {
+      runtime: 'nodejs22.x'
+    };
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // admin/+layout.ts
+    import type { Config } from '@sveltejs/adapter-vercel';
+
+    export const config: Config = {
+      runtime: 'nodejs22.x'
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Следующие параметры применяются ко всем функциям:
+
+- `runtime`: `'edge'`, `'nodejs18.x'`, `'nodejs20.x'` или `'nodejs22.x'`. По умолчанию адаптер выбирает `'nodejs<версия>.x'`, соответствующую версии Node, настроенной для вашего проекта на панели управления Vercel.
+- `regions`: массив [регионов edge-сети](https://vercel.com/docs/concepts/edge-network/regions) (по умолчанию `["iad1"]` для облачных функций) или `'all'`, если `runtime` установлен как `edge` (значение по умолчанию). Обратите внимание, что поддержка нескольких регионов для облачных функций доступна только на тарифных планах Enterprise.
+- `split`: если `true`, маршрут развёртывается как отдельная функция. Если `split` установлен как `true` на уровне адаптера, все маршруты будут развернуты как отдельные функции.
+
+Дополнительно следующий параметр применяется к edge-функциям:
+- `external`: массив зависимостей, которые esbuild должен считать внешними при сборке функций. Используйте это только для исключения необязательных зависимостей, которые не работают вне Node.
+
+Следующие параметры применяются к облачным функциям:
+- `memory`: объем памяти, доступный для функции. По умолчанию — `1024` МБ, можно уменьшить до `128` МБ или [увеличить](https://vercel.com/docs/concepts/limits/overview#serverless-function-memory) с шагом 64 МБ до `3008` МБ на тарифах Pro или Enterprise.
+- `maxDuration`: [максимальная длительность выполнения](https://vercel.com/docs/functions/runtimes#max-duration) функции. По умолчанию — `10` секунд для аккаунтов Hobby, `15` для Pro и `900` для Enterprise.
+- `isr`: конфигурация инкрементной статической регенерации, описанная ниже.
+
+Если вашим функциям требуется доступ к данным в определённом регионе, рекомендуется развёртывать их в том же регионе (или рядом) для оптимальной производительности.
+
+## Оптимизация изображений
+
+Вы можете настроить параметр `images`, чтобы контролировать, как Vercel обрабатывает ваши изображения. Подробности см. в [справочнике по конфигурации изображений](https://vercel.com/docs/build-output-api/v3/configuration#images). Например, вы можете установить:
+
+```js
+// svelte.config.js
+import adapter from '@sveltejs/adapter-vercel';
+
+export default {
+  kit: {
+    adapter: adapter({
+      images: {
+        sizes: [640, 828, 1200, 1920, 3840],
+        formats: ['image/avif', 'image/webp'],
+        minimumCacheTTL: 300,
+        domains: ['example-app.vercel.app'],
+      }
+    })
+  }
+};
+```
+
+## Инкрементная статическая регенерация
+
+Vercel поддерживает [инкрементную статическую регенерацию](https://vercel.com/docs/incremental-static-regeneration) (ISR), которая сочетает преимущества производительности и стоимости предварительно отрендеренного контента с гибкостью динамически генерируемого контента.
+
+> Используйте ISR только для маршрутов, где каждый посетитель должен видеть одинаковый контент (аналогично предварительному рендерингу). Если происходит что-то специфичное для пользователя (например, использование сессионных куки), это должно выполняться только на стороне клиента через JavaScript, чтобы избежать утечки конфиденциальной информации между посещениями.
+
+Чтобы добавить ISR к маршруту, включите свойство `isr` в объект `config`:
+
+```js
+import { BYPASS_TOKEN } from '$env/static/private';
+
+export const config = {
+  isr: {
+    expiration: 60,
+    bypassToken: BYPASS_TOKEN,
+    allowQuery: ['search']
+  }
+};
+```
+
+> Использование ISR на маршруте с `export const prerender = true` не будет иметь эффекта, поскольку маршрут предварительно рендерится во время сборки.
+
+Свойство `expiration` является обязательным; все остальные являются необязательными. Свойства подробнее описаны ниже.
+
+### expiration
+
+Время истечения (в секундах), по прошествии которого кэшированный актив будет перегенерирован путём вызова облачной функции. Установка значения в `false` означает, что кэш никогда не истечёт. В таком случае, вероятно, потребуется определить токен обхода для перегенерации по требованию.
+
+### bypassToken
+
+Случайный токен, который можно указать в URL для обхода кэшированной версии актива путём запроса актива с куки `__prerender_bypass=<токен>`.
+
+Выполнение запроса `GET` или `HEAD` с заголовком `x-prerender-revalidate: <токен>` заставит актив перевалидироваться.
+
+Обратите внимание, что строка `BYPASS_TOKEN` должна содержать не менее 32 символов. Вы можете сгенерировать такой токен, например, в консоли JavaScript следующим образом:
+
+```js
+crypto.randomUUID();
+```
+
+Установите эту строку как переменную окружения на Vercel, войдя в систему и перейдя в ваш проект, затем в раздел Settings > Environment Variables. В поле «Key» укажите `BYPASS_TOKEN`, а в поле «Value» используйте строку, сгенерированную выше, затем нажмите «Save».
+
+Чтобы эта переменная стала доступной для локальной разработки, вы можете использовать [Vercel CLI](https://vercel.com/docs/cli/env), выполнив команду `vercel env pull` локально следующим образом:
+
+```bash
+vercel env pull .env.development.local
+```
+
+### allowQuery
+
+Список допустимых параметров запроса, которые учитываются в ключе кэша. Другие параметры (например, коды отслеживания UTM) будут игнорироваться, что предотвращает ненужную перегенерацию контента. По умолчанию параметры запроса игнорируются.
+
+> Страницы, которые [предварительно рендерятся](/kit/core-concepts/page-options/#prerender), игнорируют конфигурацию ISR.
+
+## Переменные окружения
+
+Vercel предоставляет набор [переменных окружения, специфичных для развёртывания](https://vercel.com/docs/concepts/projects/environment-variables#system-environment-variables). Как и другие переменные окружения, они доступны из `$env/static/private` и `$env/dynamic/private` (иногда — подробнее об этом позже), но недоступны из их публичных аналогов. Чтобы получить доступ к одной из этих переменных на стороне клиента:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // +layout.server.js
+    import { VERCEL_COMMIT_REF } from '$env/static/private';
+
+    /** @type {import('./$types').LayoutServerLoad} */
+    export function load() {
+      return {
+        deploymentGitBranch: VERCEL_COMMIT_REF
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // +layout.server.ts
+    import { VERCEL_COMMIT_REF } from '$env/static/private';
+    import type { LayoutServerLoad } from './$types';
+
+    export const load: LayoutServerLoad = () => {
+      return {
+        deploymentGitBranch: VERCEL_COMMIT_REF
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // +layout.svelte
+    <script>
+      /** @type {import('./$types').LayoutProps} */
+      let { data } = $props();
+    </script>
+
+    <p>Эта промежуточная среда была развёрнута из ветки {data.deploymentGitBranch}.</p>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // +layout.svelte
+    <script lang="ts">
+      import type { LayoutProps } from './$types';
+
+      let { data }: LayoutProps = $props();
+    </script>
+
+    <p>Эта промежуточная среда была развёрнута из ветки {data.deploymentGitBranch}.</p>
+    ```
+  </TabItem>
+</Tabs>
+
+Поскольку все эти переменные не изменяются между стадиями сборки и выполнения при работе на Vercel, мы рекомендуем использовать `$env/static/private` — это позволяет статически заменять переменные, что обеспечивает оптимизации, такие как удаление неиспользуемого кода, — вместо `$env/dynamic/private`.
+
+## Защита от смещения версий
+
+Когда развёртывается новая версия вашего приложения, активы предыдущей версии могут стать недоступными. Если пользователь активно использует приложение в этот момент, это может привести к ошибкам при навигации — это называется _смещением версий_. SvelteKit смягчает эту проблему, обнаруживая ошибки, вызванные смещением версий, и инициируя полную перезагрузку страницы для получения последней версии приложения, но при этом теряется всё состояние на стороне клиента. (Вы также можете проактивно предотвратить это, отслеживая [`updated.current`](https://svelte.dev/docs/kit/$app-state#updated) из `$app/state`, который сообщает клиентам о развёртывании новой версии.)
+
+[Защита от смещения версий](https://vercel.com/docs/deployments/skew-protection) — это функция Vercel, которая направляет запросы клиентов к их исходному развёртыванию. Когда пользователь заходит в ваше приложение, устанавливается куки с идентификатором развёртывания, и все последующие запросы направляются к этому развёртыванию, пока активна защита от смещения. При перезагрузке страницы пользователь получит последнее развёртывание. (`updated.current` не подчиняется этому поведению и продолжает сообщать о новых развёртываниях.) Чтобы включить эту функцию, перейдите в раздел Advanced в настройках вашего проекта на Vercel.
+
+Защита от смещения версий на основе куки имеет одно ограничение: если пользователь открыл несколько версий вашего приложения в разных вкладках, запросы от старых версий будут перенаправлены к более новой, что приведёт к использованию встроенной защиты от смещения версий SvelteKit.
+
+## Примечания
+
+### Функции Vercel
+
+Если у вас есть функции Vercel в директории `api` в корне проекта, любые запросы к `/api/*` _не_ будут обрабатываться SvelteKit. Вместо этого вы должны реализовать их как [API-маршруты](/kit/core-concepts/routing/#server) в вашем приложении SvelteKit, за исключением случаев, когда вам нужно использовать язык, отличный от JavaScript; в этом случае убедитесь, что в вашем приложении SvelteKit отсутствуют маршруты `/api/*`.
+
+### Версия Node
+
+Проекты, созданные до определённой даты, могут по умолчанию использовать более старую версию Node, чем требуется для текущей версии SvelteKit. Вы можете [изменить версию Node в настройках проекта](https://vercel.com/docs/concepts/functions/serverless-functions/runtimes/node-js#node.js-version).
+
+## Устранение неполадок
+
+### Доступ к файловой системе
+
+Вы не можете использовать `fs` в edge-функциях.
+
+В облачных функциях использовать `fs` можно, но он не будет работать как ожидается, поскольку файлы из вашего проекта не копируются в развёртывание. Вместо этого используйте функцию [`read`](https://svelte.dev/docs/kit/$app-server#read) из `$app/server` для доступа к вашим файлам. `read` не работает в маршрутах, развёрнутых как edge-функции (это может измениться в будущем).
+
+В качестве альтернативы вы можете [предварительно рендерить](/kit/core-concepts/page-options/#prerender) соответствующие маршруты.
