@@ -130,4 +130,4 @@ Svelte Native была опцией, доступной для Svelte 4, но о
 
 ## Как сделать горячую перезагрузку модулей?
 
-Мы рекомендуем использовать [SvelteKit](https://svelte.dev/docs/kit), который поддерживает HMR из коробки и построен на основе [Vite](https://vitejs.dev/) и [svelte-hmr](https://github.com/sveltejs/svelte-hmr). Также существуют плагины сообщества для [rollup](https://github.com/rixo/rollup-plugin-svelte-hot) и [webpack](https://github.com/sveltejs/svelte-loader).
+Мы рекомендуем использовать [SvelteKit](https://svelte.dev/docs/kit), который поддерживает HMR из коробки и построен на основе [Vite](https://vite-docs.ru/) и [svelte-hmr](https://github.com/sveltejs/svelte-hmr). Также существуют плагины сообщества для [rollup](https://github.com/rixo/rollup-plugin-svelte-hot) и [webpack](https://github.com/sveltejs/svelte-loader).
