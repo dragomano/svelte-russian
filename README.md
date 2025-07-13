@@ -17,18 +17,21 @@
 
 ## Словарик
 
-- props — пропсы | свойства
-- runes API — API рун
-- server API — API сервера
 - component API — API компонентов
-- runtime — среда выполнения | рантайм
-- spreading — распространение | распаковка (речь о синтаксисе `{...props}`)
-- placeholder — заполнитель (| заглушка | плейсхолдер | подсказка)
-- promise — промис (| обещание)
+- cookie — куки
+- deployment — развёртывание
+- endpoint — эндпойнт
 - hydration — гидратация
 - legacy mode — режим совместимости
+- placeholder — заполнитель (| заглушка | плейсхолдер | подсказка)
+- promise — промис (| обещание)
+- props — пропсы | свойства
+- runes API — API рун
 - runes mode — режим рун
-- endpoint — эндпойнт
+- runtime — среда выполнения | рантайм
+- server API — API сервера
+- serverless-functions — облачные функции
+- spreading — распространение | распаковка (речь о синтаксисе `{...props}`)
 - waterfall of requests — каскад запросов
 
 ## Чем вы можете помочь
