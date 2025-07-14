@@ -9,11 +9,11 @@ sidebar:
 
 Официальные адаптеры существуют для различных платформ — они описаны на следующих страницах:
 
-- [`@sveltejs/adapter-cloudflare`](https://svelte.dev/docs/kit/adapter-cloudflare) для Cloudflare Workers и Cloudflare Pages
-- [`@sveltejs/adapter-netlify`](https://svelte.dev/docs/kit/adapter-netlify) для Netlify
-- [`@sveltejs/adapter-node`](https://svelte.dev/docs/kit/adapter-node) для серверов Node
-- [`@sveltejs/adapter-static`](https://svelte.dev/docs/kit/adapter-static) для генерации статических сайтов (SSG)
-- [`@sveltejs/adapter-vercel`](https://svelte.dev/docs/kit/adapter-vercel) для Vercel
+- [`@sveltejs/adapter-cloudflare`](/kit/build-and-deploy/adapter-cloudflare) для Cloudflare Workers и Cloudflare Pages
+- [`@sveltejs/adapter-netlify`](/kit/build-and-deploy/adapter-netlify) для Netlify
+- [`@sveltejs/adapter-node`](/kit/build-and-deploy/adapter-node) для серверов Node
+- [`@sveltejs/adapter-static`](/kit/build-and-deploy/adapter-static) для генерации статических сайтов (SSG)
+- [`@sveltejs/adapter-vercel`](/kit/build-and-deploy/adapter-vercel) для Vercel
 
 Также существуют дополнительные [адаптеры, созданные сообществом](https://sveltesociety.dev/packages?category=sveltekit-adapters) для других платформ.
 
