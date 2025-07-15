@@ -39,6 +39,67 @@ function add() {
 }
 ```
 
+### await_reactivity_loss
+
+```
+Detected reactivity loss when reading `%name%`. This happens when state is read in an async function after an earlier `await`
+```
+
+Реактивность Svelte на основе сигналов работает за счёт отслеживания, какие части состояния считываются при выполнении шаблона или выражения `$derived(...)`. Если выражение содержит `await`, Svelte преобразует его таким образом, что любое состояние _после_ `await` также отслеживается. Другими словами, в случае такого кода:
+
+```js
+let total = $derived(await a + b);
+```
+
+...и `a`, и `b` отслеживаются, несмотря на то что `b` считывается только после разрешения `a`, после начального выполнения.
+
+Это правило _не_ применяется к `await`, который не «виден» внутри выражения. Например:
+
+```js
+async function sum() {
+  return await a + b;
+}
+
+let total = $derived(await sum());
+```
+
+...`total` будет зависеть от `a` (которая считывается сразу), но не от `b` (которая не считывается). Решение — передавать значения в функцию явно:
+
+```js
+async function sum(a, b) {
+  return await a + b;
+}
+
+let total = $derived(await sum(a, b));
+```
+
+### await_waterfall
+
+```
+An async derived, `%name%` (%location%) was not read immediately after it resolved. This often indicates an unnecessary waterfall, which can slow down your app
+```
+
+В таком случае...
+
+```js
+let a = $derived(await one());
+let b = $derived(await two());
+```
+
+...второй `$derived` не будет создан до тех пор, пока не разрешится первый. Поскольку `await two()` не зависит от значения `a`, эта задержка (часто называемая «каскадом») является избыточной.
+
+(Примечание: если значения `await one()` и `await two()` впоследствии изменятся, они смогут делать это параллельно — «каскад» возникает только при первоначальном создании производных.)
+
+Решить это можно, сначала создав промисы, а _затем_ ожидая их:
+
+```js
+let aPromise = $derived(one());
+let bPromise = $derived(two());
+
+let a = $derived(await aPromise);
+let b = $derived(await bPromise);
+```
+
 ### binding_property_non_reactive
 
 ```
