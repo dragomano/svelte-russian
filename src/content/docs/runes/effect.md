@@ -201,6 +201,21 @@ $effect(() => {
 
 Это используется для реализации абстракций, таких как [createSubscriber](https://svelte.dev/docs/svelte/svelte-reactivity#createSubscriber), которая создает слушателей для обновления реактивных значений, но только если эти значения отслеживаются (в отличие, например, от значений, читаемых внутри обработчика событий).
 
+## `$effect.pending`
+
+При использовании [`await`](/template-syntax/await-expressions) в компонентах, руна `$effect.pending()` показывает количество **ожидающих промисов** в текущей [границе](/special-elements/svelte-boundary), не включая дочерние границы ([demo](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE3WRMU_DMBCF_8rJdHDUqilILGkaiY2RgY0yOPYZWbiOFV8IleX_jpMUEAIWS_7u-d27c2ROnJBV7B6t7WDsequAozKEqmAbpo3FwKqnyOjsJ90EMr-8uvN-G97Q0sRaEfAvLjtH6CjbsDrI3nhqju5IFgkEHGAVSBDy62L_SdtvejPTzEU4Owl6cJJM50AoxcUG2gLiVM31URgChyM89N3JBORcF3BoICA9mhN2A3G9gdvdrij2UJYgejLaSCMsKLTivNj0SEOf7WEN7ZwnHV1dfqd2dTsQ5QCdk9bI10PkcxexXqcmH3W51Jt_le2kbH8os9Y3UaTcNLYpDx-Xab6GTHXpZ128MhpWqDVK2np0yrgXXqQpaLa4APDLBkIF8bd2sYql0Sn_DeE7sYr6AdNzvgljR-MUq7SwAdMHeUtgHR4CAAA=)):
+
+```svelte
+<button onclick={() => a++}>a++</button>
+<button onclick={() => b++}>b++</button>
+
+<p>{a} + {b} = {await add(a, b)}</p>
+
+{#if $effect.pending()}
+  <p>ожидающие промисы: {$effect.pending()}</p>
+{/if}
+```
+
 
 ## `$effect.root`
 
