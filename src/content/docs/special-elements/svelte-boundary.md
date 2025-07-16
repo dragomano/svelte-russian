@@ -13,19 +13,38 @@ sidebar:
 Эта функция была добавлена в 5.3.0
 :::
 
-Границы позволяют вам защититься от ошибок в части вашего приложения, которые могут привести к сбою всего приложения, и восстановиться после этих ошибок.
+Границы позволяют «отделить» части вашего приложения, чтобы вы могли:
 
-Если ошибка происходит во время рендеринга или обновления дочерних элементов `<svelte:boundary>`, или при выполнении любых функций [`$effect`](/runes/effect/), содержащихся в них, содержимое будет удалено.
+- **отображать интерфейс**, который должен показываться во время первоначального выполнения [`await`](/template-syntax/await-expressions)-выражений
+- **обрабатывать ошибки**, возникающие при рендеринге или выполнении эффектов, и предоставлять интерфейс для отображения при возникновении ошибки
 
-Ошибки, возникающие вне процесса рендеринга (например, в обработчиках событий или после `setTimeout` или асинхронной работы), **не** перехватываются границами ошибок.
+Если граница обрабатывает ошибку (с помощью сниппета `failed` или обработчика `onerror`, или обоих), её текущее содержимое будет удалено.
+
+:::note
+Ошибки, возникающие вне процесса рендеринга (например, в обработчиках событий, после `setTimeout` или асинхронных операциях), _не_ перехватываются границами обработки ошибок.
+:::
 
 ## Параметры
 
-Чтобы граница ошибок выполняла свою функцию, необходимо указать один или оба параметра: `failed` и `onerror`.
+Чтобы граница выполняла свою функцию, должен быть предоставлен хотя бы один из следующих элементов.
+
+### `pending`
+
+Начиная со Svelte 5.36, границы со сниппетом `pending` могут содержать выражения [`await`](/template-syntax/await-expressions). Этот сниппет будет отображаться при создании границы и останется видимым, пока все выражения `await` внутри границы не будут выполнены ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE21QQW6DQAz8ytY9BKQVpFdKkPqDHnorPWzAaSwt3tWugUaIv1eE0KpKD5as8YxnNBOw6RAKKOOAVrA4up5bEy6VGknOyiO3xJ8qMnmPAhpOZDFC8T6BXPyiXADQ258X77P1FWg4moj_4Y1jQZZ49W0CealqruXUcyPkWLVozQXbZDC2R606spYiNo7bqA7qab_fp2paFLUElD6wYhzVa3AdRUySgNHZAVN1qDZaLRHljTp0vSTJ9XJjrSbpX5f0eZXN6zLXXOa_QfmurIVU-moyoyH5ib87o7XuYZfOZe6vnGWmx1uZW7lJOq9upa-sMwuUZdkmmfIbfQ1xZwwaBL8ECgk9zh8axJAdiVsoTsZGnL8Bg4tX_OMBAAA=)):
+
+```svelte
+<svelte:boundary>
+  <p>{await delayed('привет!')}</p>
+
+  {#snippet pending()}
+    <p>загрузка...</p>
+  {/snippet}
+</svelte:boundary>
+```
 
 ### `failed`
 
-Если предоставлен фрагмент `failed`, он будет отрендерен с ошибкой, которая была выброшена, а также с функцией `reset`, которая воссоздаёт содержимое ([демонстрация](https://svelte.dev/playground/hello-world#H4sIAAAAAAAAE3VRy26DMBD8lS2tFCIh6JkAUlWp39Cq9EBg06CAbdlLArL87zWGKk8ORnhmd3ZnrD1WtOjFXqKO2BDGW96xqpBD5gXerm5QefG39mgQY9EIWHxueRMinLosti0UPsJLzggZKTeilLWgLGc51a3gkuCjKQ7DO7cXZotgJ3kLqzC6hmex1SZnSXTWYHcrj8LJjWTk0PHoZ8VqIdCOKayPykcpuQxAokJaG1dGybYj4gw4K5u6PKTasSbjXKgnIDlA8VvUdo-pzonraBY2bsH7HAl78mKSHZpgIcuHjq9jXSpZSLixRlveKYQUXhQVhL6GPobXAAb7BbNeyvNUs4qfRg3OnELLj5hqH9eQZqCnoBwR9lYcQxuVXeBzc8kMF8yXY4yNJ5oGiUzP_aaf_waTRGJib5_Ad3P_vbCuaYxzeNpbU0eUMPAOKh7Yw1YErgtoXyuYlPLzc10_xo_5A91zkQL_AgAA)):
+Если предусмотрен сниппет `failed`, он будет отображаться при возникновении ошибки внутри границы, получая доступ к объекту `error` и функции `reset` для повторного создания содержимого ([демонстрация](https://svelte.dev/playground/hello-world#H4sIAAAAAAAAE3VRy26DMBD8lS2tFCIh6JkAUlWp39Cq9EBg06CAbdlLArL87zWGKk8ORnhmd3ZnrD1WtOjFXqKO2BDGW96xqpBD5gXerm5QefG39mgQY9EIWHxueRMinLosti0UPsJLzggZKTeilLWgLGc51a3gkuCjKQ7DO7cXZotgJ3kLqzC6hmex1SZnSXTWYHcrj8LJjWTk0PHoZ8VqIdCOKayPykcpuQxAokJaG1dGybYj4gw4K5u6PKTasSbjXKgnIDlA8VvUdo-pzonraBY2bsH7HAl78mKSHZpgIcuHjq9jXSpZSLixRlveKYQUXhQVhL6GPobXAAb7BbNeyvNUs4qfRg3OnELLj5hqH9eQZqCnoBwR9lYcQxuVXeBzc8kMF8yXY4yNJ5oGiUzP_aaf_waTRGJib5_Ad3P_vbCuaYxzeNpbU0eUMPAOKh7Yw1YErgtoXyuYlPLzc10_xo_5A91zkQL_AgAA)):
 
 ```svelte
 <svelte:boundary>
