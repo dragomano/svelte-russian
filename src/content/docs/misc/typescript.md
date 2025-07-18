@@ -258,39 +258,24 @@ withProps(MyComponent, { foo: 'bar' });
 
 Svelte предоставляет максимально полное описание всех типов HTML DOM. Иногда вам может понадобиться использовать экспериментальные атрибуты или пользовательские события, возникающие из действия. В таких случаях TypeScript выдаст ошибку типа, указывая, что не знает этих типов. Если это стандартный атрибут/событие, не относящееся к экспериментальным, возможно, это пропущенная типизация в наших [HTML типах](https://github.com/sveltejs/svelte/blob/main/packages/svelte/elements.d.ts). В этом случае вы можете открыть проблему и/или PR для её исправления.
 
-Если это пользовательский или экспериментальный атрибут/событие, вы можете улучшить типизацию следующим образом:
-
-```ts
-// additional-svelte-typings.d.ts
-declare namespace svelteHTML {
-  // расширяем элементы
-  interface IntrinsicElements {
-    'my-custom-element': { someattribute: string; 'on:event': (e: CustomEvent<any>) => void };
-  }
-  // расширяем атрибуты
-  interface HTMLAttributes<T> {
-    // Если вы хотите использовать событие beforeinstallprompt
-    onbeforeinstallprompt?: (event: any) => any;
-    // Если вы хотите использовать myCustomAttribute={..} (обратите внимание: все буквы в нижнем регистре)
-    mycustomattribute?: any; // Вы можете заменить `any` на что-то более конкретное, если хотите
-  }
-}
-```
-
-Затем убедитесь, что файл `d.ts` указан в вашем `tsconfig.json`. Если он содержит что-то вроде `"include": ["src/**/*"]`, и ваш файл `d.ts` находится внутри `src`, это должно сработать. Возможно, вам потребуется перезагрузить приложение, чтобы изменения вступили в силу.
-
-Вы также можете объявить типы, расширяя модуль `svelte/elements` следующим образом:
+В случае, если это пользовательский или экспериментальный атрибут/событие, вы можете улучшить типизацию, расширив модуль `svelte/elements` следующим образом:
 
 ```ts
 // additional-svelte-typings.d.ts
 import { HTMLButtonAttributes } from 'svelte/elements';
 
 declare module 'svelte/elements' {
+  // добавляем новый элемент
   export interface SvelteHTMLElements {
     'custom-button': HTMLButtonAttributes;
   }
 
-  // позволяет более детально контролировать, к какому элементу добавлять типизацию
+  // добавляем новый глобальный атрибут, который доступен для всех html-элементов
+  export interface HTMLAttributes<T> {
+    globalattribute?: string;
+  }
+
+  // добавляем новый атрибут для элементов button
   export interface HTMLButtonAttributes {
     veryexperimentalattribute?: string;
   }
@@ -298,3 +283,5 @@ declare module 'svelte/elements' {
 
 export {}; // убедитесь, что это не амбиентный модуль, иначе типы будут заменены, а не дополнены
 ```
+
+Затем убедитесь, что файл `d.ts` указан в вашем `tsconfig.json`. Если там указано что-то вроде `"include": ["src/**/*"]`, и ваш файл `d.ts` находится внутри `src`, это должно работать. Возможно, потребуется перезагрузка, чтобы изменения вступили в силу.
