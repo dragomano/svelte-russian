@@ -70,14 +70,14 @@ https://dash.cloudflare.com/<your-account-id>/home
 
 Вам нужно установить [Wrangler](https://developers.cloudflare.com/workers/wrangler/install-and-update/) и войти в систему, если вы ещё этого не сделали:
 
-```bash
+```sh
 npm i -D wrangler
 wrangler login
 ```
 
 Затем вы можете собрать и развернуть свое приложение:
 
-```bash
+```sh
 wrangler deploy
 ```
 

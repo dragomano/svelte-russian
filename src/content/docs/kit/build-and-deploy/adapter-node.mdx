@@ -28,7 +28,7 @@ export default {
 
 Для запуска приложения вам понадобятся выходная директория, файл `package.json` проекта и производственные зависимости в `node_modules`. Производственные зависимости можно установить, скопировав файлы `package.json` и `package-lock.json`, а затем выполнив команду `npm ci --omit dev` (этот шаг можно пропустить, если у вашего приложения нет зависимостей). После этого вы можете запустить приложение с помощью следующей команды:
 
-```bash
+```sh
 node build
 ```
 
@@ -46,19 +46,19 @@ node build
 
 В продакшене файлы `.env` _не_ загружаются автоматически. Чтобы это сделать, установите `dotenv` в ваш проект...
 
-```bash
+```sh
 npm install dotenv
 ```
 
 ...и вызовите его перед запуском собранного приложения:
 
-```bash "-r dotenv/config"
+```sh "-r dotenv/config"
 node -r dotenv/config build
 ```
 
 Если вы используете Node.js версии 20.6 или выше, вы можете вместо этого использовать флаг [`--env-file`](https://nodejs.org/en/learn/command-line/how-to-read-environment-variables-from-nodejs):
 
-```bash "--env-file=.env"
+```sh "--env-file=.env"
 node --env-file=.env build
 ```
 
@@ -66,13 +66,13 @@ node --env-file=.env build
 
 По умолчанию сервер принимает соединения на `0.0.0.0` через порт 3000. Эти параметры можно настроить с помощью переменных окружения `PORT` и `HOST`:
 
-```bash
+```sh
 HOST=127.0.0.1 PORT=4000 node build
 ```
 
 В качестве альтернативы сервер можно настроить для приема соединений по указанному пути сокета. Если это делается с помощью переменной окружения `SOCKET_PATH`, переменные окружения `HOST` и `PORT` будут игнорироваться.
 
-```bash
+```sh
 SOCKET_PATH=/tmp/socket node build
 ```
 
@@ -80,7 +80,7 @@ SOCKET_PATH=/tmp/socket node build
 
 HTTP не предоставляет SvelteKit надежного способа узнать URL, который запрашивается в данный момент. Самый простой способ указать SvelteKit, где размещено приложение, — это установить переменную окружения `ORIGIN`:
 
-```bash
+```sh
 ORIGIN=https://my.site node build
 
 # или, например, для локального предпросмотра и тестирования
@@ -89,7 +89,7 @@ ORIGIN=http://localhost:3000 node build
 
 С помощью этого запрос к пути `/stuff` будет корректно разрешаться в `https://my.site/stuff`. В качестве альтернативы вы можете указать заголовки, которые сообщат SvelteKit о протоколе запроса и хосте, на основе которых он сможет сформировать исходный URL:
 
-```bash
+```sh
 PROTOCOL_HEADER=x-forwarded-proto HOST_HEADER=x-forwarded-host node build
 ```
 
@@ -109,7 +109,7 @@ PROTOCOL_HEADER=x-forwarded-proto HOST_HEADER=x-forwarded-host node build
 
 Объект [`RequestEvent`](https://svelte.dev/docs/kit/@sveltejs-kit#RequestEvent), передаваемый в хуки и конечные точки, включает функцию `event.getClientAddress()`, которая возвращает IP-адрес клиента. По умолчанию это адрес подключения `remoteAddress`. Если ваш сервер находится за одним или несколькими прокси (например, балансировщиком нагрузки), это значение будет содержать IP-адрес самого внутреннего прокси, а не клиента, поэтому необходимо указать `ADDRESS_HEADER` для чтения адреса:
 
-```bash
+```sh
 ADDRESS_HEADER=True-Client-IP node build
 ```
 
@@ -183,7 +183,7 @@ export default {
 envPrefix: 'MY_CUSTOM_';
 ```
 
-```bash
+```sh
 MY_CUSTOM_HOST=127.0.0.1 \
 MY_CUSTOM_PORT=4000 \
 MY_CUSTOM_ORIGIN=https://my.site \
