@@ -9,15 +9,15 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.34.6",
+    "@astrojs/starlight": "^0.34.8",
     "@astrojs/svelte": "^7.1.0",
-    "astro": "^5.11.1",
+    "astro": "^5.12.4",
     "sharp": "^0.34.3",
     "starlight-links-validator": "^0.17.0",
     "starlight-package-managers": "^0.11.0",
     "starlight-showcases": "^0.3.0",
     "starlight-sidebar-topics": "^0.6.0",
-    "svelte": "^5.36.0",
+    "svelte": "^5.37.1",
     "typescript": "^5.8.3"
   }
 }
