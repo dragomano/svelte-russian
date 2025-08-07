@@ -132,7 +132,7 @@ $effect(() => {
 
 Эффект зависит только от значений, которые он считал в последний раз, когда выполнялся. Это имеет интересные последствия для эффектов с условным кодом.
 
-Например, если `a` истинно в приведённом ниже фрагменте кода, код внутри блока `if` будет выполнен, и `b` будет оценено. Таким образом, изменения как `a`, так и `b` приведут к [повторному выполнению эффекта](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE3VQzWrDMAx-FdUU4kBp71li6EPstOxge0ox8-QQK2PD-N1nLy2F0Z2Evj9_chKkP1B04pnYscc3cRCT8xhF95IEf8-Vq0DBr8rzPB_jJ3qumNERH-E2ECNxiRF9tIubWY00lgcYNAywj6wZJS8rtk83wjwgCrXHaULLUrYwKEgVGrnkx-Dx6MNFNstK5OjSbFGbwE0gdXuT_zGYrjmAuco515Hr1p_uXak3K3MgCGS9s-9D2grU-judlQYXIencnzad-tdR79qZrMyvw9wd5Z8Yv1h09dz8mn8AkM7Pfo0BAAA=).
+Например, если в приведённом ниже фрагменте кода условие `condition` равно `true`, код внутри блока `if` будет выполнен, и значение `color` будет обработано. Это означает, что изменения в `condition` или `color` [приведут к повторному выполнению эффекта](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE21RQW6DMBD8ytaNBJHaJFLViwNIVZ8RcnBgXVk1xsILTYT4e20TQg89IOPZ2fHM7siMaJBx9tmaWpFqjQNlAKXEihx7YVJpdIyfRkY3G4gB8Pi97cPanRtQU8AuwuF_eNUaQuPlOMtc1SlLRWlKUo1tOwJflUikQHZtA0klzCDc64Imx0ANn8bInV1CDhtHgjClrsftcSXotluLybOUb3g4JJHhOZs5WZpuIS9gjNqkJKQP5e2ClrR4SMdZ13E4xZ8zTPOTJU2A2uE_PQ9COCI926_hTVarIU4hu_REPlBrKq2q73ycrf1N-vS4TMUsulaVg3EtR8H9rFgsg8uUsT1B2F9eshigZHBRpuaD0D3mY8Qm2BfB5N2YyRzdNEYVDy0Ja-WsFjcOUuP1HvFLWA6H3XuHTUSmmDV2--0TXonxsKbp7G9C6R__NONS-MFNvxj_d6mBAgAA).
 
 С другой стороны, если `a` ложно, `b` не будет оценено, и эффект будет повторно выполняться только при изменении `a`.
 
