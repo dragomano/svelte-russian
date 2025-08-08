@@ -1,0 +1,893 @@
+---
+title: Удалённые функции
+origin: https://svelte.dev/docs/kit/remote-functions
+sidebar:
+  order: 5
+---
+
+import { Badge } from '@astrojs/starlight/components';
+
+<Badge text="Доступно с версии 2.27" size="large" />
+
+Удалённые функции — это инструмент для типобезопасного взаимодействия между клиентом и сервером. Их можно вызывать в любой части вашего приложения, но они всегда выполняются на сервере, что позволяет безопасно использовать [модули, доступные только на сервере](https://svelte.dev/docs/kit/server-only-modules), такие как переменные окружения и клиенты баз данных.
+
+В сочетании с экспериментальной поддержкой Svelte для [`await`](/template-syntax/await-expressions) это позволяет загружать и обрабатывать данные непосредственно внутри ваших компонентов.
+
+Эта функция на данный момент является экспериментальной, то есть она может содержать ошибки и может быть изменена без предварительного уведомления. Для использования необходимо включить опцию `kit.experimental.remoteFunctions` в вашем файле `svelte.config.js`:
+
+```js "remoteFunctions: true"
+// svelte.config.js
+export default {
+  kit: {
+    experimental: {
+      remoteFunctions: true
+    }
+  }
+};
+```
+
+## Обзор
+
+Удалённые функции экспортируются из файлов `.remote.js` или `.remote.ts` и бывают четырёх типов: `query`, `form`, `command` и `prerender`. На клиенте экспортированные функции преобразуются в обёртки `fetch`, которые вызывают свои серверные аналоги через сгенерированную HTTP-точку доступа. Удалённые файлы должны располагаться в директориях `lib` или `routes`.
+
+## query
+
+Функция `query` позволяет получать динамические данные с сервера (для _статических_ данных рекомендуется использовать [`prerender`](#prerender)):
+
+```js
+// src/routes/blog/data.remote.js
+import { query } from '$app/server';
+import * as db from '$lib/server/database';
+
+export const getPosts = query(async () => {
+  const posts = await db.sql`
+    SELECT title, slug
+    FROM post
+    ORDER BY published_at
+    DESC
+  `;
+
+  return posts;
+});
+```
+
+:::note
+На этой странице вы встретите импорты из условных модулей вроде `$lib/server/database` и `$lib/server/auth`. Они приведены только для примера — вы можете использовать любую настройку базы данных и аутентификации.
+
+Функция `db.sql` выше — это [теговая функция шаблонных литералов](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Template_literals#теговые_шаблоны), которая экранирует все подставляемые значения.
+:::
+
+Запрос, возвращаемый из `getPosts`, работает как [`Promise`](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Promise), который разрешается в `posts`:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/+page.svelte
+    <script>
+      import { getPosts } from './data.remote';
+    </script>
+
+    <h1>Недавние сообщения</h1>
+
+    <ul>
+      {#each await getPosts() as { title, slug }}
+        <li><a href="/blog/{slug}">{title}</a></li>
+      {/each}
+    </ul>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/+page.svelte
+    <script lang="ts">
+      import { getPosts } from './data.remote';
+    </script>
+
+    <h1>Недавние сообщения</h1>
+
+    <ul>
+      {#each await getPosts() as { title, slug }}
+        <li><a href="/blog/{slug}">{title}</a></li>
+      {/each}
+    </ul>
+    ```
+  </TabItem>
+</Tabs>
+
+До завершения промиса (или в случае ошибки) будет вызван ближайший [`<svelte:boundary>`](/special-elements/svelte-boundary).
+
+Хотя рекомендуется использовать `await`, в качестве альтернативы запрос также имеет свойства `loading`, `error` и `current`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/+page.svelte
+    <script>
+      import { getPosts } from './data.remote';
+
+      const query = getPosts();
+    </script>
+
+    {#if query.error}
+      <p>упс!</p>
+    {:else if query.loading}
+      <p>загрузка...</p>
+    {:else}
+      <ul>
+        {#each query.current as { title, slug }}
+          <li><a href="/blog/{slug}">{title}</a></li>
+        {/each}
+      </ul>
+    {/if}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/+page.svelte
+    <script lang="ts">
+      import { getPosts } from './data.remote';
+
+      const query = getPosts();
+    </script>
+
+    {#if query.error}
+      <p>упс!</p>
+    {:else if query.loading}
+      <p>загрузка...</p>
+    {:else}
+      <ul>
+        {#each query.current as { title, slug }}
+          <li><a href="/blog/{slug}">{title}</a></li>
+        {/each}
+      </ul>
+    {/if}
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+В оставшейся части документа мы будем использовать форму с `await`.
+:::
+
+### Аргументы query
+
+Функции query могут принимать аргументы, например `slug` отдельной публикации:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/+page.svelte
+    <script>
+      import { getPost } from '../data.remote';
+
+      let { params } = $props();
+
+      const post = $derived(await getPost(params.slug));
+    </script>
+
+    <h1>{post.title}</h1>
+    <div>{@html post.content}</div>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/+page.svelte
+    <script lang="ts">
+      import { getPost } from '../data.remote';
+
+      let { params } = $props();
+
+      const post = $derived(await getPost(params.slug));
+    </script>
+
+    <h1>{post.title}</h1>
+    <div>{@html post.content}</div>
+    ```
+  </TabItem>
+</Tabs>
+
+Поскольку `getPost` предоставляет HTTP-эндпойнт, важно проверять этот аргумент, чтобы убедиться в его корректном типе. Для этого можно использовать любую библиотеку валидации из [Standard Schema](https://standardschema.dev/), такую как [Zod](https://zod.dev/) или [Valibot](https://valibot.dev/):
+
+```js
+// src/routes/blog/data.remote.js
+import * as v from 'valibot';
+import { error } from '@sveltejs/kit';
+import { query } from '$app/server';
+import * as db from '$lib/server/database';
+
+export const getPosts = query(async () => { /* ... */ });
+
+export const getPost = query(v.string(), async (slug) => {
+  const [post] = await db.sql`
+    SELECT * FROM post
+    WHERE slug = ${slug}
+  `;
+
+  if (!post) error(404, 'Не найдено');
+  return post;
+});
+```
+
+Как аргументы, так и возвращаемые значения сериализуются с помощью [devalue](https://github.com/sveltejs/devalue), который поддерживает типы вроде `Date` и `Map` (а также пользовательские типы, определённые в вашем хуке [transport](https://svelte.dev/docs/kit/hooks#Universal-hooks-transport)) в дополнение к JSON.
+
+### Обновление запросов
+
+Любой запрос можно обновить с помощью метода `refresh`:
+
+```html
+<button onclick={() => getPosts().refresh()}>
+  Проверка новых постов
+</button>
+```
+
+:::note
+Запросы кэшируются, пока они находятся на странице, то есть `getPosts() === getPosts()`. Это означает, что вам не нужно сохранять ссылку вида `const posts = getPosts()` для обновления запроса.
+:::
+
+## form
+
+Функция `form` упрощает запись данных на сервер. Она принимает колбэк, который получает текущий [`FormData`](https://developer.mozilla.org/ru/docs/Web/API/FormData)...
+
+```js
+// src/routes/blog/data.remote.js
+import * as v from 'valibot';
+import { error, redirect } from '@sveltejs/kit';
+import { query, form } from '$app/server';
+import * as db from '$lib/server/database';
+import * as auth from '$lib/server/auth';
+
+export const getPosts = query(async () => { /* ... */ });
+
+export const getPost = query(v.string(), async (slug) => { /* ... */ });
+
+export const createPost = form(async (data) => {
+  // Проверяем, что пользователь авторизован
+  const user = await auth.getUser();
+  if (!user) error(401, 'Не авторизован');
+
+  const title = data.get('title');
+  const content = data.get('content');
+
+  // Проверяем валидность данных
+  if (typeof title !== 'string' || typeof content !== 'string') {
+    error(400, 'Название и содержимое обязательны');
+  }
+
+  const slug = title.toLowerCase().replace(/ /g, '-');
+
+  // Добавляем запись в базу данных
+  await db.sql`
+    INSERT INTO post (slug, title, content)
+    VALUES (${slug}, ${title}, ${content})
+  `;
+
+  // Перенаправляем на новую страницу
+  redirect(303, `/blog/${slug}`);
+});
+```
+
+...и возвращает объект, который можно использовать через spread-оператор (`...`) в элементе `<form>`. Колбэк вызывается при каждой отправке формы.
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/new/+page.svelte
+    <script>
+      import { createPost } from '../data.remote';
+    </script>
+
+    <h1>Создать новую запись</h1>
+
+    <form {...createPost}>
+      <label>
+        <h2>Заголовок</h2>
+        <input name="title" />
+      </label>
+
+      <label>
+        <h2>Текст записи</h2>
+        <textarea name="content"></textarea>
+      </label>
+
+      <button>Опубликовать!</button>
+    </form>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/new/+page.svelte
+    <script lang="ts">
+      import { createPost } from '../data.remote';
+    </script>
+
+    <h1>Создать новую запись</h1>
+
+    <form {...createPost}>
+      <label>
+        <h2>Заголовок</h2>
+        <input name="title" />
+      </label>
+
+      <label>
+        <h2>Текст записи</h2>
+        <textarea name="content"></textarea>
+      </label>
+
+      <button>Опубликовать!</button>
+    </form>
+    ```
+  </TabItem>
+</Tabs>
+
+Объект формы содержит свойства `method` и `action`, позволяющие ей работать без JavaScript (то есть отправлять данные с перезагрузкой страницы). Также у неё есть обработчик `onsubmit`, который прогрессивно улучшает форму при наличии JavaScript, отправляя данные *без* перезагрузки всей страницы.
+
+### Однопроходные мутации
+
+По умолчанию после успешной отправки формы автоматически обновляются все запросы на странице (вместе с любыми функциями `load`). Это гарантирует актуальность данных, но неэффективно: многие запросы останутся неизменными, а для получения обновлённых данных потребуется повторный запрос к серверу.
+
+Вместо этого мы можем указать, какие именно запросы нужно обновить после конкретной отправки формы. Это называется *однопроходной мутацией*, и есть два способа её реализовать. Первый — обновить запрос на сервере, внутри обработчика формы:
+
+```js
+export const getPosts = query(async () => { /* ... */ });
+
+export const getPost = query(v.string(), async (slug) => { /* ... */ });
+
+export const createPost = form(async (data) => {
+  // логика формы...
+
+  // Обновляем `getPosts()` на сервере и отправляем
+  // данные вместе с результатом `createPost`
+  await getPosts().refresh();
+
+  // Перенаправляем на новую страницу
+  redirect(303, `/blog/${slug}`);
+});
+```
+
+Второй способ — управлять однопроходной мутацией с клиента, что мы рассмотрим в разделе про [`enhance`](#enhance).
+
+### Возвращаемые значения и перенаправления
+
+В примере выше используется [`redirect(...)`](https://svelte.dev/docs/kit/@sveltejs-kit#redirect), который перенаправляет пользователя на новую страницу. Альтернативно, колбэк может возвращать данные, которые станут доступны как `createPost.result`:
+
+```js
+// src/routes/blog/data.remote.js
+export const createPost = form(async (data) => {
+  // ...
+
+  return { success: true };
+});
+```
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/new/+page.svelte
+    <script>
+      import { createPost } from '../data.remote';
+    </script>
+
+    <h1>Создать новую запись</h1>
+
+    <form {...createPost}><!-- ... --></form>
+
+    {#if createPost.result?.success}
+      <p>Запись успешно опубликована!</p>
+    {/if}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/new/+page.svelte
+    <script lang="ts">
+      import { createPost } from '../data.remote';
+    </script>
+
+    <h1>Создать новую запись</h1>
+
+    <form {...createPost}><!-- ... --></form>
+
+    {#if createPost.result?.success}
+      <p>Запись успешно опубликована!</p>
+    {/if}
+    ```
+  </TabItem>
+</Tabs>
+
+Это значение _временное_ — оно исчезнет при повторной отправке формы, переходе на другую страницу или обновлении страницы.
+
+:::note
+Значение `result` не обязательно означает успех — оно также может содержать ошибки валидации вместе с данными, которые должны заполнить форму при перезагрузке страницы.
+:::
+
+Если во время отправки произойдёт ошибка, будет отображена ближайшая страница `+error.svelte`.
+
+### enhance
+
+Мы можем настроить поведение при отправке формы с помощью метода `enhance`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/new/+page.svelte
+    <script>
+      import { createPost } from '../data.remote';
+      import { showToast } from '$lib/toast';
+    </script>
+
+    <h1>Создать новую запись</h1>
+
+    <form {...createPost.enhance(async ({ form, data, submit }) => {
+      try {
+        await submit();
+        form.reset();
+
+        showToast('Запись успешно опубликована!');
+      } catch (error) {
+        showToast('Ошибка! Что-то пошло не так');
+      }
+    })}>
+      <input name="title" />
+      <textarea name="content"></textarea>
+      <button>Опубликовать</button>
+    </form>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/new/+page.svelte
+    <script lang="ts">
+      import { createPost } from '../data.remote';
+      import { showToast } from '$lib/toast';
+    </script>
+
+    <h1>Создать новую запись</h1>
+
+    <form {...createPost.enhance(async ({ form, data, submit }) => {
+      try {
+        await submit();
+        form.reset();
+
+        showToast('Запись успешно опубликована!');
+      } catch (error) {
+        showToast('Ошибка! Что-то пошло не так');
+      }
+    })}>
+      <input name="title" />
+      <textarea name="content"></textarea>
+      <button>Опубликовать</button>
+    </form>
+    ```
+  </TabItem>
+</Tabs>
+
+Колбэк получает элемент `form`, содержащиеся в нём `data` и функцию `submit`.
+
+Для реализации [однопроходных мутаций](#однопроходные-мутации) на клиенте используйте `submit().updates(...)`. Например, если на этой странице используется запрос `getPosts()`, мы можем обновить его следующим образом:
+
+```js
+await submit().updates(getPosts());
+```
+
+Мы также можем *переопределить* текущие данные во время выполнения отправки формы:
+
+```js
+await submit().updates(
+  getPosts().withOverride((posts) => [newPost, ...posts])
+);
+```
+
+Переопределённые данные применяются немедленно и сбрасываются после завершения (или ошибки) отправки формы.
+
+### buttonProps
+
+По умолчанию отправка формы направляет запрос по URL, указанному в атрибуте [`action`](https://developer.mozilla.org/ru/docs/Web/HTML/Element/form#атрибуты) элемента `<form>`. В случае удалённой функции этот URL является свойством объекта формы, сгенерированного SvelteKit.
+
+Кнопка внутри формы может отправить запрос по *другому* URL, используя атрибут [`formaction`](https://developer.mozilla.org/ru/docs/Web/HTML/Element/button#formaction). Например, у вас может быть одна форма для входа или регистрации в зависимости от нажатой кнопки.
+
+Этот атрибут доступен через свойство `buttonProps` объекта формы:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/login/+page.svelte
+    <script>
+      import { login, register } from '$lib/auth';
+    </script>
+
+    <form {...login}>
+      <label>
+        Ваш логин
+        <input name="username" />
+      </label>
+
+      <label>
+        Ваш пароль
+        <input name="password" type="password" />
+      </label>
+
+      <button>Войти</button>
+      <button {...register.buttonProps}>Зарегистрироваться</button>
+    </form>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/login/+page.svelte
+    <script lang="ts">
+      import { login, register } from '$lib/auth';
+    </script>
+
+    <form {...login}>
+      <label>
+        Ваш логин
+        <input name="username" />
+      </label>
+
+      <label>
+        Ваш пароль
+        <input name="password" type="password" />
+      </label>
+
+      <button>Войти</button>
+      <button {...register.buttonProps}>Зарегистрироваться</button>
+    </form>
+    ```
+  </TabItem>
+</Tabs>
+
+Как и сам объект формы, `buttonProps` имеет метод `enhance` для настройки поведения при отправке.
+
+## command
+
+Функция `command`, аналогично `form`, позволяет записывать данные на сервер. В отличие от `form`, она не привязана к элементу и может вызываться из любого места.
+
+:::note
+Рекомендуется использовать `form` там, где это возможно, так как она корректно работает при отключенном JavaScript или если он не загрузился.
+:::
+
+Как и в случае с `query`, если функция принимает аргумент, его следует [валидировать](#аргументы-query), передав [Standard Schema](https://standardschema.dev) в качестве первого аргумента `command`.
+
+```js
+// likes.remote.js
+import * as v from 'valibot';
+import { query, command } from '$app/server';
+import * as db from '$lib/server/database';
+
+export const getLikes = query(v.string(), async (id) => {
+  const [row] = await db.sql`
+    SELECT likes
+    FROM item
+    WHERE id = ${id}
+  `;
+
+  return row.likes;
+});
+
+export const addLike = command(v.string(), async (id) => {
+  await db.sql`
+    UPDATE item
+    SET likes = likes + 1
+    WHERE id = ${id}
+  `;
+});
+```
+
+Теперь можно просто вызвать `addLike`, например, из обработчика событий:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // +page.svelte
+    <script>
+      import { getLikes, addLike } from './likes.remote';
+      import { showToast } from '$lib/toast';
+
+      let { item } = $props();
+    </script>
+
+    <button
+      onclick={async () => {
+        try {
+          await addLike(item.id);
+        } catch (error) {
+          showToast('Произошла ошибка!');
+        }
+      }}
+    >
+      Лайкнуть
+    </button>
+
+    <p>Лайков: {await getLikes(item.id)}</p>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // +page.svelte
+    <script lang="ts">
+      import { getLikes, addLike } from './likes.remote';
+      import { showToast } from '$lib/toast';
+
+      let { item } = $props();
+    </script>
+
+    <button
+      onclick={async () => {
+        try {
+          await addLike(item.id);
+        } catch (error) {
+          showToast('Произошла ошибка!');
+        }
+      }}
+    >
+      Лайкнуть
+    </button>
+
+    <p>Лайков: {await getLikes(item.id)}</p>
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Команды нельзя вызывать во время рендеринга.
+:::
+
+### Однопроходные мутации
+
+Как и с формами, все запросы на странице (такие как `getLikes(item.id)` в примере выше) автоматически обновляются после успешного выполнения команды. Но мы можем сделать это более эффективным, указав SvelteKit, какие именно запросы будут затронуты командой, либо внутри самой команды...
+
+```js
+// likes.remote.js
+export const getLikes = query(v.string(), async (id) => { /* ... */ });
+
+export const addLike = command(v.string(), async (id) => {
+  await db.sql`
+    UPDATE item
+    SET likes = likes + 1
+    WHERE id = ${id}
+  `;
+
+  getLikes(id).refresh();
+});
+```
+
+...либо при её вызове:
+
+```js
+try {
+  await addLike(item.id).updates(getLikes(item.id));
+} catch (error) {
+  showToast('Что-то пошло не так!');
+}
+```
+
+Как и ранее, мы можем использовать `withOverride` для оптимистичных обновлений:
+
+```js
+try {
+  await addLike(item.id).updates(
+    getLikes(item.id).withOverride((n) => n + 1)
+  );
+} catch (error) {
+  showToast('Что-то пошло не так!');
+}
+```
+
+## prerender
+
+Функция `prerender` аналогична `query`, но вызывается во время сборки для предварительного рендеринга результата. Используйте её для данных, которые меняются не чаще одного раза при повторном развёртывании.
+
+```js
+// src/routes/blog/data.remote.js
+import { prerender } from '$app/server';
+import * as db from '$lib/server/database';
+
+export const getPosts = prerender(async () => {
+  const posts = await db.sql`
+    SELECT title, slug
+    FROM post
+    ORDER BY published_at
+    DESC
+  `;
+
+  return posts;
+});
+```
+
+Вы можете использовать функции `prerender` на страницах, которые в остальном динамические, что позволяет частично предварительно рендерить данные. Это обеспечивает очень быструю навигацию, так как предварительно отрендеренные данные могут храниться на CDN вместе с другими статическими ресурсами.
+
+В браузере предварительно отрендеренные данные сохраняются с помощью API [`Cache`](https://developer.mozilla.org/ru/docs/Web/API/Cache). Этот кеш сохраняется при перезагрузке страницы и очищается при первом посещении новой версии вашего приложения.
+
+:::note
+Если для всей страницы указано `export const prerender = true`, вы не можете использовать запросы (`queries`), так как они динамические.
+:::
+
+### Аргументы prerender
+
+Как и в запросах, функции prerender могут принимать аргументы, которые следует [проверять](#аргументы-query) с помощью [Standard Schema](https://standardschema.dev/):
+
+```js
+// src/routes/blog/data.remote.js
+import * as v from 'valibot';
+import { error } from '@sveltejs/kit';
+import { prerender } from '$app/server';
+import * as db from '$lib/server/database';
+
+export const getPosts = prerender(async () => { /* ... */ });
+
+export const getPost = prerender(v.string(), async (slug) => {
+  const [post] = await db.sql`
+    SELECT * FROM post
+    WHERE slug = ${slug}
+  `;
+
+  if (!post) error(404, 'Не найдено');
+  return post;
+});
+```
+
+Все вызовы `getPost(...)`, обнаруженные краулером SvelteKit при [предварительном рендеринге страниц](/kit/core-concepts/page-options/#prerender), будут сохранены автоматически. Однако вы также можете явно указать, с какими значениями следует вызывать функцию, используя параметр `inputs`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/data.remote.js
+    export const getPost = prerender(
+      v.string(),
+      async (slug) => { /* ... */ },
+      {
+        inputs: () => [
+          'first-post',
+          'second-post',
+          'third-post'
+        ]
+      }
+    );
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/data.remote.ts
+    export const getPost = prerender(
+      v.string(),
+      async (slug) => { /* ... */ },
+      {
+        inputs: () => [
+          'first-post',
+          'second-post',
+          'third-post'
+        ]
+      }
+    );
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Svelte пока не поддерживает асинхронный серверный рендеринг, поэтому скорее всего вы вызываете удалённые функции только из браузера, а не во время предварительного рендеринга. Из-за этого пока необходимо использовать параметр `inputs`. Мы активно работаем над устранением этого ограничения.
+:::
+
+По умолчанию функции prerender исключаются из серверного бандла, что означает невозможность их вызова с аргументами, которые *не* были предварительно отрендерены. Вы можете изменить это поведение, установив `dynamic: true`:
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/data.remote.js
+    export const getPost = prerender(
+      v.string(),
+      async (slug) => { /* ... */ },
+      {
+        dynamic: true,
+        inputs: () => [
+          'first-post',
+          'second-post',
+          'third-post'
+        ]
+      }
+    );
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/data.remote.ts
+    export const getPost = prerender(
+      v.string(),
+      async (slug) => { /* ... */ },
+      {
+        dynamic: true,
+        inputs: () => [
+          'first-post',
+          'second-post',
+          'third-post'
+        ]
+      }
+    );
+    ```
+  </TabItem>
+</Tabs>
+
+## Обработка ошибок валидации
+
+Если *вы* не передаёте невалидные данные в удалённые функции, есть только две причины, по которым аргумент `command`, `query` или `prerender` может не пройти валидацию:
+
+1. Сигнатура функции изменилась между развёртываниями, и некоторые пользователи используют старую версию приложения
+2. Кто-то пытается атаковать ваш сайт, подбирая данные к вашим эндпойнтам
+
+Во втором случае мы не хотим помогать атакующему, поэтому SvelteKit сгенерирует стандартный ответ [400 Bad Request](https://http.dog/400). Вы можете кастомизировать сообщение, реализовав серверный хук [`handleValidationError`](https://svelte.dev/docs/kit/hooks#Server-hooks-handleValidationError), который, как и [`handleError`](https://svelte.dev/docs/kit/hooks#Shared-hooks-handleError), должен возвращать тип [`App.Error`](https://svelte.dev/docs/kit/errors#Type-safety) (по умолчанию это `{ message: string }`):
+
+<Tabs syncKey="starlight-package-managers-pkg">
+  <TabItem label="JS">
+    ```js
+    // src/hooks.server.js
+    /** @type {import('@sveltejs/kit').HandleValidationError} */
+    export function handleValidationError({ event, issues }) {
+      return {
+        message: 'Хорошая попытка, хакер!'
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/hooks.server.ts
+    import type { HandleValidationError } from '@sveltejs/kit';
+
+    export const handleValidationError: HandleValidationError = ({ event, issues }) => {
+      return {
+        message: 'Хорошая попытка, хакер!'
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Если вы понимаете, что делаете, и хотите отключить валидацию, вы можете передать строку `'unchecked'` вместо схемы:
+
+```ts
+// data.remote.ts
+import { query } from '$app/server';
+
+export const getStuff = query('unchecked', async ({ id }: { id: string }) => {
+  // фактическая структура данных может отличаться от ожидаемой TypeScript,
+  // так как злоумышленники могут вызывать эту функцию с другими аргументами
+});
+```
+
+:::note
+`form` не принимает схему валидации, так как всегда получает объект `FormData`. Вы можете парсить и валидировать его по своему усмотрению.
+:::
+
+## Использование `getRequestEvent`
+
+Внутри `query`, `form` и `command` вы можете использовать [`getRequestEvent`](https://svelte.dev/docs/kit/$app-server#getRequestEvent) для получения текущего объекта [`RequestEvent`](https://svelte.dev/docs/kit/@sveltejs-kit#RequestEvent). Это упрощает создание абстракций для работы с файлами куки, например:
+
+```ts
+// user.remote.ts
+import { getRequestEvent, query } from '$app/server';
+import { findUser } from '$lib/server/database';
+
+export const getProfile = query(async () => {
+  const user = await getUser();
+
+  return {
+    name: user.name,
+    avatar: user.avatar
+  };
+});
+
+// эта функция может вызываться из разных мест:
+function getUser() {
+  const { cookies, locals } = getRequestEvent();
+
+  locals.userPromise ??= findUser(cookies.get('session_id'));
+  return await locals.userPromise;
+}
+```
+
+Обратите внимание, что некоторые свойства `RequestEvent` отличаются в удалённых функциях. Отсутствуют `params` и `route.id`, нельзя устанавливать заголовки (кроме записи куки, и то только внутри функций `form` и `command`), а `url.pathname` всегда равен `/` (поскольку фактический путь запроса клиента является внутренней деталью реализации).
+
+## Перенаправления
+
+Внутри функций `query`, `form` и `prerender` можно использовать функцию [`redirect(...)`](https://svelte.dev/docs/kit/@sveltejs-kit#redirect). В функциях `command` это *нельзя* делать, так как перенаправления там следует избегать. (Если это абсолютно необходимо, можно вернуть объект `{ redirect: location }` и обработать его на клиенте.)
