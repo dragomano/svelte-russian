@@ -186,7 +186,11 @@ export {};
 
 ### Доступ к файловой системе
 
-В Cloudflare Workers нельзя использовать `fs` — необходимо [предварительно рендерить](/kit/core-concepts/page-options/#prerender) соответствующие маршруты.
+В Cloudflare Workers нельзя использовать `fs`.
+
+Вместо этого используйте функцию [`read`](https://svelte.dev/docs/kit/$app-server#read) из `$app/server` для доступа к вашим файлам. Она работает, загружая файлы из размещённого публичного хранилища ресурсов.
+
+Альтернативно, вы можете [пререндерить](/kit/core-concepts/page-options/#prerender) соответствующие маршруты.
 
 ## Миграция с Workers Sites
 
