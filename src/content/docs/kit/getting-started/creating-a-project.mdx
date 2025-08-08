@@ -14,7 +14,6 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
     ```sh
     npx sv create my-app
     cd my-app
-    npm install
     npm run dev
     ```
   </TabItem>
@@ -22,7 +21,6 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
     ```sh
     pnpx sv create myapp
     cd myapp
-    pnpm install
     pnpm run dev
     ```
   </TabItem>
@@ -30,13 +28,12 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
     ```sh
     yarn dlx sv create myapp
     cd myapp
-    yarn install
     yarn dev
     ```
   </TabItem>
 </Tabs>
 
-Первая команда создаст каркас нового проекта в директории `my-app`, предложив вам настроить базовые инструменты вроде TypeScript. Смотрите раздел [интеграции](https://svelte.dev/docs/kit/integrations) для настройки дополнительных инструментов. Последующие команды установят зависимости и запустят сервер на `localhost:5173`.
+Первая команда создаст новый проект в директории `my-app`, предложив настроить некоторые базовые инструменты, такие как TypeScript. См. [документацию CLI](/cli/introduction/overview) для получения информации об этих опциях и [страницу интеграций](https://svelte.dev/docs/kit/integrations) для рекомендаций по настройке дополнительных инструментов. Команда `npm run dev` запустит сервер разработки на `http://localhost:5173` — убедитесь, что вы установили зависимости перед выполнением этой команды, если не сделали этого во время создания проекта.
 
 Есть две базовые концепции:
 
