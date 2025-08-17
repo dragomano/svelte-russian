@@ -141,6 +141,7 @@ export default defineConfig({
     },
     components: {
       LastUpdated: './src/components/LastUpdated.astro',
+      SocialIcons: './src/components/SocialIcons.astro',
     },
   }), svelte()],
 });
