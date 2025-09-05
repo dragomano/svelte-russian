@@ -221,7 +221,7 @@ test('Effect', () => {
 
 ### Тестирование компонентов
 
-Возможно тестировать ваши компоненты в изоляции, используя Vitest.
+Можно тестировать ваши компоненты изолированно, что позволяет отображать их в браузере (настоящем или смоделированном), имитировать поведение и делать проверки, не запуская всё приложение целиком.
 
 :::note
 Прежде чем писать тесты компонентов, подумайте, действительно ли вам нужно тестировать компонент или это больше связано с логикой _внутри_ компонента. Если это так, рассмотрите возможность извлечения этой логики, чтобы протестировать её в изоляции, без накладных расходов на компонент.
@@ -306,6 +306,47 @@ test('Component', async () => {
 ```
 
 При написании тестов компонентов, которые включают двусторонние привязки, контекст или свойства сниппетов, лучше создать обёртку для вашего конкретного теста и взаимодействовать с ней. `@testing-library/svelte` содержит некоторые [примеры](https://testing-library.com/docs/svelte-testing-library/example).
+
+### Тестирование компонентов с помощью Storybook
+
+[Storybook](https://storybook.js.org) — это инструмент для разработки и документирования UI-компонентов, который также можно использовать для тестирования ваших компонентов. Они запускаются в браузерном режиме Vitest, который отображает ваши компоненты в реальном браузере для создания максимально приближенной к реальности среды тестирования.
+
+Чтобы начать работу, сначала установите Storybook ([с помощью CLI Svelte](https://svelte.dev/docs/cli/storybook)) в ваш проект с помощью команды `npx sv add storybook` и выберите рекомендуемую конфигурацию, которая включает функции тестирования. Если вы уже используете Storybook, а также для получения дополнительной информации о возможностях тестирования Storybook, следуйте [документации по тестированию Storybook](https://storybook.js.org/docs/writing-tests?renderer=svelte), чтобы начать работу.
+
+Вы можете создавать сторисы для различных вариантов компонентов и тестировать взаимодействия с помощью [play-функции](https://storybook.js.org/docs/writing-tests/interaction-testing?renderer=svelte#writing-interaction-tests), которая позволяет имитировать поведение и делать проверки, используя API Testing Library и Vitest. Вот пример двух сторисов, которые можно протестировать: один отображает компонент LoginForm в пустом состоянии, а другой имитирует заполнение формы пользователем:
+
+```svelte
+// LoginForm.stories.svelte
+<script module>
+  import { defineMeta } from '@storybook/addon-svelte-csf';
+  import { expect, fn } from 'storybook/test';
+  import LoginForm from './LoginForm.svelte';
+
+  const { Story } = defineMeta({
+    component: LoginForm,
+    args: {
+      // Передаем мок-функцию в проп `onSubmit`
+      onSubmit: fn(),
+    }
+  });
+</script>
+
+<Story name="Очистить форму" />
+
+<Story
+  name="Заполненная форма"
+  play={async ({ args, canvas, userEvent }) => {
+    // Имитируем заполнение формы пользователем
+    await userEvent.type(canvas.getByTestId('email'), 'email@provider.com');
+    await userEvent.type(canvas.getByTestId('password'), 'a-random-password');
+    await userEvent.click(canvas.getByRole('button'));
+
+    // Запускаем проверки
+    await expect(args.onSubmit).toHaveBeenCalledTimes(1);
+    await expect(canvas.getByText('Вы вошли!')).toBeInTheDocument();
+  }}
+/>
+```
 
 ## E2E тесты с использованием Playwright
 
