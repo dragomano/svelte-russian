@@ -226,6 +226,53 @@ export const getPost = query(v.string(), async (slug) => {
 Запросы кэшируются, пока они находятся на странице, то есть `getPosts() === getPosts()`. Это означает, что вам не нужно сохранять ссылку вида `const posts = getPosts()` для обновления запроса.
 :::
 
+## query.batch
+
+`query.batch` работает аналогично `query`, за исключением того, что он группирует запросы, происходящие в рамках одной макрозадачи. Это решает так называемую проблему n+1: вместо того чтобы каждый запрос приводил к отдельному вызову базы данных (например), одновременные запросы объединяются.
+
+На сервере callback получает массив аргументов, с которыми была вызвана функция. Он должен возвращать функцию вида `(input: Input, index: number) => Output`. Затем SvelteKit вызывает эту функцию с каждым из входных аргументов, чтобы разрешить отдельные вызовы с их результатами.
+
+```js
+// weather.remote.js
+import * as v from 'valibot';
+import { query } from '$app/server';
+import * as db from '$lib/server/database';
+
+export const getWeather = query.batch(v.string(), async (cities) => {
+  const weather = await db.sql`
+    SELECT * FROM weather
+    WHERE city = ANY(${cities})
+  `;
+  const lookup = new Map(weather.map(w => [w.city, w]));
+
+  return (city) => lookup.get(city);
+});
+```
+
+```svelte
+// Weather.svelte
+<script>
+  import CityWeather from './CityWeather.svelte';
+  import { getWeather } from './weather.remote.js';
+
+  let { cities } = $props();
+  let limit = $state(5);
+</script>
+
+<h2>Погода</h2>
+
+{#each cities.slice(0, limit) as city}
+  <h3>{city.name}</h3>
+  <CityWeather weather={await getWeather(city.id)} />
+{/each}
+
+{#if cities.length > limit}
+  <button onclick={() => limit += 5}>
+    Загрузить ещё
+  </button>
+{/if}
+```
+
 ## form
 
 Функция `form` упрощает запись данных на сервер. Она принимает колбэк, который получает текущий [`FormData`](https://developer.mozilla.org/ru/docs/Web/API/FormData)...
