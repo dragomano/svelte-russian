@@ -50,7 +50,7 @@ export default {
 
 ## Функции Netlify Edge
 
-SvelteKit поддерживает [Функции Netlify Edge](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/). Если передать опцию `edge: true` в функцию `adapter`, серверный рендеринг будет выполняться в edge-функции на основе Deno, которая развёртывается ближе к посетителю сайта. Если установлено значение `false` (по умолчанию), сайт будет развёртываться с помощью функций Netlify на основе Node.
+SvelteKit поддерживает [функции Netlify Edge](https://docs.netlify.com/build/edge-functions/overview/). Если передать опцию `edge: true` в функцию `adapter`, серверный рендеринг будет выполняться в edge-функции на основе Deno, которая развёртывается ближе к посетителю сайта. Если установлено значение `false` (по умолчанию), сайт будет развёртываться с помощью функций Netlify на основе Node.
 
 ```js
 // svelte.config.js
