@@ -335,6 +335,49 @@ Reactive `$state(...)` proxies and the values they proxy have different identiti
 
 Чтобы решить эту проблему, убедитесь, что вы сравниваете значения, которые либо **оба** созданы через `$state(...)`, либо **оба** не являются прокси. Обратите внимание, что `$state.raw(...)` *не* создаёт прокси состояния.
 
+### state_proxy_unmount
+
+```
+Tried to unmount a state proxy, rather than a component
+```
+
+`unmount` был вызван с прокси состояния:
+
+```js
+let component = $state(mount(Component, { target }));
+
+// позже...
+unmount(component);
+```
+
+Избегайте использования `$state` здесь. Если `component` по какой-то причине должен быть реактивным, используйте вместо этого `$state.raw`.
+
+### svelte_boundary_reset_noop
+
+```
+A `<svelte:boundary>` `reset` function only resets the boundary the first time it is called
+```
+
+Когда происходит ошибка при рендеринге содержимого [`<svelte:boundary>`](/special-elements/svelte-boundary), вызывается обработчик `onerror` с ошибкой и функцией `reset`, которая пытается повторно отобразить содержимое.
+
+Эта функция `reset` должна вызываться только один раз. После этого она не имеет эффекта — в случае, когда ссылка на `reset` сохраняется вне границы, нажатие на кнопку, пока `<Contents />` отображается, _не_ приведёт к повторному рендерингу содержимого.
+
+```svelte
+<script>
+	let reset;
+</script>
+
+<button onclick={reset}>reset</button>
+
+<svelte:boundary onerror={(e, r) => (reset = r)}>
+  <!-- содержимое -->
+
+  {#snippet failed(e)}
+    <p>oops! {e.message}</p>
+  {/snippet}
+</svelte:boundary>
+```
+
 ### transition_slide_display
 
 ```
