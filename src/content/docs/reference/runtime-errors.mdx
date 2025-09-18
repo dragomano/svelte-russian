@@ -244,6 +244,20 @@ let odd = $derived(!even);
 
 ## Ошибки сервера
 
+### await_invalid
+
+```
+Encountered asynchronous work while rendering synchronously.
+```
+
+Вы (или используемый вами фреймворк) вызвали [`render(...)`](https://svelte.dev/docs/svelte/svelte-server#render) с компонентом, содержащим выражение `await`. Либо выполните `await` для результата `render`, либо оберните `await` (или компонент, содержащий его) в [`<svelte:boundary>`](/special-elements/svelte-boundary) с фрагментом `pending`.
+
+### html_deprecated
+
+```
+The `html` property of server render results has been deprecated. Use `body` instead.
+```
+
 ### lifecycle_function_unavailable
 
 ```
