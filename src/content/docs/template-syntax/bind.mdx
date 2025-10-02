@@ -97,7 +97,7 @@ Svelte создаёт обработчик событий, который обн
 
 ## `<input bind:checked>`
 
-Флажки и переключатели могут быть связаны с помощью `bind:checked`:
+Флажки можно связывать с помощью `bind:checked`:
 
 ```svelte
 <label>
@@ -116,6 +116,33 @@ Svelte создаёт обработчик событий, который обн
 <form>
   <input type="checkbox" bind:checked defaultChecked={true}>
   <input type="reset" value="Сброс">
+</form>
+```
+
+:::note
+Используйте `bind:group` для переключателей вместо `bind:checked`.
+:::
+
+## `<input bind:indeterminate>`
+
+Флажки могут находиться в [неопределённом](https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/indeterminate) состоянии, независимо от того, отмечены они или нет:
+
+```svelte
+<script>
+  let checked = $state(false);
+  let indeterminate = $state(true);
+</script>
+
+<form>
+  <input type="checkbox" bind:checked bind:indeterminate>
+
+  {#if indeterminate}
+    ожидание...
+  {:else if checked}
+    отмечено
+  {:else}
+    не отмечено
+  {/if}
 </form>
 ```
 
