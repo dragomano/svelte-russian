@@ -9,15 +9,15 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.35.3",
-    "@astrojs/svelte": "^7.1.1",
-    "astro": "^5.13.8",
+    "@astrojs/starlight": "^0.36.0",
+    "@astrojs/svelte": "^7.2.0",
+    "astro": "^5.14.1",
     "sharp": "^0.34.4",
-    "starlight-links-validator": "^0.17.2",
+    "starlight-links-validator": "^0.18.0",
     "starlight-package-managers": "^0.11.0",
     "starlight-showcases": "^0.3.0",
     "starlight-sidebar-topics": "^0.6.1",
-    "svelte": "^5.39.1",
-    "typescript": "^5.9.2"
+    "svelte": "^5.39.8",
+    "typescript": "^5.9.3"
   }
 }
