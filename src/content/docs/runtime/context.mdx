@@ -118,43 +118,14 @@ Svelte предупредит вас, если вы сделаете что-то
 
 ## Типобезопасный контекст
 
-Полезным шаблоном является оборачивание вызовов `setContext` и `getContext` внутри вспомогательных функций, которые позволяют сохранить типобезопасность:
+В качестве альтернативы использованию `setContext` и `getContext` напрямую, вы можете использовать их через `createContext`. Это обеспечивает типобезопасность и делает ненужным использование ключа:
 
-<Tabs syncKey="lang">
-  <TabItem label="JS">
-    ```js
-    // context.js
-    import { getContext, setContext } from 'svelte';
+```ts
+// context.ts
+import { createContext } from 'svelte';
 
-    const key = {};
-
-    /** @param {User} user */
-    export function setUserContext(user) {
-      setContext(key, user);
-    }
-
-    export function getUserContext() {
-      return /** @type {User} */ (getContext(key));
-    }
-    ```
-  </TabItem>
-  <TabItem label="TS">
-    ```js
-    // context.ts
-    import { getContext, setContext } from 'svelte';
-
-    const key = {};
-
-    export function setUserContext(user: User) {
-      setContext(key, user);
-    }
-
-    export function getUserContext() {
-      return getContext(key) as User;
-    }
-    ```
-  </TabItem>
-</Tabs>
+export const [getUserContext, setUserContext] = createContext<User>();
+```
 
 ## Замена глобального состояния
 
