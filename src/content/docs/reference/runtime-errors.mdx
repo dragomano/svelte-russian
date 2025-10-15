@@ -348,6 +348,14 @@ A snippet function was passed invalid arguments. Snippets should only be instant
 <button onclick={handleClick}>нажми меня</button>
 ```
 
+### missing_context
+
+```
+Context was not set in a parent component
+```
+
+Утилита [`createContext()`](https://svelte.dev/docs/svelte/svelte#createContext) возвращает пару функций `[get, set]`. `get` вызовет ошибку, если `set` не был использован для установки контекста в родительском компоненте.
+
 ### snippet_without_render_tag
 
 ```
