@@ -23,6 +23,8 @@ sidebar:
 <input bind:value={message} />
 ```
 
+При обновлениях будет напечатан стек-трейс, что облегчает поиск источника изменения состояния (если только вы не в песочнице, из-за технических ограничений).
+
 ## $inspect(...).with
 
 `$inspect` возвращает свойство `with`, которое можно использовать с колбэком, вызываемым вместо `console.log`. Первый аргумент колбэка — это либо `"init"`, либо `"update"`; последующие аргументы — это значения, переданные в `$inspect` ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAACkVQ24qDMBD9lSEUqlTqPlsj7ON-w7pQG8c2VCchmVSK-O-bKMs-DefKYRYx6BG9qL4XQd2EohKf1opC8Nsm4F84MkbsTXAqMbVXTltuWmp5RAZlAjFIOHjuGLOP_BKVqB00eYuKs82Qn2fNjyxLtcWeyUE2sCRry3qATQIpJRyD7WPVMf9TW-7xFu53dBcoSzAOrsqQNyOe2XUKr0Xi5kcMvdDB2wSYO-I9vKazplV1-T-d6ltgNgSG1KjVUy7ZtmdbdjqtzRcphxMS1-XubOITJtPrQWMvKnYB15_1F7KKadA_AQAA)):
@@ -39,12 +41,6 @@ sidebar:
 </script>
 
 <button onclick={() => count++}>Увеличить</button>
-```
-
-Удобный способ найти источник какого-либо изменения — передать `console.trace` в `with`:
-
-```js
-$inspect(stuff).with(console.trace);
 ```
 
 ## $inspect.trace(...)
