@@ -133,6 +133,76 @@ async function onclick() {
 
 Ошибки в выражениях `await` будут передаваться к ближайшей [границе ошибок](/special-elements/svelte-boundary).
 
+## Серверный рендеринг
+
+Svelte поддерживает асинхронный рендеринг на стороне сервера (SSR) с помощью API `render(...)`. Чтобы использовать его, просто дождитесь возвращаемого значения:
+
+```js "await"
+// server.js
+import { render } from 'svelte/server';
+import App from './App.svelte';
+
+const { head, body } = await render(App);
+```
+
+:::note
+Если вы используете фреймворк вроде SvelteKit, это делается за вас автоматически.
+:::
+
+Если во время SSR встречается `<svelte:boundary>` с фрагментом `pending`, этот фрагмент будет отрендерен, в то время как остальной контент будет проигнорирован. Все выражения `await`, встреченные вне границ с фрагментами `pending`, будут разрешены и отрендерены до возврата `await render(...)`.
+
+:::note
+В будущем мы планируем добавить реализацию потоковой передачи, которая будет рендерить контент в фоновом режиме.
+:::
+
+## Форкинг
+
+API [`fork(...)`](https://svelte.dev/docs/svelte/svelte#fork), появившийся в версии 5.42, позволяет запускать выражения `await`, которые, как вы ожидаете, выполнятся в ближайшем будущем. Это в первую очередь предназначено для фреймворков вроде SvelteKit, чтобы реализовывать предварительную загрузку — например, когда пользователь даёт сигнал о предстоящей навигации.
+
+```svelte
+<script>
+  import { fork } from 'svelte';
+  import Menu from './Menu.svelte';
+
+  let open = $state(false);
+
+  /** @type {import('svelte').Fork | null} */
+  let pending = null;
+
+  function preload() {
+    pending ??= fork(() => {
+      open = true;
+    });
+  }
+
+  function discard() {
+    pending?.discard();
+    pending = null;
+  }
+</script>
+
+<button
+  onfocusin={preload}
+  onfocusout={discard}
+  onpointerenter={preload}
+  onpointerleave={discard}
+  onclick={() => {
+    pending?.commit();
+    pending = null;
+
+    // на случай, если `pending` не существовало
+    // (если оно существовало, это ничего не делает)
+    open = true;
+  }}
+>open menu</button>
+
+{#if open}
+  <!-- любая асинхронная работа внутри этого компонента
+   запустится сразу после создания форка -->
+  <Menu onclose={() => open = false} />
+{/if}
+```
+
 ## Ограничения
 
 Как экспериментальная функция, детали обработки `await` (и связанные с ней API, такие как `$effect.pending()`) могут подвергаться изменениям, нарушающим совместимость, вне основного выпуска по семантическому версионированию, хотя мы стремимся свести такие изменения к минимуму.
