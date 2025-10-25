@@ -98,6 +98,26 @@ export default defineConfig({
               },
             ],
           },
+          {
+            id: 'mcp',
+            label: 'MCP',
+            link: '/mcp/introduction/overview',
+            icon: 'information',
+            items: [
+              {
+                label: 'Общая информация',
+                autogenerate: { directory: 'mcp/introduction' },
+              },
+              {
+                label: 'Настройка',
+                autogenerate: { directory: 'mcp/setup' },
+              },
+              {
+                label: 'Возможности',
+                autogenerate: { directory: 'mcp/capabilities' },
+              },
+            ],
+          },
         ],
       ),
     ],
