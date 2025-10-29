@@ -80,6 +80,10 @@ export default defineConfig({
                 label: 'Сборка и развёртывание',
                 autogenerate: { directory: 'kit/build-and-deploy' },
               },
+              {
+                label: 'Дополнительно',
+                autogenerate: { directory: 'kit/advanced' },
+              },
             ],
           },
           {
