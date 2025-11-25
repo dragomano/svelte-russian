@@ -135,12 +135,6 @@ $effect(() => {
 
 Часто при возникновении этой проблемы значение, о котором идет речь, не должно быть состоянием (например, если вы добавляете элементы в массив `logs` в эффекте, сделайте `logs` обычным массивом, а не `$state([])`). В редких случаях, когда вам действительно _нужно_ записывать в состояние в эффекте — [чего следует избегать](/runes/effect#когда-не-использовать-effect) — вы можете читать состояние с помощью [untrack](https://svelte.dev/docs/svelte/svelte#untrack), чтобы избежать добавления его в качестве зависимости.
 
-### experimental_async_fork
-
-```
-Cannot use `fork(...)` unless the `experimental.async` compiler option is `true`
-```
-
 ### flush_sync_in_effect
 
 ```
@@ -167,6 +161,25 @@ Cannot create a fork inside an effect or when state changes are pending
 
 ```
 `getAbortSignal()` can only be called inside an effect or derived
+```
+
+### hydratable_missing_but_required
+
+```
+Expected to find a hydratable with key `%key%` during hydration, but did not.
+```
+
+Это может произойти, если на клиенте рендерится компонент, предназначенный для гидратации (hydratable), но который не был отрендерен на сервере. В таком случае фреймворк вынужден выполнить его функцию блокирующе в процессе гидратации. Это плохо сказывается на производительности, потому что блокирует весь процесс гидратации до завершения асинхронной работы.
+
+```svelte
+<script>
+  import { hydratable } from 'svelte';
+
+  if (BROWSER) {
+    // плохо! интерфейс останется полностью неинтерактивным, пока эта асинхронная операция не завершится
+    await hydratable('foo', get_slow_random_number);
+  }
+</script>
 ```
 
 ### hydration_failed
@@ -262,6 +275,14 @@ let odd = $derived(!even);
 
 ## Ошибки сервера
 
+### async_local_storage_unavailable
+
+```
+The node API `AsyncLocalStorage` is not available, but is required to use async server rendering.
+```
+
+На некоторых платформах для включения этого API требуется установить специальные флаги конфигурации. Обратитесь к документации вашей платформы.
+
 ### await_invalid
 
 ```
@@ -276,6 +297,40 @@ Encountered asynchronous work while rendering synchronously.
 The `html` property of server render results has been deprecated. Use `body` instead.
 ```
 
+### hydratable_clobbering
+
+```
+Attempted to set `hydratable` with key `%key%` twice with different values.
+
+%stack%
+```
+
+Эта ошибка возникает, когда `hydratable` используется несколько раз с одним и тем же ключом. Чтобы избежать её, вы можете:
+
+- Убедиться, что все вызовы с одинаковым ключом возвращают одно и то же значение
+- Изменить ключи так, чтобы каждый экземпляр имел уникальный ключ
+
+```svelte
+<script>
+  import { hydratable } from 'svelte';
+
+  // какой из них должен «победить» и попасть в сериализованный ответ?
+  const one = hydratable('not-unique', () => 1);
+  const two = hydratable('not-unique', () => 2);
+</script>
+```
+
+### hydratable_serialization_failed
+
+```
+Failed to serialize `hydratable` data for key `%key%`.
+
+`hydratable` can serialize anything [`uneval` from `devalue`](https://npmjs.com/package/uneval) can, plus Promises.
+
+Cause:
+%stack%
+```
+
 ### lifecycle_function_unavailable
 
 ```
@@ -284,7 +339,21 @@ The `html` property of server render results has been deprecated. Use `body` ins
 
 Некоторые методы, такие как `mount`, не могут быть вызваны в серверном контексте. Избегайте их преждевременного вызова, то есть не вызывайте их во время рендеринга.
 
+### server_context_required
+
+```
+Could not resolve `render` context.
+```
+
+Некоторые функции, такие как `hydratable`, нельзя вызывать вне вызова `render(...)`, например на верхнем уровне модуля.
+
 ## Общие ошибки
+
+### experimental_async_required
+
+```
+Cannot use `%name%(...)` unless the `experimental.async` compiler option is `true`
+```
 
 ### invalid_default_snippet
 
