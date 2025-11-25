@@ -126,6 +126,25 @@ Your `console.%method%` contained `$state` proxies. Consider using `$inspect(...
 %handler% should be a function. Did you mean to %suggestion%?
 ```
 
+### hydratable_missing_but_expected
+
+```
+Expected to find a hydratable with key `%key%` during hydration, but did not.
+```
+
+Это может произойти, если на клиенте рендерится компонент, предназначенный для гидратации (hydratable), но который не был отрендерен на сервере. В таком случае фреймворк вынужден выполнить его функцию блокирующе в процессе гидратации. Это плохо сказывается на производительности, потому что блокирует весь процесс гидратации до завершения асинхронной работы.
+
+```svelte
+<script>
+  import { hydratable } from 'svelte';
+
+  if (BROWSER) {
+    // плохо! интерфейс останется полностью неинтерактивным, пока эта асинхронная операция не завершится
+    await hydratable('foo', get_slow_random_number);
+  }
+</script>
+```
+
 ### hydration_attribute_changed
 
 ```
