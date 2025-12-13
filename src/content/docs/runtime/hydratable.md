@@ -69,3 +69,49 @@ const rand = hydratable('random', () => Math.random());
 {await promises.one}
 {await promises.two}
 ```
+
+## CSP (Политика безопасности контента)
+
+`hydratable` добавляет встроенный блок `<script>` в `head`, возвращаемый из `render`. Если вы используете [Политику безопасности контента (CSP)](https://developer.mozilla.org/ru/docs/Web/HTTP/CSP), этот скрипт, скорее всего, не выполнится. Вы можете передать `nonce` в `render`.
+
+```js
+// server.js
+const nonce = crypto.randomUUID();
+
+const { head, body } = await render(App, {
+  csp: { nonce }
+});
+```
+
+Это добавит `nonce` к блоку скрипта, предполагая, что вы позже добавите тот же самый `nonce` в CSP-заголовок документа, который его содержит:
+
+```js
+// server.js
+response.headers.set(
+  'Content-Security-Policy',
+  `script-src 'nonce-${nonce}'`
+);
+```
+
+Важно, чтобы `nonce` — что, если отвлечься от британского сленгового значения, означает «число, используемое один раз» — использовался только при динамическом серверном рендеринге индивидуального ответа.
+
+Если же вы генерируете статический HTML заранее, вы должны использовать хэши:
+
+```js
+// server.js
+const { head, body, hashes } = await render(App, {
+  csp: { hash: true }
+});
+```
+
+`hashes.script` будет массивом строк, например `["sha256-abcd123"]`. Как и с `nonce`, хэши должны использоваться в вашем CSP-заголовке:
+
+```js
+// server.js
+response.headers.set(
+  'Content-Security-Policy',
+  `script-src ${hashes.script.map((hash) => `'${hash}'`).join(' ')}`
+);
+```
+
+Мы рекомендуем использовать `nonce` вместо хэша, если это возможно, так как `hash` будет мешать потоковому SSR в будущем.
