@@ -21,7 +21,7 @@ Stack Overflow — популярный форум для вопросов на 
 
 ## Есть ли сторонние ресурсы?
 
-Svelte Society ведет [список книг и видео](https://sveltesociety.dev/resources).
+Svelte Society ведет [список книг и видео](https://sveltesociety.dev/collection/a-list-of-books-and-courses-ac01dd10363184fa).
 
 ## Как настроить подсветку синтаксиса для файлов .svelte в VS Code?
 
