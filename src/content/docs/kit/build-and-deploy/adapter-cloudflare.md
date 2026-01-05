@@ -165,7 +165,7 @@ export {};
 
 Файлы [`_headers`](https://developers.cloudflare.com/pages/configuration/headers/) и [`_redirects`](https://developers.cloudflare.com/pages/configuration/redirects/), специфичные для Cloudflare, могут использоваться для ответов статических активов (например, изображений), если поместить их в корневую папку проекта.
 
-Однако они не влияют на ответы, динамически рендерящиеся SvelteKit. Для таких случаев следует возвращать пользовательские заголовки или ответы с перенаправлением из [серверных эндпойнтов](/kit/core-concepts/routing/#server) или с помощью хука [`handle`](https://svelte.dev/docs/kit/hooks#Server-hooks-handle).
+Однако они не влияют на ответы, динамически рендерящиеся SvelteKit. Для таких случаев следует возвращать пользовательские заголовки или ответы с перенаправлением из [серверных эндпойнтов](/kit/core-concepts/routing/#server) или с помощью хука [`handle`](/kit/advanced/hooks/#handle).
 
 ## Решение проблем
 

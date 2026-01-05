@@ -13,10 +13,10 @@ sidebar:
 
 ## Fetch API
 
-SvelteKit использует [`fetch`](https://developer.mozilla.org/ru/docs/Web/API/fetch) для получения данных из сети. Данный метод доступен в [хуках](https://svelte.dev/docs/kit/hooks), [серверных роутах](/kit/core-concepts/routing#server) и браузере.
+SvelteKit использует [`fetch`](https://developer.mozilla.org/ru/docs/Web/API/fetch) для получения данных из сети. Данный метод доступен в [хуках](/kit/advanced/hooks), [серверных роутах](/kit/core-concepts/routing#server) и браузере.
 
 :::note
-Особая версия `fetch` доступна в [`load`-функциях](/kit/core-concepts/load), [серверных хуках](https://svelte.dev/docs/kit/hooks#Server-hooks) и [API-роутах](/kit/core-concepts/routing#server) для прямого вызова эндпойнтов при SSR без HTTP-запросов, с сохранением авторизации. (Для авторизованных запросов вне `load` нужно явно передавать заголовки `cookie`/`authorization`). Также позволяет делать относительные запросы, тогда как обычный `fetch` требует полный URL.
+Особая версия `fetch` доступна в [`load`-функциях](/kit/core-concepts/load), [серверных хуках](/kit/advanced/hooks/#серверные-хуки) и [API-роутах](/kit/core-concepts/routing#server) для прямого вызова эндпойнтов при SSR без HTTP-запросов, с сохранением авторизации. (Для авторизованных запросов вне `load` нужно явно передавать заголовки `cookie`/`authorization`). Также позволяет делать относительные запросы, тогда как обычный `fetch` требует полный URL.
 :::
 
 Помимо самого `fetch`, [Fetch API](https://developer.mozilla.org/ru/docs/Web/API/Fetch_API) включает:
@@ -132,7 +132,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 ## URL API
 
 URL представлены интерфейсом [`URL`](https://developer.mozilla.org/ru/docs/Web/API/URL), который включает полезные свойства, такие как `origin`, `pathname` (и в браузере — `hash`). Этот интерфейс встречается в различных местах:
-- `event.url` в [хуках](https://svelte.dev/docs/kit/hooks) и [серверных маршрутах](/kit/core-concepts/routing#server)
+- `event.url` в [хуках](/kit/advanced/hooks) и [серверных маршрутах](/kit/core-concepts/routing#server)
 - [`page.url`](https://svelte.dev/docs/kit/$app-state) на [страницах](/kit/core-concepts/routing#page)
 - Параметры `from` и `to` в [`beforeNavigate` и `afterNavigate`](https://svelte.dev/docs/kit/$app-navigation)
 
