@@ -13,7 +13,7 @@ sidebar:
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/blog/[slug]/+page.js
@@ -45,7 +45,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
   </TabItem>
 </Tabs>
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
     // src/routes/blog/[slug]/+page.svelte
@@ -90,7 +90,7 @@ let { data } = $props();
 
 Более реалистичная версия функции `load` для поста в блоге, которая выполняется только на сервере и получает данные из базы, может выглядеть так:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/blog/[slug]/+page.server.js
@@ -125,7 +125,7 @@ let { data } = $props();
 
 Ваши файлы `+layout.svelte` также могут загружать данные через `+layout.js` или `+layout.server.js`.
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/blog/[slug]/+layout.server.js
@@ -154,7 +154,7 @@ let { data } = $props();
   </TabItem>
 </Tabs>
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
     // src/routes/blog/[slug]/+layout.svelte
@@ -227,7 +227,7 @@ let { data, children } = $props();
 - Компоненту `+page.svelte`
 - Самому макету, которому они «принадлежат»
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```diff lang="svelte"
     // src/routes/blog/[slug]/+page.svelte
@@ -286,7 +286,7 @@ let { data, children } = $props();
 
 В некоторых случаях может потребоваться обратное — родительскому макету может понадобиться доступ к данным страницы или дочернего макета. Например, корневой макет может захотеть получить доступ к свойству `title`, возвращаемому функцией `load` из `+page.js` или `+page.server.js`. Это можно сделать через `page.data`:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
     // src/routes/+layout.svelte
@@ -380,7 +380,7 @@ let { data, children } = $props();
 
 В редких случаях может потребоваться использовать оба типа вместе — например, когда нужно вернуть экземпляр кастомного класса, инициализированного серверными данными. При совместном использовании результат серверной `load` передаётся не напрямую на страницу, а в универсальную `load` функцию (через свойство `data`):
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/+page.server.js
@@ -406,7 +406,7 @@ let { data, children } = $props();
   </TabItem>
 </Tabs>
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/+page.js
@@ -455,7 +455,7 @@ let { data, children } = $props();
 
 Содержит имя текущей директории маршрута относительно `src/routes`:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/a/[b]/[...c]/+page.js
@@ -500,7 +500,7 @@ let { data, children } = $props();
 - При SSR ответы автоматически встраиваются в HTML через перехват методов `text`, `json` и `arrayBuffer` объекта `Response`. Заголовки не сериализуются, если явно не указано в [`filterSerializedResponseHeaders`](https://svelte.dev/docs/kit/hooks#Server-hooks-handle).
 - При гидратации данные читаются из HTML, обеспечивая согласованность и избегая повторных запросов (консольные предупреждения при использовании браузерного `fetch` вместо `load` `fetch` связаны именно с этим).
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/items/[id]/+page.js
@@ -532,7 +532,7 @@ let { data, children } = $props();
 
 Серверная функция `load` может получать и устанавливать [`куки`](https://svelte.dev/docs/kit/@sveltejs-kit#Cookies).
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/+layout.server.js
@@ -579,7 +579,7 @@ let { data, children } = $props();
 
 Как серверные, так и универсальные функции `load` имеют доступ к функции `setHeaders`, которая на сервере позволяет устанавливать заголовки ответа. (В браузере `setHeaders` не имеет эффекта.) Это полезно, например, для кэширования страницы:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/products/+page.js
@@ -626,7 +626,7 @@ let { data, children } = $props();
 
 Иногда функции `load` требуется доступ к данным из родительской функции `load`, что можно сделать через `await parent()`:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/+layout.js
@@ -648,7 +648,7 @@ let { data, children } = $props();
   </TabItem>
 </Tabs>
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/abc/+layout.js
@@ -672,7 +672,7 @@ let { data, children } = $props();
   </TabItem>
 </Tabs>
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/abc/+page.js
@@ -696,7 +696,7 @@ let { data, children } = $props();
   </TabItem>
 </Tabs>
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
     // src/routes/abc/+page.svelte
@@ -734,7 +734,7 @@ let { data, children } = $props();
 
 Старайтесь избегать каскада запросов при использовании `await parent()`. Например, здесь `getData(params)` не зависит от результата вызова `parent()`, поэтому следует вызывать её первой, чтобы не задерживать рендеринг:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```diff lang="js"
     // +page.js
@@ -774,7 +774,7 @@ let { data, children } = $props();
 
 Если во время выполнения `load` произойдёт ошибка, будет отображён ближайший [`+error.svelte`](/kit/core-concepts/routing#error). Для [_ожидаемых_](https://svelte.dev/docs/kit/errors#Expected-errors) ошибок используйте хелпер `error` из `@sveltejs/kit`, чтобы указать HTTP-статус и опциональное сообщение:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/admin/+layout.server.js
@@ -823,7 +823,7 @@ let { data, children } = $props();
 
 Для редиректа пользователей используйте хелпер `redirect` из `@sveltejs/kit`, указав целевой URL и статус-код `3xx`. Как и `error(...)`, вызов `redirect(...)` генерирует исключение, что позволяет легко прервать выполнение внутри вспомогательных функций.
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/user/+layout.server.js
@@ -866,7 +866,7 @@ let { data, children } = $props();
 
 При использовании серверной функции `load` промисы будут передаваться в браузер по мере их выполнения. Это особенно полезно для медленных или не критичных данных, так как позволяет начать отрисовку страницы до получения всех данных:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/blog/[slug]/+page.server.js
@@ -900,7 +900,7 @@ let { data, children } = $props();
 
 Это полезно, например, для создания состояний загрузки со скелетоном:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
     // src/routes/blog/[slug]/+page.svelte
@@ -950,7 +950,7 @@ let { data, children } = $props();
 
 При потоковой передаче данных важно правильно обрабатывать отклонённые промисы. В частности, сервер может завершиться с ошибкой `unhandled promise rejection`, если лениво загружаемый промис завершится ошибкой до начала рендеринга (когда ошибка ещё не перехвачена) и ошибка никак не обрабатывается. При использовании `fetch` SvelteKit непосредственно в функции `load`, SvelteKit позаботится об этом случае. Для других промисов достаточно прикрепить `catch`-обработчик без действий (`noop`), чтобы пометить промис как обработанный.
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/+page.server.js
@@ -1012,7 +1012,7 @@ SvelteKit отслеживает зависимости каждой функц�
 
 Например, для пары функций `load` вида...
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/blog/[slug]/+page.server.js
@@ -1041,7 +1041,7 @@ SvelteKit отслеживает зависимости каждой функц�
   </TabItem>
 </Tabs>
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/blog/[slug]/+layout.server.js
@@ -1082,7 +1082,7 @@ SvelteKit отслеживает зависимости каждой функц�
 
 В редких случаях может потребоваться исключить что-то из механизма отслеживания зависимостей. Это можно сделать с помощью предоставленной функции `untrack`:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/+page.js
@@ -1124,7 +1124,7 @@ SvelteKit отслеживает зависимости каждой функц�
 
 Примечание: `url` может быть кастомным идентификатором, начинающимся с `[a-z]:`:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/random-number/+page.js
@@ -1162,7 +1162,7 @@ SvelteKit отслеживает зависимости каждой функц�
   </TabItem>
 </Tabs>
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
     // src/routes/random-number/+page.svelte

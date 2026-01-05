@@ -34,7 +34,7 @@ export default {
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // about/+page.js
@@ -58,7 +58,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 ...а другие как [облачные функции](https://vercel.com/docs/concepts/functions/serverless-functions) (обратите внимание, что при указании `config` внутри `layout`, она применяется ко всем дочерним страницам):
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // admin/+layout.js
@@ -176,7 +176,7 @@ vercel env pull .env.development.local
 
 Vercel предоставляет набор [переменных окружения, специфичных для развёртывания](https://vercel.com/docs/concepts/projects/environment-variables#system-environment-variables). Как и другие переменные окружения, они доступны из `$env/static/private` и `$env/dynamic/private` (иногда — подробнее об этом позже), но недоступны из их публичных аналогов. Чтобы получить доступ к одной из этих переменных на стороне клиента:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // +layout.server.js
@@ -205,7 +205,7 @@ Vercel предоставляет набор [переменных окруже�
   </TabItem>
 </Tabs>
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // +layout.svelte

@@ -57,7 +57,7 @@ src/routes/
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/marx-brothers/[...path]/+page.js
@@ -97,7 +97,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Маршрут вроде `src/routes/fruits/[page]` будет соответствовать `/fruits/apple`, но он также будет соответствовать `/fruits/rocketship`. Мы этого не хотим. Вы можете убедиться, что параметры маршрута правильно сформированы, добавив _матчер_ («сопоставитель») — который принимает строковое значение параметра (`"apple"` или `"rocketship"`) и возвращает `true`, если оно допустимо — в ваш каталог [`params`](https://svelte.dev/docs/kit/configuration#files):
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/params/fruit.js
@@ -298,7 +298,7 @@ src/routes/
 
 Не все случаи использования подходят для группировки макетов, и вы не обязаны их применять. Возможно, ваш случай приведёт к сложной вложенности `(group)`, или вы не хотите вводить `(group)` для одного исключения. Совершенно нормально использовать другие средства, такие как композиция (переиспользуемые функции `load` или компоненты Svelte) или условные операторы, чтобы добиться желаемого. В следующем примере показан макет, возвращающийся к корневому макету и переиспользующий компоненты и функции, которые могут использовать и другие макеты:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
     // src/routes/nested/route/+layout@.svelte
@@ -328,7 +328,7 @@ src/routes/
 </Tabs>
 
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/nested/route/+layout.js

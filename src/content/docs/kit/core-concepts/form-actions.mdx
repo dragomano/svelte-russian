@@ -15,7 +15,7 @@ sidebar:
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/login/+page.server.js
@@ -77,7 +77,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Вместо одного действия `default` страница может содержать несколько именованных действий:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```diff lang="js"
     // src/routes/login/+page.server.js
@@ -154,7 +154,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
   - Через свойство `form` на соответствующей странице
   - Через `page.form` во всём приложении до следующего обновления
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/login/+page.server.js
@@ -213,7 +213,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
   </TabItem>
 </Tabs>
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
     // src/routes/login/+page.svelte
@@ -263,7 +263,7 @@ let { data, form } = $props();
 
 Если запрос не может быть обработан из-за неверных данных, вы можете вернуть ошибки валидации вместе с ранее отправленными значениями формы, чтобы пользователь мог попробовать снова. Функция `fail` позволяет вернуть HTTP-статус (обычно 400 или 422 для ошибок валидации) вместе с данными. Код статуса доступен через `page.status`, а данные через `form`:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```diff lang="js"
     // src/routes/login/+page.server.js
@@ -360,7 +360,7 @@ let { data, form } = $props();
 
 Перенаправления (и ошибки) работают так же, как в [`load`](/kit/core-concepts/load/#перенаправления):
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```diff lang="js" " redirect " " url "
     // src/routes/login/+page.server.js
@@ -441,7 +441,7 @@ let { data, form } = $props();
 
 Обратите внимание, что `handle` выполняется до вызова действия и не запускается повторно перед функциями `load`. Следовательно, если вы используете `handle` для заполнения `event.locals` на основе куки, вы должны обновлять `event.locals` при установке или удалении куки в действии:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/hooks.server.js
@@ -465,7 +465,7 @@ let { data, form } = $props();
   </TabItem>
 </Tabs>
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/account/+page.server.js
@@ -513,7 +513,7 @@ let { data, form } = $props();
 
 Самый простой способ прогрессивного улучшения формы — добавить действие `use:enhance`:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte {3} "use:enhance"
     // src/routes/login/+page.svelte
@@ -585,7 +585,7 @@ let { data, form } = $props();
 
 Если вы возвращаете колбэк, вы переопределяете стандартное поведение после отправки формы. Чтобы восстановить его, вызовите `update` (который принимает параметры `invalidateAll` и `reset`) или используйте `applyAction` для результата:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```diff lang="svelte" "applyAction"
     // src/routes/login/+page.svelte
@@ -650,7 +650,7 @@ let { data, form } = $props();
 
 Мы также можем реализовать прогрессивное улучшение вручную, без `use:enhance`, используя стандартный обработчик событий для `<form>`:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
     // src/routes/login/+page.svelte
@@ -742,7 +742,7 @@ const response = await fetch(this.action, {
 
 Действия форм — предпочтительный способ отправки данных на сервер благодаря возможности прогрессивного улучшения, но вы также можете использовать файлы [`+server.js`](/kit/core-concepts/routing/#server) для создания (например) JSON API. Вот как может выглядеть такое взаимодействие:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
     // src/routes/send-message/+page.svelte
@@ -773,7 +773,7 @@ const response = await fetch(this.action, {
   </TabItem>
 </Tabs>
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/api/ci/+server.js

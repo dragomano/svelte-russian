@@ -15,7 +15,7 @@ sidebar:
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // +page.server.js
@@ -73,7 +73,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 По той же причине ваши функции `load` должны быть _чистыми_ — без побочных эффектов (за исключением разве что случайных `console.log(...)`). Например, у вас может возникнуть соблазн записать данные в хранилище или глобальное состояние внутри функции `load`, чтобы затем использовать это значение в ваших компонентах:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // +page.js
@@ -106,7 +106,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Как и в предыдущем примере, это помещает информацию одного пользователя в место, доступное _всем_ пользователям. Вместо этого просто возвращайте данные...
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // +page.js
@@ -144,7 +144,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Возможно, вам интересно, как мы можем использовать `page.data` и другие [состояния приложения](https://svelte.dev/docs/kit/$app-state) (или [хранилища приложения](https://svelte.dev/docs/kit/$app-stores)), если глобальное состояние использовать нельзя. Ответ в том, что состояние и хранилища приложения на сервере используют [Context API Svelte](https://svelte.dev/tutorial/svelte/context-api) — состояние (или хранилище) прикрепляется к дереву компонентов с помощью `setContext`, а при подписке извлекается через `getContext`. Мы можем сделать то же самое с нашим собственным состоянием:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
     // src/routes/+layout.svelte
@@ -176,7 +176,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
   </TabItem>
 </Tabs>
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
     // src/routes/user/+page.svelte
@@ -221,7 +221,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Когда вы перемещаетесь по приложению, SvelteKit повторно использует существующие компоненты макетов и страниц. Например, если у вас есть маршрут вида...
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
     // src/routes/blog/[slug]/+page.svelte
@@ -269,7 +269,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Вместо этого нам нужно сделать значение [_реактивным_](https://svelte.dev/tutorial/svelte/state):
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```svelte
     // src/routes/blog/[slug]/+page.svelte

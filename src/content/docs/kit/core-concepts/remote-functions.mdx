@@ -61,7 +61,7 @@ export const getPosts = query(async () => {
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/blog/+page.svelte
@@ -100,7 +100,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Хотя рекомендуется использовать `await`, в качестве альтернативы запрос также имеет свойства `loading`, `error` и `current`:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/blog/+page.svelte
@@ -155,7 +155,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Функции query могут принимать аргументы, например `slug` отдельной публикации:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/blog/+page.svelte
@@ -317,7 +317,7 @@ export const createPost = form(async (data) => {
 
 ...и возвращает объект, который можно использовать через spread-оператор (`...`) в элементе `<form>`. Колбэк вызывается при каждой отправке формы.
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/blog/new/+page.svelte
@@ -408,7 +408,7 @@ export const createPost = form(async (data) => {
 });
 ```
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/blog/new/+page.svelte
@@ -455,7 +455,7 @@ export const createPost = form(async (data) => {
 
 Мы можем настроить поведение при отправке формы с помощью метода `enhance`:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/blog/new/+page.svelte
@@ -536,7 +536,7 @@ await submit().updates(
 
 Этот атрибут доступен через свойство `buttonProps` объекта формы:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/login/+page.svelte
@@ -624,7 +624,7 @@ export const addLike = command(v.string(), async (id) => {
 
 Теперь можно просто вызвать `addLike`, например, из обработчика событий:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // +page.svelte
@@ -777,7 +777,7 @@ export const getPost = prerender(v.string(), async (slug) => {
 
 Все вызовы `getPost(...)`, обнаруженные краулером SvelteKit при [предварительном рендеринге страниц](/kit/core-concepts/page-options/#prerender), будут сохранены автоматически. Однако вы также можете явно указать, с какими значениями следует вызывать функцию, используя параметр `inputs`:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/blog/data.remote.js
@@ -818,7 +818,7 @@ Svelte пока не поддерживает асинхронный серве�
 
 По умолчанию функции prerender исключаются из серверного бандла, что означает невозможность их вызова с аргументами, которые *не* были предварительно отрендерены. Вы можете изменить это поведение, установив `dynamic: true`:
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/blog/data.remote.js
@@ -864,7 +864,7 @@ Svelte пока не поддерживает асинхронный серве�
 
 Во втором случае мы не хотим помогать атакующему, поэтому SvelteKit сгенерирует стандартный ответ [400 Bad Request](https://http.dog/400). Вы можете кастомизировать сообщение, реализовав серверный хук [`handleValidationError`](https://svelte.dev/docs/kit/hooks#Server-hooks-handleValidationError), который, как и [`handleError`](https://svelte.dev/docs/kit/hooks#Shared-hooks-handleError), должен возвращать тип [`App.Error`](https://svelte.dev/docs/kit/errors#Type-safety) (по умолчанию это `{ message: string }`):
 
-<Tabs syncKey="starlight-package-managers-pkg">
+<Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/hooks.server.js
