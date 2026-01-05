@@ -74,7 +74,7 @@ export default {
 
 ### fallback
 
-Укажите fallback-страницу для [SPA-режима](single-page-apps), например `index.html`, `200.html` или `404.html`.
+Укажите fallback-страницу для [SPA-режима](/kit/build-and-deploy/single-page-apps), например `index.html`, `200.html` или `404.html`.
 
 ### precompress
 

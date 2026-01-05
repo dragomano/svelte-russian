@@ -6,7 +6,7 @@ sidebar:
 ---
 
 :::note
-`adapter-cloudflare-workers` устарел в пользу [`adapter-cloudflare`](adapter-cloudflare). Мы рекомендуем использовать `adapter-cloudflare` для развёртывания на Cloudflare Workers с [Static Assets](https://developers.cloudflare.com/workers/static-assets/), поскольку Cloudflare Workers Sites будет устаревшим в пользу этого подхода.
+`adapter-cloudflare-workers` устарел в пользу [`adapter-cloudflare`](/kit/build-and-deploy/adapter-cloudflare). Мы рекомендуем использовать `adapter-cloudflare` для развёртывания на Cloudflare Workers с [Static Assets](https://developers.cloudflare.com/workers/static-assets/), поскольку Cloudflare Workers Sites будет устаревшим в пользу этого подхода.
 :::
 
 Для развёртывания на [Cloudflare Workers](https://workers.cloudflare.com/) с [Workers Sites](https://developers.cloudflare.com/workers/configuration/sites/) используйте `adapter-cloudflare-workers`.
