@@ -1,0 +1,598 @@
+---
+title: Хуки
+origin: https://svelte.dev/docs/kit/hooks
+sidebar:
+  order: 1
+---
+
+Хуки — это объявляемые вами функции, доступные во всём приложении. SvelteKit вызывает их в ответ на определённые события, предоставляя вам тонкий контроль над поведением фреймворка.
+
+Существует три файла хуков, все они необязательные:
+- `src/hooks.server.js` — серверные хуки вашего приложения
+- `src/hooks.client.js` — клиентские хуки вашего приложения
+- `src/hooks.js` — хуки вашего приложения, которые выполняются как на клиенте, так и на сервере
+
+Код в этих модулях выполняется при запуске приложения, что делает их полезными для инициализации клиентов баз данных и тому подобного.
+
+:::note
+Вы можете настроить расположение этих файлов с помощью [`config.kit.files.hooks`](https://svelte.dev/docs/kit/configuration#files).
+:::
+
+## Серверные хуки
+
+В файл `src/hooks.server.js` можно добавить следующие хуки:
+
+### handle
+
+Эта функция выполняется каждый раз, когда сервер SvelteKit получает [запрос](/kit/getting-started/web-standards/#request) — независимо от того, происходит ли это во время работы приложения или во время [предварительного рендеринга](/kit/core-concepts/page-options/#prerender) — и определяет [ответ](/kit/getting-started/web-standards/#response). Она получает объект `event`, представляющий запрос, и функцию `resolve`, которая рендерит маршрут и генерирует `Response`. Это позволяет модифицировать заголовки или тело ответа либо полностью обойти SvelteKit (например, для программной реализации маршрутов).
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/hooks.server.js
+    /** @type {import('@sveltejs/kit').Handle} */
+    export async function handle({ event, resolve }) {
+      if (event.url.pathname.startsWith('/custom')) {
+        return new Response('custom response');
+      }
+
+      const response = await resolve(event);
+      return response;
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/hooks.server.ts
+    import type { Handle } from '@sveltejs/kit';
+
+    export const handle: Handle = async ({ event, resolve }) => {
+      if (event.url.pathname.startsWith('/custom')) {
+        return new Response('custom response');
+      }
+
+      const response = await resolve(event);
+      return response;
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Запросы к статическим активам — включая страницы, которые уже были предварительно отрендерены — _не_ обрабатываются SvelteKit.
+:::
+
+Если функция не реализована, по умолчанию используется `({ event, resolve }) => resolve(event)`.
+
+Во время предварительного рендеринга SvelteKit сканирует ваши страницы на наличие ссылок и рендерит каждый найденный маршрут. Рендеринг маршрута вызывает функцию `handle` (а также все остальные зависимости маршрута, такие как `load`). Если вам нужно исключить выполнение некоторого кода на этой фазе, предварительно проверьте, что приложение не находится в режиме [`building`](https://svelte.dev/docs/kit/$app-environment#building).
+
+### locals
+
+Чтобы добавить пользовательские данные к запросу, которые будут переданы в обработчики в `+server.js` и серверные функции `load`, заполните объект `event.locals`, как показано ниже.
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/hooks.server.js
+    /** @type {import('@sveltejs/kit').Handle} */
+    export async function handle({ event, resolve }) {
+      event.locals.user = await getUserInformation(event.cookies.get('sessionid'));
+
+      const response = await resolve(event);
+
+      // Обратите внимание, что модификация заголовков ответа не всегда безопасна.
+      // Объекты Response могут иметь неизменяемые заголовки
+      // (например, возвращаемые Response.redirect() из эндпойнта).
+      // Попытка изменить неизменяемые заголовки приведёт к TypeError.
+      // В таком случае клонируйте ответ или избегайте создания
+      // объекта ответа с неизменяемыми заголовками.
+      response.headers.set('x-custom-header', 'potato');
+
+      return response;
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/hooks.server.ts
+    import type { Handle } from '@sveltejs/kit';
+
+    export const handle: Handle = async ({ event, resolve }) => {
+      event.locals.user = await getUserInformation(event.cookies.get('sessionid'));
+
+      const response = await resolve(event);
+
+      // Обратите внимание, что модификация заголовков ответа не всегда безопасна.
+      // Объекты Response могут иметь неизменяемые заголовки
+      // (например, возвращаемые Response.redirect() из эндпойнта).
+      // Попытка изменить неизменяемые заголовки приведёт к TypeError.
+      // В таком случае клонируйте ответ или избегайте создания
+      // объекта ответа с неизменяемыми заголовками.
+      response.headers.set('x-custom-header', 'potato');
+
+      return response;
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Вы можете определить несколько функций `handle` и выполнять их последовательно с помощью [вспомогательной функции `sequence`](https://svelte.dev/docs/kit/@sveltejs-kit-hooks).
+
+Функция `resolve` также поддерживает второй, необязательный параметр, который даёт больше контроля над тем, как будет отрендерен ответ. Этот параметр — объект, который может содержать следующие поля:
+
+- `transformPageChunk(opts: { html: string, done: boolean }): MaybePromise<string | undefined>` — применяет пользовательские преобразования к HTML. Если `done` равно `true`, это последний чанк. Чанки не гарантированно являются хорошо сформированным HTML (например, могут содержать открывающий тег элемента, но не закрывающий), но они всегда будут разделены по разумным границам, таким как `%sveltekit.head%` или компоненты layout/page.
+
+- `filterSerializedResponseHeaders(name: string, value: string): boolean` — определяет, какие заголовки должны включаться в сериализованные ответы, когда функция `load` загружает ресурс с помощью `fetch`. По умолчанию ни один не включается.
+
+- `preload(input: { type: 'js' | 'css' | 'font' | 'asset', path: string }): boolean` — определяет, какие файлы должны добавляться в тег `<head>` для предзагрузки. Метод вызывается для каждого файла, найденного во время сборки при формировании чанков кода — так, например, если в вашем `+page.svelte` есть `import './styles.css'`, то при посещении этой страницы `preload` будет вызван с разрешённым путём к этому CSS-файлу. Обратите внимание, что в режиме разработки (`dev`) `preload` _не_ вызывается, поскольку зависит от анализа, выполняемого во время сборки. Предзагрузка может улучшить производительность, позволяя скачивать ресурсы раньше, но также может навредить, если скачивается слишком много ненужного. По умолчанию предзагружаются файлы `js` и `css`. Файлы типа `asset` сейчас вообще не предзагружаются, но мы можем добавить это позже после анализа отзывов.
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/hooks.server.js
+    /** @type {import('@sveltejs/kit').Handle} */
+    export async function handle({ event, resolve }) {
+      const response = await resolve(event, {
+        transformPageChunk: ({ html }) => html.replace('old', 'new'),
+        filterSerializedResponseHeaders: (name) => name.startsWith('x-'),
+        preload: ({ type, path }) => type === 'js' || path.includes('/important/')
+      });
+
+      return response;
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/hooks.server.ts
+    import type { Handle } from '@sveltejs/kit';
+
+    export const handle: Handle = async ({ event, resolve }) => {
+      const response = await resolve(event, {
+        transformPageChunk: ({ html }) => html.replace('old', 'new'),
+        filterSerializedResponseHeaders: (name) => name.startsWith('x-'),
+        preload: ({ type, path }) => type === 'js' || path.includes('/important/')
+      });
+
+      return response;
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Обратите внимание, что `resolve(...)` никогда не выбросит ошибку — она всегда вернёт `Promise<Response>` с соответствующим кодом статуса. Если ошибка будет выброшена в другом месте во время выполнения `handle`, она считается фатальной, и SvelteKit ответит JSON-представлением ошибки или резервной страницей ошибки — которую можно настроить через `src/error.html` — в зависимости от заголовка `Accept`. Подробнее об обработке ошибок можно прочитать [здесь](https://svelte.dev/docs/kit/errors).
+
+### handleFetch
+
+Эта функция позволяет модифицировать (или заменять) результат вызова [`event.fetch`](/kit/core-concepts/load/#выполнение-fetch-запросов), который выполняется на сервере (или во время предварительного рендеринга) внутри эндпойнта, `load`, `action`, `handle`, `handleError` или `reroute`.
+
+Например, ваша функция `load` может выполнять запрос к публичному URL вроде `<https://api.yourapp.com>`, когда пользователь выполняет клиентскую навигацию на соответствующую страницу, но во время SSR может быть разумнее обращаться к API напрямую (обходя прокси и балансировщики нагрузки, находящиеся между ним и публичным интернетом).
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/hooks.server.js
+    /** @type {import('@sveltejs/kit').HandleFetch} */
+    export async function handleFetch({ request, fetch }) {
+      if (request.url.startsWith('https://api.yourapp.com/')) {
+        // клонируем исходный запрос, но изменяем URL
+        request = new Request(
+          request.url.replace('https://api.yourapp.com/', 'http://localhost:9999/'),
+          request
+        );
+      }
+
+      return fetch(request);
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/hooks.server.ts
+    import type { HandleFetch } from '@sveltejs/kit';
+
+    export const handleFetch: HandleFetch = async ({ request, fetch }) => {
+      if (request.url.startsWith('https://api.yourapp.com/')) {
+        // клонируем исходный запрос, но изменяем URL
+        request = new Request(
+          request.url.replace('https://api.yourapp.com/', 'http://localhost:9999/'),
+          request
+        );
+      }
+
+      return fetch(request);
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Запросы, выполненные с помощью `event.fetch`, следуют модели учётных данных браузера — для запросов к тому же происхождению (same-origin) заголовки `cookie` и `authorization` передаются дальше, если только опция `credentials` не установлена в `"omit"`. Для кросс-доменных (cross-origin) запросов куки будет включён, если URL запроса принадлежит поддомену приложения — например, если ваше приложение находится на `[my-domain.com](http://my-domain.com)`, а API — на `[api.my-domain.com](http://api.my-domain.com)`, то куки будут включены в запрос.
+
+Есть одно предостережение: если ваше приложение и API находятся на родственных поддоменах — например, `[www.my-domain.com](http://www.my-domain.com)` и `[api.my-domain.com](http://api.my-domain.com)` — то куки, принадлежащая общему родительскому домену вроде `[my-domain.com](http://my-domain.com)`, _не_ будет включена, потому что SvelteKit не имеет возможности узнать, к какому домену относится эта куки. В таких случаях вам придётся вручную включать куки с помощью `handleFetch`:
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/hooks.server.js
+    /** @type {import('@sveltejs/kit').HandleFetch} */
+    export async function handleFetch({ event, request, fetch }) {
+      if (request.url.startsWith('https://api.my-domain.com/')) {
+        request.headers.set('cookie', event.request.headers.get('cookie'));
+      }
+
+      return fetch(request);
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/hooks.server.ts
+    import type { HandleFetch } from '@sveltejs/kit';
+    export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
+      if (request.url.startsWith('https://api.my-domain.com/')) {
+        request.headers.set('cookie', event.request.headers.get('cookie'));
+      }
+
+      return fetch(request);
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+### handleValidationError
+
+Этот хук срабатывает, когда удалённая функция вызывается с аргументом, который не соответствует предоставленной [Standard Schema](https://standardschema.dev/). Он должен возвращать объект, соответствующий форме [`App.Error`](https://svelte.dev/docs/kit/types#Error).
+
+Допустим, у вас есть удалённая функция, которая ожидает строку в качестве аргумента...
+
+```js
+// todos.remote.js
+import * as v from 'valibot';
+import { query } from '$app/server';
+
+export const getTodo = query(v.string(), (id) => {
+  // реализация...
+});
+```
+
+...но её вызывают с чем-то, что не соответствует схеме — например, с числом (например, `await getTodos(1)`) — тогда валидация не пройдёт, сервер ответит [кодом статуса 400](https://http.dog/400), и функция выбросит ошибку с сообщением 'Bad Request'.
+
+Чтобы настроить это сообщение и добавить дополнительные свойства к объекту ошибки, реализуйте `handleValidationError`:
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/hooks.server.js
+    /** @type {import('@sveltejs/kit').HandleValidationError} */
+    export function handleValidationError({ issues }) {
+      return {
+        message: 'Нет, спасибо'
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/hooks.server.ts
+    import type { HandleValidationError } from '@sveltejs/kit';
+
+    export const handleValidationError: HandleValidationError = ({ issues }) => {
+      return {
+        message: 'Нет, спасибо'
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Будьте осторожны с тем, какую информацию вы раскрываете здесь, поскольку наиболее вероятная причина сбоя валидации — это отправка злонамеренных запросов на ваш сервер.
+
+## Общие хуки
+
+Следующие хуки можно добавлять как в `src/hooks.server.js`, так и в `src/hooks.client.js`:
+
+### handleError
+
+Если во время загрузки, рендеринга или в эндпойнте возникает [неожиданная ошибка](https://svelte.dev/docs/kit/errors#Unexpected-errors), эта функция будет вызвана с параметрами `error`, `event`, кодом статуса `status` и сообщением `message`. Это позволяет делать две вещи:
+
+- регистрировать (логировать) ошибку
+- генерировать пользовательское представление ошибки, безопасное для показа пользователям и не содержащее чувствительных деталей, таких как сообщения и стек-трейсы. Возвращаемое значение (по умолчанию `{ message }`) становится значением `$page.error`.
+
+Для ошибок, выброшенных из вашего кода (или кода библиотек, вызываемого вашим кодом), статус будет 500, а сообщение — `Internal Error`. Хотя `error.message` может содержать чувствительную информацию, которую нельзя показывать пользователям, значение `message` безопасно (хотя и малополезно для обычного пользователя).
+
+Чтобы типобезопасно добавить дополнительную информацию в объект `$page.error`, вы можете настроить ожидаемую форму, объявив интерфейс `App.Error` (он обязательно должен включать `message: string`, чтобы гарантировать разумное поведение по умолчанию). Это позволит, например, добавить идентификатор отслеживания, который пользователи смогут указывать при обращении в вашу техническую поддержку:
+
+```ts
+// src/app.d.ts
+declare global {
+  namespace App {
+    interface Error {
+      message: string;
+      errorId: string;
+    }
+  }
+}
+
+export {};
+```
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/hooks.server.js
+    import * as Sentry from '@sentry/sveltekit';
+
+    Sentry.init({/*...*/})
+
+    /** @type {import('@sveltejs/kit').HandleServerError} */
+    export async function handleError({ error, event, status, message }) {
+      const errorId = crypto.randomUUID();
+
+      // пример интеграции с https://sentry.io/
+      Sentry.captureException(error, {
+        extra: { event, errorId, status }
+      });
+
+      return {
+        message: 'Whoops!',
+        errorId
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/hooks.server.ts
+    import * as Sentry from '@sentry/sveltekit';
+    import type { HandleServerError } from '@sveltejs/kit';
+
+    Sentry.init({/*...*/})
+
+    export const handleError: HandleServerError = async ({ error, event, status, message }) => {
+      const errorId = crypto.randomUUID();
+
+      // пример интеграции с https://sentry.io/
+      Sentry.captureException(error, {
+        extra: { event, errorId, status }
+      });
+
+      return {
+        message: 'Whoops!',
+        errorId
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/hooks.client.js
+    import * as Sentry from '@sentry/sveltekit';
+
+    Sentry.init({/*...*/})
+
+    /** @type {import('@sveltejs/kit').HandleClientError} */
+    export async function handleError({ error, event, status, message }) {
+      const errorId = crypto.randomUUID();
+
+      // пример интеграции с https://sentry.io/
+      Sentry.captureException(error, {
+        extra: { event, errorId, status }
+      });
+
+      return {
+        message: 'Whoops!',
+        errorId
+      };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/hooks.client.ts
+    import * as Sentry from '@sentry/sveltekit';
+    import type { HandleClientError } from '@sveltejs/kit';
+
+    Sentry.init({/*...*/})
+
+    export const handleError: HandleClientError = async ({ error, event, status, message }) => {
+      const errorId = crypto.randomUUID();
+
+      // пример интеграции с https://sentry.io/
+      Sentry.captureException(error, {
+        extra: { event, errorId, status }
+      });
+
+      return {
+        message: 'Whoops!',
+        errorId
+      };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+В `src/hooks.client.js` тип `handleError` — это `HandleClientError` вместо `HandleServerError`, а `event` представляет собой `NavigationEvent`, а не `RequestEvent`.
+:::
+
+Эта функция не вызывается для _ожидаемых_ ошибок (тех, что выброшены с помощью функции [`error`](https://svelte.dev/docs/kit/@sveltejs-kit#error), импортированной из `@sveltejs/kit`).
+
+Во время разработки, если ошибка возникает из-за синтаксической ошибки в вашем коде Svelte, переданному объекту ошибки добавляется свойство `frame`, подсвечивающее место ошибки.
+
+:::tip
+Убедитесь, что `handleError` _никогда_ не выбрасывает ошибку.
+:::
+
+### init
+
+Эта функция выполняется один раз — при создании сервера или при запуске приложения в браузере — и является удобным местом для выполнения асинхронной работы, такой как инициализация подключения к базе данных.
+
+:::note
+Если ваша среда поддерживает [`top-level await`](https://doka.guide/js/async-await/), функция `init` практически не отличается от написания логики инициализации на верхнем уровне модуля, но некоторые среды — в первую очередь Safari — этого не поддерживают.
+:::
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/hooks.server.js
+    import * as db from '$lib/server/database';
+
+    /** @type {import('@sveltejs/kit').ServerInit} */
+    export async function init() {
+      await db.connect();
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/hooks.server.ts
+    import * as db from '$lib/server/database';
+    import type { ServerInit } from '@sveltejs/kit';
+
+    export const init: ServerInit = async () => {
+      await db.connect();
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+:::tip
+В браузере асинхронная работа в `init` будет задерживать гидратацию, поэтому будьте внимательны к тому, что вы туда помещаете.
+:::
+
+## Универсальные хуки
+
+Следующие хуки можно добавлять в `src/hooks.js`. Универсальные хуки выполняются как на сервере, так и на клиенте (не путать с общими хуками, которые специфичны для среды выполнения).
+
+### reroute
+
+Эта функция выполняется до `handle` и позволяет изменять то, как URL преобразуются в маршруты. Возвращаемый pathname (по умолчанию `url.pathname`) используется для выбора маршрута и его параметров.
+
+Например, у вас может быть страница `src/routes/[[lang]]/about/+page.svelte`, которая должна быть доступна по адресам `/en/about`, `/de/ueber-uns` или `/ru/о-сайте`. Это можно реализовать с помощью `reroute`:
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/hooks.js
+    /** @type {Record<string, string>} */
+    const translated = {
+      '/en/about': '/en/about',
+      '/de/ueber-uns': '/de/about',
+      '/ru/о-сайте': '/ru/about',
+    };
+
+    /** @type {import('@sveltejs/kit').Reroute} */
+    export function reroute({ url }) {
+      if (url.pathname in translated) {
+        return translated[url.pathname];
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/hooks.ts
+    import type { Reroute } from '@sveltejs/kit';
+    const translated: Record<string, string> = {
+      '/en/about': '/en/about',
+      '/de/ueber-uns': '/de/about',
+      '/ru/о-сайте': '/ru/about',
+    };
+
+    export const reroute: Reroute = ({ url }) => {
+      if (url.pathname in translated) {
+        return translated[url.pathname];
+      }
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Параметр `lang` будет правильно выведен из возвращаемого pathname.
+
+Использование `reroute` _не_ изменит содержимое адресной строки браузера или значение `event.url`.
+
+Начиная с версии 2.18, хук `reroute` может быть асинхронным, что позволяет, например, получать данные из бэкенда, чтобы решить, куда перенаправить. Используйте это осторожно и убедитесь, что операция быстрая, иначе она будет задерживать навигацию. Если нужно получать данные, используйте предоставленный в аргументах `fetch`. Он обладает [теми же преимуществами](/kit/core-concepts/load/#выполнение-fetch-запросов), что и `fetch` в функциях `load`, с оговоркой, что `params` и `id` недоступны для [`handleFetch`](#handlefetch), поскольку маршрут ещё не известен.
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/hooks.js
+    /** @type {import('@sveltejs/kit').Reroute} */
+    export async function reroute({ url, fetch }) {
+      // Запрашиваем место назначения через специальный эндпойнт
+      if (url.pathname === '/api/reroute') return;
+
+      const api = new URL('/api/reroute', url);
+      api.searchParams.set('pathname', url.pathname);
+
+      const result = await fetch(api).then(r => r.json());
+      return result.pathname;
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/hooks.ts
+    import type { Reroute } from '@sveltejs/kit';
+    export const reroute: Reroute = async ({ url, fetch }) => {
+      // Запрашиваем место назначения через специальный эндпойнт
+      if (url.pathname === '/api/reroute') return;
+
+      const api = new URL('/api/reroute', url);
+      api.searchParams.set('pathname', url.pathname);
+
+      const result = await fetch(api).then(r => r.json());
+      return result.pathname;
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+`reroute` считается чистой (pure) и идемпотентной функцией. Поэтому она всегда должна возвращать один и тот же результат для одного и того же входа и не иметь побочных эффектов. При этих предположениях SvelteKit кэширует результат `reroute` на клиенте, чтобы функция вызывалась только один раз для каждого уникального URL.
+:::
+
+### transport
+
+Это коллекция _транспортеров_, которые позволяют передавать пользовательские типы — возвращаемые из функций `load` и действий форм — через границу сервер/клиент. Каждый транспортер содержит функцию `encode`, которая кодирует значения на сервере (или возвращает falsy-значение для всего, что не является экземпляром данного типа), и соответствующую функцию `decode`:
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/hooks.js
+    import { Vector } from '$lib/math';
+
+    /** @type {import('@sveltejs/kit').Transport} */
+    export const transport = {
+      Vector: {
+        encode: (value) => value instanceof Vector && [value.x, value.y],
+        decode: ([x, y]) => new Vector(x, y)
+      }
+    };
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/hooks.ts
+    import { Vector } from '$lib/math';
+    import type { Transport } from '@sveltejs/kit';
+
+    export const transport: Transport = {
+      Vector: {
+        encode: (value) => value instanceof Vector && [value.x, value.y],
+        decode: ([x, y]) => new Vector(x, y)
+      }
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+## Дополнительные материалы
+
+- [Учебник: Хуки](https://svelte.dev/tutorial/kit/handle)
