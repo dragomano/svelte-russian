@@ -528,35 +528,33 @@ await submit().updates(
 
 Переопределённые данные применяются немедленно и сбрасываются после завершения (или ошибки) отправки формы.
 
-### buttonProps
+### Несколько кнопок отправки
 
-По умолчанию отправка формы направляет запрос по URL, указанному в атрибуте [`action`](https://developer.mozilla.org/ru/docs/Web/HTML/Element/form#атрибуты) элемента `<form>`. В случае удалённой функции этот URL является свойством объекта формы, сгенерированного SvelteKit.
+В форме `<form>` можно использовать несколько кнопок отправки. Например, вы можете иметь одну форму, которая позволяет либо войти в систему, либо зарегистрироваться — в зависимости от того, какая кнопка была нажата.
 
-Кнопка внутри формы может отправить запрос по *другому* URL, используя атрибут [`formaction`](https://developer.mozilla.org/ru/docs/Web/HTML/Element/button#formaction). Например, у вас может быть одна форма для входа или регистрации в зависимости от нажатой кнопки.
-
-Этот атрибут доступен через свойство `buttonProps` объекта формы:
+Чтобы это реализовать, добавьте в свою схему поле для значения кнопки и используйте `as('submit', value)` для его привязки:
 
 <Tabs syncKey="lang">
   <TabItem label="JS">
     ```js
     // src/routes/login/+page.svelte
     <script>
-      import { login, register } from '$lib/auth';
+      import { loginOrRegister } from '$lib/auth';
     </script>
 
-    <form {...login}>
+    <form {...loginOrRegister}>
       <label>
         Ваш логин
-        <input name="username" />
+        <input {...loginOrRegister.fields.username.as('text')} />
       </label>
 
       <label>
         Ваш пароль
-        <input name="password" type="password" />
+        <input {...loginOrRegister.fields._password.as('password')} />
       </label>
 
-      <button>Войти</button>
-      <button {...register.buttonProps}>Зарегистрироваться</button>
+      <button {...loginOrRegister.fields.action.as('submit', 'login')}>Войти</button>
+      <button {...loginOrRegister.fields.action.as('submit', 'register')}>Зарегистрироваться</button>
     </form>
     ```
   </TabItem>
@@ -564,28 +562,48 @@ await submit().updates(
     ```ts
     // src/routes/login/+page.svelte
     <script lang="ts">
-      import { login, register } from '$lib/auth';
+      import { loginOrRegister } from '$lib/auth';
     </script>
 
-    <form {...login}>
+    <form {...loginOrRegister}>
       <label>
         Ваш логин
-        <input name="username" />
+        <input {...loginOrRegister.fields.username.as('text')} />
       </label>
 
       <label>
         Ваш пароль
-        <input name="password" type="password" />
+        <input {...loginOrRegister.fields._password.as('password')} />
       </label>
 
-      <button>Войти</button>
-      <button {...register.buttonProps}>Зарегистрироваться</button>
+      <button {...loginOrRegister.fields.action.as('submit', 'login')}>Войти</button>
+      <button {...loginOrRegister.fields.action.as('submit', 'register')}>Зарегистрироваться</button>
     </form>
     ```
   </TabItem>
 </Tabs>
 
-Как и сам объект формы, `buttonProps` имеет метод `enhance` для настройки поведения при отправке.
+В обработчике формы вы можете проверить, какая именно кнопка была нажата:
+
+```js title="$lib/auth.js"
+import * as v from 'valibot';
+import { form } from '$app/server';
+
+export const loginOrRegister = form(
+  v.object({
+    username: v.string(),
+    _password: v.string(),
+    action: v.picklist(['login', 'register'])
+  }),
+  async ({ username, _password, action }) => {
+    if (action === 'login') {
+      // обработка входа
+    } else {
+      // обработка регистрации
+    }
+  }
+);
+```
 
 ## command
 
