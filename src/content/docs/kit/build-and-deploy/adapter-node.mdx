@@ -147,6 +147,10 @@ ADDRESS_HEADER=True-Client-IP node build
 
 При использовании активации сокетов systemd переменная `IDLE_TIMEOUT` указывает количество секунд, после которых приложение автоматически переводится в спящий режим, если запросы не поступают. Если не установлено, приложение работает непрерывно. Подробности см. в разделе [Активация сокетов](#активация-сокетов).
 
+### `KEEP_ALIVE_TIMEOUT` and `HEADERS_TIMEOUT`
+
+Время в секундах для настроек [`keepAliveTimeout`](https://nodejs.org/api/http.html#serverkeepalivetimeout) и [`headersTimeout`](https://nodejs.org/api/http.html#serverheaderstimeout).
+
 ## Опции
 
 Адаптер можно настроить с помощью различных параметров:
