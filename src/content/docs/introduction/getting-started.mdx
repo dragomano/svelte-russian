@@ -38,7 +38,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## Альтернативы SvelteKit
 
-Вы также можете использовать Svelte напрямую с Vite, запустив команду `npm create vite@latest` и выбрав опцию `svelte`. В этом случае команда `npm run build` сгенерирует файлы HTML, JS и CSS в директории `dist`, используя [vite-plugin-svelte](https://github.com/sveltejs/vite-plugin-svelte). В большинстве случаев вам, вероятно, потребуется [выбрать библиотеку маршрутизации](/misc/faq#есть-ли-роутер).
+Вы также можете использовать Svelte напрямую с Vite через [vite-plugin-svelte](https://github.com/sveltejs/vite-plugin-svelte): запустите `npm create vite@latest` и выберите вариант `svelte` (или добавьте плагин в `vite.config.js`, если проект уже существует). При сборке (`npm run build`) в папке `dist` появятся готовые HTML, JS и CSS файлы. В большинстве случаев вам также понадобится [выбрать библиотеку маршрутизации](https://svelte.dev/packages#routing).
 
 :::note
 Vite часто используется в автономном режиме для сборки [одностраничных приложений (SPA)](https://svelte.dev/docs/kit/glossary#SPA), которые также можно [создавать с помощью SvelteKit](/kit/build-and-deploy/single-page-apps).
@@ -50,7 +50,7 @@ Vite часто используется в автономном режиме д
 
 Команда Svelte поддерживает [расширение для VS Code](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode), а также существуют интеграции с различными другими [редакторами](https://sveltesociety.dev/collection/editor-support-c85c080efc292a34) и инструментами.
 
-Вы можете проверять свой код из командной строки, используя команду [`sv check`](https://github.com/sveltejs/cli).
+Вы можете проверять свой код из командной строки, используя команду [`npx sv check`](/cli/commands/sv-check/).
 
 ## Получение помощи
 
