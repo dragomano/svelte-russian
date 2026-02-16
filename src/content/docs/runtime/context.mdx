@@ -127,6 +127,32 @@ import { createContext } from 'svelte';
 export const [getUserContext, setUserContext] = createContext<User>();
 ```
 
+При написании [компонентных тестов](/misc/testing/#юнит-тесты-и-тесты-компонентов-с-vitest) бывает полезно создать обёрточный компонент, который устанавливает контекст, чтобы проверить поведение компонента, который этот контекст использует. Начиная с версии 5.49, можно делать примерно следующее:
+
+```js
+import { mount, unmount } from 'svelte';
+import { expect, test } from 'vitest';
+import { setUserContext } from './context';
+import MyComponent from './MyComponent.svelte';
+
+test('MyComponent', () => {
+  function Wrapper(...args) {
+    setUserContext({ name: 'Вован' });
+    return MyComponent(...args);
+  }
+
+  const component = mount(Wrapper, {
+    target: document.body
+  });
+
+  expect(document.body.innerHTML).toBe('<h1>Привет, Вован!</h1>');
+
+  unmount(component);
+});
+```
+
+Этот подход также работает с [`hydrate`](/runtime/imperative-component-api/#hydrate) и [`render`](/runtime/imperative-component-api/#render).
+
 ## Замена глобального состояния
 
 Когда у вас есть состояние, которое используется многими компонентами, может возникнуть соблазн поместить его в отдельный модуль и просто импортировать там, где это необходимо:
