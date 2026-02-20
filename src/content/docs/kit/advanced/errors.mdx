@@ -1,0 +1,175 @@
+---
+title: Ошибки
+origin: https://svelte.dev/docs/kit/errors
+sidebar:
+  order: 2
+---
+
+Ошибки — неизбежная часть разработки программного обеспечения. SvelteKit обрабатывает ошибки по-разному в зависимости от того, где они произошли, какого они типа и какова природа входящего запроса.
+
+## Объекты ошибок
+
+SvelteKit различает ожидаемые и неожиданные ошибки. По умолчанию оба типа представляются простыми объектами вида `{ message: string }`.
+
+Вы можете добавлять дополнительные свойства, например `code` или идентификатор для отслеживания `id`, как показано в примерах ниже. (При использовании TypeScript для этого потребуется переопределить тип `Error`, как описано в разделе [Безопасность типов](#безопасность-типов)).
+
+## Ожидаемые ошибки
+
+_Ожидаемая_ ошибка — это ошибка, созданная с помощью вспомогательной функции [`error`](https://svelte.dev/docs/kit/@sveltejs-kit#error), импортируемой из `@sveltejs/kit`:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/routes/blog/[slug]/+page.server.js
+    import { error } from '@sveltejs/kit';
+    import * as db from '$lib/server/database';
+
+    /** @type {import('./$types').PageServerLoad} */
+    export async function load({ params }) {
+      const post = await db.getPost(params.slug);
+
+      if (!post) {
+        error(404, {
+          message: 'Not found'
+        });
+      }
+
+      return { post };
+    }
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/blog/[slug]/+page.server.ts
+    import { error } from '@sveltejs/kit';
+    import * as db from '$lib/server/database';
+    import type { PageServerLoad } from './$types';
+
+    export const load: PageServerLoad = async ({ params }) => {
+      const post = await db.getPost(params.slug);
+
+      if (!post) {
+        error(404, {
+          message: 'Not found'
+        });
+      }
+
+      return { post };
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+Это выбрасывает исключение, которое SvelteKit перехватывает, в результате чего он устанавливает код статуса ответа 404 и отображает компонент [`+error.svelte`](/kit/core-concepts/routing/#error), в котором `page.error` будет объектом, переданным вторым аргументом в функцию `error(...)`.
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // src/routes/+error.svelte
+    <script>
+      import { page } from '$app/state';
+    </script>
+
+    <h1>{page.error.message}</h1>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // src/routes/+error.svelte
+    <script lang="ts">
+      import { page } from '$app/state';
+    </script>
+
+    <h1>{page.error.message}</h1>
+    ```
+  </TabItem>
+</Tabs>
+
+:::warning
+`$app/state` был добавлен в SvelteKit 2.12. Если вы используете более раннюю версию или работаете с Svelte 4, используйте вместо этого `$app/stores`.
+:::
+
+Вы можете добавлять дополнительные свойства в объект ошибки, если это необходимо...
+
+```diff lang="js"
+error(404, {
+  message: 'Not found',
++  code: 'NOT_FOUND'
+});
+```
+
+...в противном случае, для удобства, вы можете передать строку вторым аргументом:
+
+```diff lang="js"
+-error(404, { message: 'Not found' });
++error(404, 'Not found');
+```
+
+:::note
+[В SvelteKit 1.x](https://svelte.dev/docs/kit/migrating-to-sveltekit-2#redirect-and-error-are-no-longer-thrown-by-you) приходилось самостоятельно выбрасывать объект ошибки (`throw` `error`)
+:::
+
+## Неожиданные ошибки
+
+_Неожиданная_ ошибка — это любое другое исключение, которое возникает во время обработки запроса. Поскольку такие ошибки могут содержать конфиденциальную информацию, сообщения о неожиданных ошибках и трассировки стека не показываются пользователям.
+
+По умолчанию неожиданные ошибки выводятся в консоль (или, в продакшене, в логи вашего сервера), а пользователю отображается ошибка в обобщённом виде:
+
+```json
+{ "message": "Internal Error" }
+```
+
+Неожиданные ошибки проходят через хук [`handleError`](/kit/advanced/hooks/#handleerror), где вы можете добавить собственную обработку ошибок — например, отправлять ошибки в сервис отчётности или возвращать собственный объект ошибки, который затем станет доступен как `$page.error`.
+
+## Ответы
+
+Если ошибка возникает внутри `handle` или внутри обработчика запроса [`+server.js`](/kit/core-concepts/routing/#server), SvelteKit ответит либо резервной страницей ошибки, либо JSON-представлением объекта ошибки — в зависимости от заголовка `Accept` входящего запроса.
+
+Вы можете настроить резервную страницу ошибки, добавив файл `src/error.html`:
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>%sveltekit.error.message%</title>
+  </head>
+  <body>
+    <h1>Пользовательская страница ошибки</h1>
+    <p>Статус: %sveltekit.status%</p>
+    <p>Сообщение: %sveltekit.error.message%</p>
+  </body>
+</html>
+```
+
+SvelteKit заменит `%sveltekit.status%` и `%sveltekit.error.message%` на соответствующие значения.
+
+Если же ошибка происходит внутри функции `load` при рендеринге страницы, SvelteKit отобразит компонент [`+error.svelte`](/kit/core-concepts/routing/#error), ближайший к месту возникновения ошибки. Если ошибка возникает внутри функции `load` в файле `+layout(.server).js`, то ближайшей границей ошибки в дереве будет файл `+error.svelte`, расположенный _выше_ этого layout (не рядом с ним).
+
+Исключение составляет случай, когда ошибка происходит внутри корневого `+layout.js` или `+layout.server.js`, поскольку корневой layout обычно _содержит_ компонент `+error.svelte`. В таком случае SvelteKit использует резервную страницу ошибки.
+
+## Безопасность типов
+
+Если вы используете TypeScript и хотите настроить форму ошибок, вы можете сделать это, объявив интерфейс `App.Error` в вашем приложении (по соглашению — в файле `src/app.d.ts`, хотя он может находиться в любом месте, где TypeScript его увидит):
+
+```diff lang="ts"
+declare global {
+  namespace App {
+    interface Error {
++      code: string;
++      id: string;
+    }
+  }
+}
+
+export {};
+```
+
+Этот интерфейс всегда включает свойство `message: string`.
+
+## Дополнительные материалы
+
+- [Учебник: Ошибки и перенаправления](https://svelte.dev/tutorial/kit/error-basics)
+- [Учебник: Хуки](https://svelte.dev/tutorial/kit/handle)
