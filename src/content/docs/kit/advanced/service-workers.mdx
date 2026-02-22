@@ -1,0 +1,253 @@
+---
+title: Сервис-воркеры
+origin: https://svelte.dev/docs/kit/service-workers
+sidebar:
+  order: 4
+---
+
+Сервис-воркеры действуют как прокси-серверы, которые обрабатывают сетевые запросы внутри вашего приложения. Это позволяет сделать приложение работающим в оффлайн-режиме, но даже если вам не нужна поддержка оффлайн (или реализовать её нереально из-за типа создаваемого приложения), часто имеет смысл использовать Сервис-воркеры для ускорения навигации за счёт предварительного кэширования собранных файлов JS и CSS.
+
+В SvelteKit, если у вас есть файл `src/service-worker.js` (или `src/service-worker/index.js`), он будет автоматически собран и зарегистрирован.
+
+Вы можете [отключить автоматическую регистрацию](https://svelte.dev/docs/kit/configuration#serviceWorker), если вам нужно регистрировать сервис-воркер с собственной логикой или использовать другое решение. Регистрация по умолчанию выглядит примерно так:
+
+```js
+if ('serviceWorker' in navigator) {
+  addEventListener('load', function () {
+    navigator.serviceWorker.register('./path/to/service-worker.js');
+  });
+}
+```
+
+## Внутри сервис-воркера
+
+Внутри сервис-воркера у вас есть доступ к [модулю `$service-worker`](https://svelte.dev/docs/kit/$service-worker), который предоставляет пути ко всем статическим ресурсам, файлам сборки и пререндеренным страницам. Также вам предоставляется строка версии приложения, которую можно использовать для создания уникального имени кэша, и базовый путь (`base`) развёртывания. Если в вашей конфигурации Vite указана опция `define` (используемая для глобальной замены переменных), она будет применена к сервис-воркерам так же, как и к вашим серверным и клиентским сборкам.
+
+Следующий пример сразу кэширует собранное приложение и любые файлы из папки `static`, а все остальные запросы кэширует по мере их выполнения. Это позволит каждой странице работать в офлайн-режиме после того, как пользователь её посетит.
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/service-worker.js
+    // Отключает доступ к типам DOM (таким как `HTMLElement`), которые недоступны
+    // внутри service worker, и подключает правильные глобальные типы
+    /// <reference no-default-lib="true"/>
+    /// <reference lib="esnext" />
+    /// <reference lib="webworker" />
+
+    // Гарантирует, что импорт `$service-worker` будет иметь правильные типы
+    /// <reference types="@sveltejs/kit" />
+
+    // Нужно только если вы импортируете что-то из `$env/static/public`
+    /// <reference types="../.svelte-kit/ambient.d.ts" />
+
+    import { build, files, version } from '$service-worker';
+
+    // Приводим `self` к правильному типу
+    const self = /** @type {ServiceWorkerGlobalScope} */ (/** @type {unknown} */ (globalThis.self));
+
+    // Создаём уникальное имя кэша для каждой сборки/развёртывания
+    const CACHE = `cache-${version}`;
+
+    const ASSETS = [
+      ...build, // собранное приложение
+      ...files  // все файлы из папки static
+    ];
+
+    self.addEventListener('install', (event) => {
+      // Создаём новый кэш и добавляем в него все важные файлы
+      async function addFilesToCache() {
+        const cache = await caches.open(CACHE);
+        await cache.addAll(ASSETS);
+      }
+
+      event.waitUntil(addFilesToCache());
+    });
+
+    self.addEventListener('activate', (event) => {
+      // Удаляем старые кэши от предыдущих версий приложения
+      async function deleteOldCaches() {
+        for (const key of await caches.keys()) {
+          if (key !== CACHE) await caches.delete(key);
+        }
+      }
+
+      event.waitUntil(deleteOldCaches());
+    });
+
+    self.addEventListener('fetch', (event) => {
+      // Игнорируем не-GET запросы (POST, PUT и т. д.)
+      if (event.request.method !== 'GET') return;
+
+      async function respond() {
+        const url = new URL(event.request.url);
+        const cache = await caches.open(CACHE);
+
+        // Статические активы (build + files) всегда стараемся брать из кэша
+        if (ASSETS.includes(url.pathname)) {
+          const response = await cache.match(url.pathname);
+
+          if (response) {
+            return response;
+          }
+        }
+
+        // Для всего остального — стратегия Network First + fallback на кэш
+        try {
+          const response = await fetch(event.request);
+
+          // Иногда в оффлайн fetch возвращает не Response, а что-то странное
+          // (особенно в старых браузерах) — проверяем
+          if (!(response instanceof Response)) {
+            throw new Error('invalid response from fetch');
+          }
+
+          if (response.status === 200) {
+            cache.put(event.request, response.clone());
+          }
+
+          return response;
+        } catch (err) {
+          const response = await cache.match(event.request);
+
+          if (response) {
+            return response;
+          }
+
+          // Если и в кэше ничего нет — просто пробрасываем ошибку
+          throw err;
+        }
+      }
+
+      event.respondWith(respond());
+    });
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/service-worker.ts
+    // Отключает доступ к типам DOM (таким как `HTMLElement`), которые недоступны
+    // внутри service worker, и подключает правильные глобальные типы
+    /// <reference no-default-lib="true"/>
+    /// <reference lib="esnext" />
+    /// <reference lib="webworker" />
+
+    // Гарантирует, что импорт `$service-worker` будет иметь правильные типы
+    /// <reference types="@sveltejs/kit" />
+
+    // Нужно только если вы импортируете что-то из `$env/static/public`
+    /// <reference types="../.svelte-kit/ambient.d.ts" />
+
+    import { build, files, version } from '$service-worker';
+
+    // Приводим `self` к правильному типу
+    const self = globalThis.self as unknown as ServiceWorkerGlobalScope;
+
+    // Создаём уникальное имя кэша для каждой сборки/развёртывания
+    const CACHE = `cache-${version}`;
+
+    const ASSETS = [
+      ...build, // собранное приложение
+      ...files  // все файлы из папки static
+    ];
+
+    self.addEventListener('install', (event) => {
+      // Создаём новый кэш и добавляем в него все важные файлы
+      async function addFilesToCache() {
+        const cache = await caches.open(CACHE);
+        await cache.addAll(ASSETS);
+      }
+
+      event.waitUntil(addFilesToCache());
+    });
+
+    self.addEventListener('activate', (event) => {
+      // Удаляем старые кэши от предыдущих версий приложения
+      async function deleteOldCaches() {
+        for (const key of await caches.keys()) {
+          if (key !== CACHE) await caches.delete(key);
+        }
+      }
+
+      event.waitUntil(deleteOldCaches());
+    });
+
+    self.addEventListener('fetch', (event) => {
+      // Игнорируем не-GET запросы (POST, PUT и т. д.)
+      if (event.request.method !== 'GET') return;
+
+      async function respond() {
+        const url = new URL(event.request.url);
+        const cache = await caches.open(CACHE);
+
+        // Статические активы (build + files) всегда стараемся брать из кэша
+        if (ASSETS.includes(url.pathname)) {
+          const response = await cache.match(url.pathname);
+
+          if (response) {
+            return response;
+          }
+        }
+
+        // Для всего остального — стратегия Network First + fallback на кэш
+        try {
+          const response = await fetch(event.request);
+
+          // Иногда в оффлайн fetch возвращает не Response, а что-то странное
+          // (особенно в старых браузерах) — проверяем
+          if (!(response instanceof Response)) {
+            throw new Error('invalid response from fetch');
+          }
+
+          if (response.status === 200) {
+            cache.put(event.request, response.clone());
+          }
+
+          return response;
+        } catch (err) {
+          const response = await cache.match(event.request);
+
+          if (response) {
+            return response;
+          }
+
+          // Если и в кэше ничего нет — просто пробрасываем ошибку
+          throw err;
+        }
+      }
+
+      event.respondWith(respond());
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Будьте осторожны с кэшированием! В некоторых случаях устаревшие данные могут быть хуже, чем данные, недоступные в офлайн-режиме. Поскольку браузеры очищают кэш при переполнении, вам также следует с осторожностью относиться к кэшированию больших ресурсов, таких как видеофайлы.
+:::
+
+## Во время разработки
+
+Сервис-воркер включается в сборку для продакшена, но не во время разработки. По этой причине только браузеры, поддерживающие [модули в сервис-воркерах](https://web.dev/es-modules-in-sw), смогут использовать их на этапе разработки. Если вы регистрируете сервис-воркер вручную, вам нужно будет передать опцию `{ type: 'module' }` в режиме разработки:
+
+```js
+import { dev } from '$app/environment';
+
+navigator.serviceWorker.register('/service-worker.js', {
+  type: dev ? 'module' : 'classic'
+});
+```
+
+:::note
+Во время разработки `build` и `prerendered` — это пустые массивы
+:::
+
+## Другие решения
+
+Реализация сервис-воркеров в SvelteKit спроектирована так, чтобы с ней было легко работать, и, вероятно, подойдет большинству пользователей. Однако за пределами SvelteKit многие PWA-приложения используют библиотеку [Workbox](https://web.dev/learn/pwa/workbox). Если вы привыкли использовать Workbox, возможно, вы предпочтете [плагин Vite PWA](https://vite-pwa-org.netlify.app/frameworks/sveltekit.html).
+
+## Ссылки
+
+Для получения более общей информации о сервис-воркерах мы рекомендуем [веб-документацию MDN](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers).
