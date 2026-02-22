@@ -448,7 +448,7 @@ let { data, children } = $props();
 `url.hash` недоступен во время `load` на сервере.
 
 :::note
-В некоторых средах эти данные получают из заголовков запроса при SSR. Например, при использовании [adapter-node](https://svelte.dev/docs/kit/adapter-node) может потребоваться дополнительная настройка для корректного определения URL.
+В некоторых средах эти данные получают из заголовков запроса при SSR. Например, при использовании [adapter-node](/kit/build-and-deploy/adapter-node) может потребоваться дополнительная настройка для корректного определения URL.
 :::
 
 ### route
@@ -772,7 +772,7 @@ let { data, children } = $props();
 
 ## Ошибки
 
-Если во время выполнения `load` произойдёт ошибка, будет отображён ближайший [`+error.svelte`](/kit/core-concepts/routing#error). Для [_ожидаемых_](https://svelte.dev/docs/kit/errors#Expected-errors) ошибок используйте хелпер `error` из `@sveltejs/kit`, чтобы указать HTTP-статус и опциональное сообщение:
+Если во время выполнения `load` произойдёт ошибка, будет отображён ближайший [`+error.svelte`](/kit/core-concepts/routing#error). Для [_ожидаемых_](/kit/advanced/errors/#ожидаемые-ошибки) ошибок используйте хелпер `error` из `@sveltejs/kit`, чтобы указать HTTP-статус и опциональное сообщение:
 
 <Tabs syncKey="lang">
   <TabItem label="JS">
@@ -813,7 +813,7 @@ let { data, children } = $props();
 
 Вызов `error(...)` генерирует исключение, что позволяет легко прервать выполнение внутри вспомогательных функций.
 
-При возникновении [_неожиданной_](https://svelte.dev/docs/kit/errors#Unexpected-errors) ошибки SvelteKit вызовет [`handleError`](/kit/advanced/hooks/#handleerror) и обработает её как 500 Internal Error.
+При возникновении [_неожиданной_](/kit/advanced/errors/#неожиданные-ошибки) ошибки SvelteKit вызовет [`handleError`](/kit/advanced/hooks/#handleerror) и обработает её как 500 Internal Error.
 
 :::note
 [В SvelteKit 1.x](https://svelte.dev/docs/kit/migrating-to-sveltekit-2#redirect-and-error-are-no-longer-thrown-by-you) нужно было самостоятельно вызывать `throw` для ошибок

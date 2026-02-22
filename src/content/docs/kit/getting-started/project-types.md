@@ -27,7 +27,7 @@ SvelteKit может работать как [генератор статиче�
 
 ### Многостраничное приложение (MPA)
 
-Хотя SvelteKit редко используется для [традиционных MPA](https://svelte.dev/docs/kit/glossary#MPA), можно отключить JavaScript на странице через [`csr = false`](/kit/core-concepts/page-options#csr) (серверный рендеринг всех переходов) или использовать [`data-sveltekit-reload`](https://svelte.dev/docs/kit/link-options#data-sveltekit-reload) для выборочного SSR.
+Хотя SvelteKit редко используется для [традиционных MPA](https://svelte.dev/docs/kit/glossary#MPA), можно отключить JavaScript на странице через [`csr = false`](/kit/core-concepts/page-options#csr) (серверный рендеринг всех переходов) или использовать [`data-sveltekit-reload`](/kit/advanced/link-options/#data-sveltekit-reload) для выборочного SSR.
 
 ### Отдельный бэкенд
 
