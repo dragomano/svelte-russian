@@ -69,6 +69,14 @@ Keyed each block has duplicate key at indexes %a% and %b%
 Keyed each block has duplicate key `%value%` at indexes %a% and %b%
 ```
 
+### each_key_volatile
+
+```
+Keyed each block has key that is not idempotent — the key for item at index %index% was `%a%` but is now `%b%`. Keys must be the same each time for a given item
+```
+
+Ключевое выражение в блоке each с привязкой по ключам должно возвращать одно и то же значение при многократном вызове для одного и того же элемента. Использование выражений вида `[item.a, item.b]` создаёт новый массив при каждом вызове, а новый массив никогда не будет равен сам себе. Вместо этого используйте примитивное значение или создайте стабильный ключ, например: `item.a + '-' + item.b`.
+
 ### effect_in_teardown
 
 ```
@@ -290,6 +298,14 @@ Encountered asynchronous work while rendering synchronously.
 ```
 
 Вы (или используемый вами фреймворк) вызвали [`render(...)`](https://svelte.dev/docs/svelte/svelte-server#render) с компонентом, содержащим выражение `await`. Либо выполните `await` для результата `render`, либо оберните `await` (или компонент, содержащий его) в [`<svelte:boundary>`](/special-elements/svelte-boundary) с фрагментом `pending`.
+
+### dynamic_element_invalid_tag
+
+```
+`<svelte:element this="%tag%">` is not a valid element name — the element will not be rendered
+```
+
+Значение, переданное в проп `this` компонента `<svelte:element>`, должно быть допустимым именем HTML-элемента, SVG-элемента, MathML-элемента или именем пользовательского элемента. Было передано значение, содержащее недопустимые символы (например, пробелы или специальные символы), что может представлять угрозу безопасности. Убедитесь, что передаются только корректные имена тегов.
 
 ### html_deprecated
 
