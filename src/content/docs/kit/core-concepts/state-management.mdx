@@ -110,7 +110,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
   <TabItem label="JS">
     ```js
     // +page.js
-    /** @type {import('./$types').PageServerLoad} */
+    /** @type {import('./$types').PageLoad} */
     export async function load({ fetch }) {
       const response = await fetch('/api/user');
 
@@ -123,9 +123,9 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
   <TabItem label="TS">
     ```ts
     // +page.ts
-    import type { PageServerLoad } from './$types';
+    import type { PageLoad } from './$types';
 
-    export const load: PageServerLoad = async ({ fetch }) => {
+    export const load: PageLoad = async ({ fetch }) => {
       const response = await fetch('/api/user');
 
       return {
