@@ -13,12 +13,12 @@ sidebar:
 <svelte:document bind:prop={value} />
 ```
 
-Аналогично `<svelte:window>`, этот элемент позволяет добавлять обработчики событий на `document`, таких как `visibilitychange`, которые не срабатывают на `window`. Он также позволяет использовать [действия](/template-syntax/use/) на `document`.
+Аналогично `<svelte:window>`, этот элемент позволяет добавлять обработчики событий на `document`, таких как `visibilitychange`, которые не срабатывают на `window`. Он также позволяет использовать [привязки](/template-syntax/attach/) на `document`.
 
 Как и в случае с `<svelte:window>`, этот элемент может находиться только на верхнем уровне вашего компонента и никогда не должен быть внутри блока или другого элемента.
 
 ```svelte
-<svelte:document onvisibilitychange={handleVisibilityChange} use:someAction />
+<svelte:document onvisibilitychange={handleVisibilityChange} {@attach someAttachment} />
 ```
 
 Вы также можете привязываться к следующим свойствам:
