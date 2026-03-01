@@ -76,7 +76,7 @@ export default config;
 
 ### Другие инструменты сборки
 
-Если вы используете такие инструменты, как Rollup или Webpack, установите соответствующие плагины для Svelte. Для Rollup это [rollup-plugin-svelte](https://github.com/sveltejs/rollup-plugin-svelte), а для Webpack — [svelte-loader](https://github.com/sveltejs/svelte-loader). В обоих случаях вам нужно установить `typescript` и `svelte-preprocess`, а также добавить препроцессор в конфигурацию плагина (см. соответствующие README для получения дополнительной информации). Если вы начинаете новый проект, вы также можете использовать шаблон [rollup](https://github.com/sveltejs/template) или [webpack](https://github.com/sveltejs/template-webpack) для быстрой настройки проекта с помощью скрипта.
+Если вы используете такие инструменты, как Rollup или Webpack, установите соответствующие плагины для Svelte. Для Rollup это [rollup-plugin-svelte](https://github.com/sveltejs/rollup-plugin-svelte), а для Webpack — [svelte-loader](https://github.com/sveltejs/svelte-loader). В обоих случаях вам нужно установить `typescript` и `svelte-preprocess`, а также добавить препроцессор в конфигурацию плагина (см. соответствующие README для получения дополнительной информации).
 
 :::note
 Если вы запускаете новый проект, мы советуем использовать SvelteKit или Vite.
