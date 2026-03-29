@@ -47,33 +47,68 @@ sidebar:
 Svelte использует эффекты внутри себя для представления логики и выражений в вашем шаблоне — именно так `<h1>привет, {name}!</h1>` обновляется при изменении `name`.
 :::
 
-Эффект может возвращать _функцию очистки_, которая будет выполняться непосредственно перед повторным запуском эффекта ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE42SQVODMBCF_8pOxkPRKq3HCsx49K4n64xpskjGkDDJ0tph-O8uINo6HjxB3u7HvrehE07WKDbiyZEhi1osRWksRrF57gQdm6E2CKx_dd43zU3co6VB28mIf-nKO0JH_BmRRRVMQ8XWbXkAgfKtI8jhIpIkXKySu7lSG2tNRGZ1_GlYr1ZTD3ddYFmiosUigbyAbpC2lKbwWJkIB8ZhhxBQBWRSw6FCh3sM8GrYTthL-wqqku4N44TyqEgwF3lmRHr4Op0PGXoH31c5rO8mqV-eOZ49bikgtcHBL55tmhIkEMqg_cFB2TpFxjtg703we6NRL8HQFCS07oSUCZi6Rm04lz1yytIHBKoQpo1w6Gsm4gmyS8b8Y5PydeMdX8gwS2Ok4I-ov5NZtvQde95GMsccn_1wzNKfu3RZtS66cSl9lvL7qO1aIk7knbJGvefdtIOzi73M4bYvovUHDFk6AcX_0HRESxnpBOW_jfCDxIZCi_1L_wm4xGQ60wIAAA==)).
+Эффект может возвращать _функцию очистки_, которая будет выполняться непосредственно перед повторным запуском эффекта:
 
-```svelte
-<script>
-  let count = $state(0);
-  let milliseconds = $state(1000);
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-  $effect(() => {
-    // Это будет пересоздано всякий раз, когда изменяется `milliseconds`
-    const interval = setInterval(() => {
-      count += 1;
-    }, milliseconds);
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      let count = $state(0);
+      let milliseconds = $state(1000);
 
-    return () => {
-      // если предоставлена функция очистки, она будет выполнена
-      // a) немедленно перед повторным выполнением эффекта
-      // b) когда компонент будет уничтожен
-      clearInterval(interval);
-    };
-  });
-</script>
+      $effect(() => {
+        // Это будет пересоздано всякий раз, когда изменяется `milliseconds`
+        const interval = setInterval(() => {
+          count += 1;
+        }, milliseconds);
 
-<h1>{count}</h1>
+        return () => {
+          // если предоставлена функция очистки, она будет выполнена
+          // a) немедленно перед повторным выполнением эффекта
+          // b) когда компонент будет уничтожен
+          clearInterval(interval);
+        };
+      });
+    </script>
 
-<button onclick={() => (milliseconds *= 2)}>медленнее</button>
-<button onclick={() => (milliseconds /= 2)}>быстрее</button>
-```
+    <h1>{count}</h1>
+
+    <button onclick={() => (milliseconds *= 2)}>медленнее</button>
+    <button onclick={() => (milliseconds /= 2)}>быстрее</button>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      let count = $state(0);
+      let milliseconds = $state(1000);
+
+      $effect(() => {
+        // Это будет пересоздано всякий раз, когда изменяется `milliseconds`
+        const interval = setInterval(() => {
+          count += 1;
+        }, milliseconds);
+
+        return () => {
+          // если предоставлена функция очистки, она будет выполнена
+          // a) немедленно перед повторным выполнением эффекта
+          // b) когда компонент будет уничтожен
+          clearInterval(interval);
+        };
+      });
+    </script>
+
+    <h1>{count}</h1>
+
+    <button onclick={() => (milliseconds *= 2)}>медленнее</button>
+    <button onclick={() => (milliseconds /= 2)}>быстрее</button>
+    ```
+  </TabItem>
+</Tabs>
 
 Функции очистки также выполняются, когда эффект уничтожается, что происходит при уничтожении его родителя (например, когда компонент демонтируется) или при повторном запуске родительского эффекта.
 
@@ -185,37 +220,93 @@ $effect(() => {
 
 ## `$effect.tracking`
 
-Руна `$effect.tracking` — это продвинутая функция, которая сообщает вам, выполняется ли код внутри контекста отслеживания, такого как эффект или внутри вашего шаблона ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAACn3PwYrCMBDG8VeZDYIt2PYeY8Dn2HrIhqkU08nQjItS-u6buAt7UDzmz8ePyaKGMWBS-nNRcmdU-hHUTpGbyuvI3KZvDFLal0v4qvtIgiSZUSb5eWSxPfWSc4oB2xDP1XYk8HHiSHkICeXKeruDDQ4Demlldv4y0rmq6z10HQwuJMxGVv4mVVXDwcJS0jP9u3knynwtoKz1vifT_Z9Jhm0WBCcOTlDD8kyspmML5qNpHg40jc3fFryJ0iWsp_UHgz3180oBAAA=)):
+Руна `$effect.tracking` — это продвинутая функция, которая сообщает вам, выполняется ли код внутри контекста отслеживания, такого как эффект или внутри вашего шаблона:
 
-```svelte
-<script>
-  console.log('in component setup:', $effect.tracking()); // false
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      console.log('in component setup:', $effect.tracking()); // false
 
-  $effect(() => {
-    console.log('in effect:', $effect.tracking()); // true
-  });
-</script>
+      $effect(() => {
+        console.log('in effect:', $effect.tracking()); // true
+      });
+    </script>
 
-<p>в шаблоне: {$effect.tracking()}</p> <!-- true -->
-```
+    <p>в шаблоне: {$effect.tracking()}</p> <!-- true -->
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      console.log('in component setup:', $effect.tracking()); // false
+
+      $effect(() => {
+        console.log('in effect:', $effect.tracking()); // true
+      });
+    </script>
+
+    <p>в шаблоне: {$effect.tracking()}</p> <!-- true -->
+    ```
+  </TabItem>
+</Tabs>
 
 Это используется для реализации абстракций, таких как [createSubscriber](https://svelte.dev/docs/svelte/svelte-reactivity#createSubscriber), которая создает слушателей для обновления реактивных значений, но только если эти значения отслеживаются (в отличие, например, от значений, читаемых внутри обработчика событий).
 
 ## `$effect.pending`
 
-При использовании [`await`](/template-syntax/await-expressions) в компонентах, руна `$effect.pending()` показывает количество **ожидающих промисов** в текущей [границе](/special-elements/svelte-boundary), не включая дочерние границы ([demo](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE3WRMU_DMBCF_8rJdHDUqilILGkaiY2RgY0yOPYZWbiOFV8IleX_jpMUEAIWS_7u-d27c2ROnJBV7B6t7WDsequAozKEqmAbpo3FwKqnyOjsJ90EMr-8uvN-G97Q0sRaEfAvLjtH6CjbsDrI3nhqju5IFgkEHGAVSBDy62L_SdtvejPTzEU4Owl6cJJM50AoxcUG2gLiVM31URgChyM89N3JBORcF3BoICA9mhN2A3G9gdvdrij2UJYgejLaSCMsKLTivNj0SEOf7WEN7ZwnHV1dfqd2dTsQ5QCdk9bI10PkcxexXqcmH3W51Jt_le2kbH8os9Y3UaTcNLYpDx-Xab6GTHXpZ128MhpWqDVK2np0yrgXXqQpaLa4APDLBkIF8bd2sYql0Sn_DeE7sYr6AdNzvgljR-MUq7SwAdMHeUtgHR4CAAA=)):
+При использовании [`await`](/template-syntax/await-expressions) в компонентах, руна `$effect.pending()` показывает количество **ожидающих промисов** в текущей [границе](/special-elements/svelte-boundary), не включая дочерние границы:
 
-```svelte
-<button onclick={() => a++}>a++</button>
-<button onclick={() => b++}>b++</button>
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      let a = $state(1);
+      let b = $state(2);
 
-<p>{a} + {b} = {await add(a, b)}</p>
+      async function add(a, b) {
+        await new Promise((f) => setTimeout(f, 500)); // искусственная задержка
+        return a + b;
+      }
+    </script>
 
-{#if $effect.pending()}
-  <p>ожидающие промисы: {$effect.pending()}</p>
-{/if}
-```
+    <button onclick={() => a++}>a++</button>
+    <button onclick={() => b++}>b++</button>
 
+    <p>{a} + {b} = {await add(a, b)}</p>
+
+    {#if $effect.pending()}
+      <p>ожидающие промисы: {$effect.pending()}</p>
+    {/if}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      let a = $state(1);
+      let b = $state(2);
+
+      async function add(a, b) {
+        await new Promise((f) => setTimeout(f, 500)); // искусственная задержка
+        return a + b;
+      }
+    </script>
+
+    <button onclick={() => a++}>a++</button>
+    <button onclick={() => b++}>b++</button>
+
+    <p>{a} + {b} = {await add(a, b)}</p>
+
+    {#if $effect.pending()}
+      <p>ожидающие промисы: {$effect.pending()}</p>
+    {/if}
+    ```
+  </TabItem>
+</Tabs>
 
 ## `$effect.root`
 
@@ -268,56 +359,146 @@ $effect(() => {
 
 Если вы используете эффект, потому что хотите иметь возможность переопределять производное значение (например, для создания оптимистичного UI), обратите внимание, что [производные значения можно напрямую переопределять](/runes/derived#переопределение-производных-значений), начиная со Svelte 5.25.
 
-Вас может привлечь идея создать сложные связи между эффектами, чтобы связать одно значение с другим. В следующем примере представлены два поля ввода для «потраченных денег» и «оставшихся денег», которые взаимосвязаны. Если вы измените одно из них, другое должно обновиться соответственно. Не используйте эффекты для этого ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE5WRTWrDMBCFryKGLBJoY3fRjWIHeoiu6i6UZBwEY0VE49TB-O6VxrFTSih0qe_Ne_OjHpxpEDS8O7ZMeIAnqC1hAP3RA1990hKI_Fb55v06XJA4sZ0J-IjvT47RcYyBIuzP1vO2chVHHFjxiQ2pUr3k-SZRQlbBx_LIFoEN4zJfzQph_UMQr4hRXmBd456Xy5Uqt6pPKHmkfmzyPAZL2PCnbRpg8qWYu63I7lu4gswOSRYqrPNt3CgeqqzgbNwRK1A76w76YqjFspfcQTWmK3vJHlQm1puSTVSeqdOc_r9GaeCHfUSY26TXry6Br4RSK3C6yMEGT-aqVU3YbUZ2NF6rfP2KzXgbuYzY46czdgyazy0On_FlLH3F-UDXhgIO35UGlA1rAgAA)):
+Вас может привлечь идея создать сложные связи между эффектами, чтобы связать одно значение с другим. В следующем примере представлены два поля ввода для «потраченных денег» и «оставшихся денег», которые взаимосвязаны. Если вы измените одно из них, другое должно обновиться соответственно. Вместо того, чтобы использовать для этого эффекты...
 
-```svelte
-<script>
-  const total = 100;
-  let spent = $state(0);
-  let left = $state(total);
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      const total = 100;
+      let spent = $state(0);
+      let left = $state(total);
 
-  $effect(() => {
-    left = total - spent;
-  });
+      $effect(() => {
+        left = total - spent;
+      });
 
-  $effect(() => {
-    spent = total - left;
-  });
-</script>
+      $effect(() => {
+        spent = total - left;
+      });
+    </script>
 
-<label>
-  <input type="range" bind:value={spent} max={total} />
-  {spent}/{total} потрачено
-</label>
+    <label>
+      <input type="range" bind:value={spent} max={total} />
+      {spent}/{total} потрачено
+    </label>
 
-<label>
-  <input type="range" bind:value={left} max={total} />
-  {left}/{total} осталось
-</label>
-```
+    <label>
+      <input type="range" bind:value={left} max={total} />
+      {left}/{total} осталось
+    </label>
 
-Вместо этого используйте колбэки `oninput` или — что ещё лучше — [привязки функций](/template-syntax/bind/#привязки-функций), где это возможно ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE5VRvW7CMBB-FcvqECQK6dDFJEgsnfoGTQdDLsjSxVjxhYKivHvPBwFUsXS8774_nwftbQva6I_e78gdvNo6Xzu_j3quG4cQtfkaNJ1DIiWA8atkE8IiHgEpYVsb4Rm-O3gCT2yji7jrXKB15StiOJKiA1lUpXrL81VCEUjFwHTGXiJZgiyf3TYIjSxq6NwR6uyifr0ohMbEZnpHH2rWf7ImS8KZGtK6osl_UqelRIyVL5b3ir5AuwWUtoXzoee6fIWy0p31e6i0XMocLfZQDuI6qtaeykGcR7UU6XWznFAZU9LN_X9B2UyVayk9f3ji0-REugen6U9upDOCcAWcLlS7GNCejWoQTqsLtrfBqHzxDu3DrUTOf0xwIm2o62H85sk6_OHG2jQWI4y_3byXXGMCAAA=)):
+    <style>
+      label {
+        display: flex;
+        gap: 0.5em;
+      }
+    </style>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      const total = 100;
+      let spent = $state(0);
+      let left = $state(total);
 
-```svelte {6-8} "bind:value={() => left, updateLeft}"
-<script>
-  const total = 100;
-  let spent = $state(0);
-  let left = $derived(total - spent);
+      $effect(() => {
+        left = total - spent;
+      });
 
-  function updateLeft(left) {
-    spent = total - left;
-  }
-</script>
+      $effect(() => {
+        spent = total - left;
+      });
+    </script>
 
-<label>
-  <input type="range" bind:value={spent} max={total} />
-  {spent}/{total} потрачено
-</label>
+    <label>
+      <input type="range" bind:value={spent} max={total} />
+      {spent}/{total} потрачено
+    </label>
 
-<label>
-  <input type="range" bind:value={() => left, updateLeft} max={total} />
-  {left}/{total} осталось
-</label>
-```
+    <label>
+      <input type="range" bind:value={left} max={total} />
+      {left}/{total} осталось
+    </label>
+
+    <style>
+      label {
+        display: flex;
+        gap: 0.5em;
+      }
+    </style>
+    ```
+  </TabItem>
+</Tabs>
+
+...используйте колбэки `oninput` или — что ещё лучше — [привязки функций](/template-syntax/bind/#привязки-функций), где это возможно:
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte {6-8} "bind:value={() => left, updateLeft}"
+    // App.svelte
+    <script>
+      const total = 100;
+      let spent = $state(0);
+      let left = $derived(total - spent);
+
+      function updateLeft(left) {
+        spent = total - left;
+      }
+    </script>
+
+    <label>
+      <input type="range" bind:value={spent} max={total} />
+      {spent}/{total} потрачено
+    </label>
+
+    <label>
+      <input type="range" bind:value={() => left, updateLeft} max={total} />
+      {left}/{total} осталось
+    </label>
+
+    <style>
+      label {
+        display: flex;
+        gap: 0.5em;
+      }
+    </style>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte {6-8} "bind:value={() => left, updateLeft}"
+    // App.svelte
+    <script lang="ts">
+      const total = 100;
+      let spent = $state(0);
+      let left = $derived(total - spent);
+
+      function updateLeft(left) {
+        spent = total - left;
+      }
+    </script>
+
+    <label>
+      <input type="range" bind:value={spent} max={total} />
+      {spent}/{total} потрачено
+    </label>
+
+    <label>
+      <input type="range" bind:value={() => left, updateLeft} max={total} />
+      {left}/{total} осталось
+    </label>
+
+    <style>
+      label {
+        display: flex;
+        gap: 0.5em;
+      }
+    </style>
+    ```
+  </TabItem>
+</Tabs>
 
 Если вам абсолютно необходимо обновить `$state` внутри эффекта и вы столкнулись с бесконечным циклом, потому что читаете и записываете в одно и то же состояние `$state`, используйте [untrack](https://svelte.dev/docs/svelte/svelte#untrack).

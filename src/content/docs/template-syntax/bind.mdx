@@ -55,26 +55,54 @@ Svelte создаёт обработчик событий, который обн
 <p>{message}</p>
 ```
 
-В случае числового ввода (`type="number"` или `type="range"`) значение будет преобразовано в число ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE6WPwYoCMQxAfyWEPeyiOOqx2w74Hds9pBql0IllmhGXYf5dKqwiyILsLXnwwsuI-5i4oPkaUX8yo7kCnKNQV7dNzoty4qSVBSr8jG-Poixa0KAt2z5mbb14TaxA4OCtKCm_rz4-f2m403WltrlrYhMFTtcLNkoeFGqZ8yhDF7j3CCHKzpwoDexGmqCL4jwuPUJHZ-dxVcfmyYGe5MAv-La5pbxYFf5Z9Zf_UJXb-sEMquFgJJhBmGyTW5yj8lnRaD_w9D1dAKSSj7zqAQAA)):
+В случае числового ввода (`type="number"` или `type="range"`) значение будет преобразовано в число:
 
-```svelte
-<script>
-  let a = $state(1);
-  let b = $state(2);
-</script>
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-<label>
-  <input type="number" bind:value={a} min="0" max="10" />
-  <input type="range" bind:value={a} min="0" max="10" />
-</label>
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      let a = $state(1);
+      let b = $state(2);
+    </script>
 
-<label>
-  <input type="number" bind:value={b} min="0" max="10" />
-  <input type="range" bind:value={b} min="0" max="10" />
-</label>
+    <label>
+      <input type="number" bind:value={a} min="0" max="10" />
+      <input type="range" bind:value={a} min="0" max="10" />
+    </label>
 
-<p>{a} + {b} = {a + b}</p>
-```
+    <label>
+      <input type="number" bind:value={b} min="0" max="10" />
+      <input type="range" bind:value={b} min="0" max="10" />
+    </label>
+
+    <p>{a} + {b} = {a + b}</p>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      let a = $state(1);
+      let b = $state(2);
+    </script>
+
+    <label>
+      <input type="number" bind:value={a} min="0" max="10" />
+      <input type="range" bind:value={a} min="0" max="10" />
+    </label>
+
+    <label>
+      <input type="number" bind:value={b} min="0" max="10" />
+      <input type="range" bind:value={b} min="0" max="10" />
+    </label>
+
+    <p>{a} + {b} = {a + b}</p>
+    ```
+  </TabItem>
+</Tabs>
 
 Если ввод пустой или недействителен (в случае `type="number"`), значение будет `undefined`.
 
@@ -148,28 +176,74 @@ Svelte создаёт обработчик событий, который обн
 
 ## `<input bind:group>`
 
-Элементы ввода, которые работают вместе, могут использовать `bind:group` ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE62T32_TMBDH_5XDQkpbrct7SCMGEvCEECDxsO7BSW6L2c227EvbKOv_jp0f6jYhQKJv5_P3PvdL1wstH1Bk4hMSGdgbRzUssFaM9VJciFtF6EV23QvubNRFR_BPUVfWXvodEkdfKT3-zl8Zzag5YETuK6csF1u9ZUIGNo4VkYQNvPYsGRfJF5JKJ8s3QRJE6WoFb2Nq6K-ck13u2Sl9Vxxhlc6QUBIFnz9Brm9ifJ6esun81XoNd860FmtwslYGlLYte5AO4aHlVhJ1gIeKWq92COt1iMtJlkhFPkgh1rHZiiF6K6BUus4G5KafGznCTlIbVUMfQZUWMJh5OrL-C_qjMYSwb1DyiH7iOEuCb1ZpWTUjfHqcwC_GWDVY3ZfmME_SGttSmD9IHaYatvWHIc6xLyqad3mq6KuqcCwnWn9p8p-p71BqP2IH81zc9w2in-od7XORP7ayCpd5YCeXI_-p59mObPF9WmwGpx3nqS2Gzw8TO3zOaS5_GqUXyQUkS3h8hOSz0ZhMESHGc0c4Hm3MAn00t1wrb0l2GZRkqvt4sXwczm6Qh8vnUJzI2LV4vAkvqWgfehTZrSSPx19WiVfFfAQAAA==)):
+Элементы ввода, которые работают вместе, могут использовать `bind:group`:
 
-```svelte
-// BurritoChooser.svelte
-<script>
-  let tortilla = $state('Обычная');
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      let tortilla = $state('Обычная');
 
-  /** @type {string[]} */
-  let fillings = $state([]);
-</script>
+      /** @type {string[]} */
+      let fillings = $state([]);
+    </script>
 
-<!-- сгруппированные переключатели являются взаимоисключающими -->
-<label><input type="radio" bind:group={tortilla} value="Обычная" /> Обычная</label>
-<label><input type="radio" bind:group={tortilla} value="Цельнозерновая" /> Цельнозерновая</label>
-<label><input type="radio" bind:group={tortilla} value="Шпинат" /> Шпинат</label>
+    <h1>Настройте свой буррито</h1>
 
-<!-- сгруппированные флажки формируют массив -->
-<label><input type="checkbox" bind:group={fillings} value="Рис" /> Рис</label>
-<label><input type="checkbox" bind:group={fillings} value="Фасоль" /> Фасоль</label>
-<label><input type="checkbox" bind:group={fillings} value="Сыр" /> Сыр</label>
-<label><input type="checkbox" bind:group={fillings} value="Гуакамоле (дополнительно)" /> Гуакамоле (дополнительно)</label>
-```
+    <!-- сгруппированные переключатели являются взаимоисключающими -->
+    <label><input type="radio" bind:group={tortilla} value="Обычная" /> Обычная</label>
+    <label><input type="radio" bind:group={tortilla} value="Цельнозерновая" /> Цельнозерновая</label>
+    <label><input type="radio" bind:group={tortilla} value="Шпинат" /> Шпинат</label>
+
+    <!-- сгруппированные флажки формируют массив -->
+    <label><input type="checkbox" bind:group={fillings} value="Рис" /> Рис</label>
+    <label><input type="checkbox" bind:group={fillings} value="Фасоль" /> Фасоль</label>
+    <label><input type="checkbox" bind:group={fillings} value="Сыр" /> Сыр</label>
+    <label><input type="checkbox" bind:group={fillings} value="Гуакамоле (дополнительно)" /> Гуакамоле (дополнительно)</label>
+
+    <p>Тортилья: {tortilla}</p>
+    <p>Начинка: {fillings.join(', ') || 'Нет'}</p>
+
+    <style>
+      label {
+        display: block;
+      }
+    </style>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      let tortilla = $state('Plain');
+      let fillings: string[] = $state([]);
+    </script>
+
+    <h1>Настройте свой буррито</h1>
+
+    <!-- сгруппированные переключатели являются взаимоисключающими -->
+    <label><input type="radio" bind:group={tortilla} value="Обычная" /> Обычная</label>
+    <label><input type="radio" bind:group={tortilla} value="Цельнозерновая" /> Цельнозерновая</label>
+    <label><input type="radio" bind:group={tortilla} value="Шпинат" /> Шпинат</label>
+
+    <!-- сгруппированные флажки формируют массив -->
+    <label><input type="checkbox" bind:group={fillings} value="Рис" /> Рис</label>
+    <label><input type="checkbox" bind:group={fillings} value="Фасоль" /> Фасоль</label>
+    <label><input type="checkbox" bind:group={fillings} value="Сыр" /> Сыр</label>
+    <label><input type="checkbox" bind:group={fillings} value="Гуакамоле (дополнительно)" /> Гуакамоле (дополнительно)</label>
+
+    <p>Тортилья: {tortilla}</p>
+    <p>Начинка: {fillings.join(', ') || 'Нет'}</p>
+
+    <style>
+      label {
+        display: block;
+      }
+    </style>
+    ```
+  </TabItem>
+</Tabs>
 
 :::note
 `bind:group` работает только если элементы ввода находятся в одном и том же компоненте Svelte.
@@ -353,8 +427,6 @@ bind:this={dom_node}
 
 <button onclick={() => cart.empty()}> Очистить корзину покупок </button>
 ```
-
-import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 <Tabs syncKey="lang">
   <TabItem label="JS">

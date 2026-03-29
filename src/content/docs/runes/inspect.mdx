@@ -1,0 +1,104 @@
+---
+title: $inspect
+origin: https://svelte.dev/docs/svelte/$inspect
+sidebar:
+  order: 6
+---
+
+:::note
+`$inspect` работает только во время разработки. В продакшен-сборке она становится операцией-заглушкой (noop).
+:::
+
+Руна `$inspect` примерно эквивалентна `console.log`, за исключением того, что она будет повторно выполняться каждый раз, когда изменяется её аргумент. `$inspect` отслеживает реактивное состояние глубоко, что означает, что обновление чего-то внутри объекта или массива с использованием тонкой реактивности приведет к его повторному срабатыванию:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      let count = $state(0);
+      let message = $state('привет');
+
+      $inspect(count, message); // вывод в консоль при изменении `count` или `message`
+    </script>
+
+    <button onclick={() => count++}>Увеличить</button>
+    <input bind:value={message} />
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      let count = $state(0);
+      let message = $state('привет');
+
+      $inspect(count, message); // вывод в консоль при изменении `count` или `message`
+    </script>
+
+    <button onclick={() => count++}>Увеличить</button>
+    <input bind:value={message} />
+    ```
+  </TabItem>
+</Tabs>
+
+При обновлениях будет напечатан стек-трейс, что облегчает поиск источника изменения состояния (если только вы не в песочнице, из-за технических ограничений).
+
+## $inspect(...).with
+
+`$inspect(...)` возвращает объект с методом` with`, который можно вызвать с колбэком. Этот колбэк будет вызываться вместо `console.log`. Первый аргумент колбэка — это либо `"init"`, либо `"update"`; последующие аргументы — это значения, переданные в `$inspect`:
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      let count = $state(0);
+
+      $inspect(count).with((type, count) => {
+        if (type === 'update') {
+          debugger; // или `console.trace`, или что угодно, что вам нужно
+        }
+      });
+    </script>
+
+    <button onclick={() => count++}>Увеличить</button>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      let count = $state(0);
+
+      $inspect(count).with((type, count) => {
+        if (type === 'update') {
+          debugger; // или `console.trace`, или что угодно, что вам нужно
+        }
+      });
+    </script>
+
+    <button onclick={() => count++}>Увеличить</button>
+    ```
+  </TabItem>
+</Tabs>
+
+## $inspect.trace(...)
+
+Эта руна, добавленная в версии 5.14, позволяет _отслеживать_ окружение в процессе разработки. Каждый раз, когда функция выполняется повторно в контексте [effect](/runes/effect/) или [derived](/runes/derived/), в консоль будет выводиться информация о том, какие части реактивного состояния вызвали срабатывание эффекта.
+
+```svelte {5-6}
+<script>
+  import { doSomeWork } from './elsewhere';
+
+  $effect(() => {
+    // $inspect.trace должен быть первым оператором в теле функции
+    $inspect.trace();
+    doSomeWork();
+  });
+</script>
+```
+
+`$inspect.trace` принимает необязательный первый аргумент, который будет использоваться в качестве метки.

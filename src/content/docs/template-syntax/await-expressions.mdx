@@ -46,24 +46,50 @@ export default {
 
 ## Синхронизированные обновления
 
-Когда выражение `await` зависит от определённого состояния, изменения этого состояния не будут отражены в интерфейсе до завершения асинхронной операции. Это предотвращает попадание интерфейса в несогласованное состояние. Например, в ситуации как [здесь](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE42QsWrDQBBEf2VZUkhYRE4gjSwJ0qVMkS6XYk9awcFpJe5Wdoy4fw-ycdykSPt2dpiZFYVGxgrf2PsJTlPwPWTcO-U-xwIH5zli9bminudNtwEsbl-v8_wYj-x1Y5Yi_8W7SZRFI1ZYxy64WVsjRj0rEDTwEJWUs6f8cKP2Tp8vVIxSPEsHwyKdukmA-j6jAmwO63Y1SidyCsIneA_T6CJn2ZBD00Jk_XAjT4tmQwEv-32eH6AsgYK6wXWOPPTs6Xy1CaxLECDYgb3kSUbq8p5aaifzorCt0RiUZbQcDIJ10ldH8gs3K6X2Xzqbro5zu1KCHaw2QQPrtclvwVSXc2sEC1T-Vqw0LJy-ClRy_uSkx2ogHzn9ADZ1CubKAQAA)...
+Когда выражение `await` зависит от определённого состояния, изменения этого состояния не будут отражены в интерфейсе до завершения асинхронной операции. Это предотвращает попадание интерфейса в несогласованное состояние. Например, в ситуации как здесь...
 
-```svelte
-<script>
-  let a = $state(1);
-  let b = $state(2);
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-  async function add(a, b) {
-    await new Promise((f) => setTimeout(f, 500)); // искусственная задержка
-    return a + b;
-  }
-</script>
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      let a = $state(1);
+      let b = $state(2);
 
-<input type="number" bind:value={a}>
-<input type="number" bind:value={b}>
+      async function add(a, b) {
+        await new Promise((f) => setTimeout(f, 500)); // искусственная задержка
+        return a + b;
+      }
+    </script>
 
-<p>{a} + {b} = {await add(a, b)}</p>
-```
+    <input type="number" bind:value={a}>
+    <input type="number" bind:value={b}>
+
+    <p>{a} + {b} = {await add(a, b)}</p>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      let a = $state(1);
+      let b = $state(2);
+
+      async function add(a, b) {
+        await new Promise((f) => setTimeout(f, 500)); // искусственная задержка
+        return a + b;
+      }
+    </script>
+
+    <input type="number" bind:value={a}>
+    <input type="number" bind:value={b}>
+
+    <p>{a} + {b} = {await add(a, b)}</p>
+    ```
+  </TabItem>
+</Tabs>
 
 ...если вы увеличите `a`, содержимое `<p>` не сразу обновится, чтобы отобразить это:
 
