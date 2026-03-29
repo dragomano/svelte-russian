@@ -5,9 +5,126 @@ sidebar:
   order: 1
 ---
 
-Контекст позволяет компонентам получать доступ к значениям, принадлежащим родительским компонентам, без необходимости передавать их через пропсы (избегая передачи через множество промежуточных компонентов, что также называют «пробросом пропсов» («prop-drilling»)). Родительский компонент устанавливает контекст с помощью `setContext(key, value)`...
+Контекст позволяет компонентам получать доступ к значениям, принадлежащим родительским компонентам, без необходимости передавать их через пропсы (избегая передачи через множество промежуточных компонентов, что также называют «пробросом пропсов» (_prop-drilling_)).
+
+Создав пару функций `[get, set]` с помощью `createContext`, вы можете установить контекст в родительском компоненте и получить его в дочернем:
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    <Tabs>
+      <TabItem label="App.svelte">
+        ```svelte
+        <script>
+          import Parent from './Parent.svelte';
+          import Child from './Child.svelte';
+        </script>
+
+        <Parent>
+          <Child />
+        </Parent>
+        ```
+      </TabItem>
+      <TabItem label="Parent.svelte">
+        ```svelte
+        <script>
+          import { setUserContext } from './context';
+
+          let { children } = $props();
+
+          setUserContext({ name: 'world' });
+        </script>
+
+        {@render children()}
+        ```
+      </TabItem>
+      <TabItem label="Child.svelte">
+        ```svelte
+        <script>
+          import { getUserContext } from './context';
+
+          const user = getUserContext();
+        </script>
+
+        <h1>привет, {user.name}, внутри Child.svelte</h1>
+        ```
+      </TabItem>
+      <TabItem label="context.ts">
+        ```ts
+        import { createContext } from 'svelte';
+
+        interface User {
+          name: string;
+        }
+
+        export const [getUserContext, setUserContext] = createContext<User>();
+        ```
+      </TabItem>
+    </Tabs>
+  </TabItem>
+  <TabItem label="TS">
+    <Tabs>
+      <TabItem label="App.svelte">
+        ```svelte
+        <script lang="ts">
+          import Parent from './Parent.svelte';
+          import Child from './Child.svelte';
+        </script>
+
+        <Parent>
+          <Child />
+        </Parent>
+        ```
+      </TabItem>
+      <TabItem label="Parent.svelte">
+        ```svelte
+        <script lang="ts">
+          import { setUserContext } from './context';
+
+          let { children } = $props();
+
+          setUserContext({ name: 'world' });
+        </script>
+
+        {@render children()}
+        ```
+      </TabItem>
+      <TabItem label="Child.svelte">
+        ```svelte
+        <script lang="ts">
+          import { getUserContext } from './context';
+
+          const user = getUserContext();
+        </script>
+
+        <h1>привет, {user.name}, внутри Child.svelte</h1>
+        ```
+      </TabItem>
+      <TabItem label="context.ts">
+        ```ts
+        import { createContext } from 'svelte';
+
+        interface User {
+          name: string;
+        }
+
+        export const [getUserContext, setUserContext] = createContext<User>();
+        ```
+      </TabItem>
+    </Tabs>
+  </TabItem>
+</Tabs>
+
+:::note
+Функция `createContext` была добавлена в версии 5.40. Если вы используете более раннюю версию Svelte, вы должны использовать `setContext` и `getContext` вместо неё.
+:::
+
+Это особенно полезно, когда `Parent.svelte` не знает о `Child.svelte` напрямую, а вместо этого отображает его как часть [сниппета](/template-syntax/snippet) `children`, как показано выше.
+
+## `setContext` и `getContext`
+
+В качестве альтернативы `createContext` вы можете использовать `setContext` и `getContext` напрямую. Родительский компонент устанавливает контекст с помощью `setContext(key, value)`...
 
 <Tabs syncKey="lang">
   <TabItem label="JS">
@@ -61,47 +178,129 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
   </TabItem>
 </Tabs>
 
-Это особенно полезно, когда `Parent.svelte` не знает напрямую о `Child.svelte`, а вместо этого отображает его как часть [сниппета](/template-syntax/snippet) `children` ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE42Q3W6DMAyFX8WyJgESK-oto6hTX2D3YxcM3IIUQpR40yqUd58CrCXsp7tL7HNsf2dAWXaEKR56yfTBGOOxFWQwfR6Qz8q1XAHjL-GjUhvzToJd7bU09FO9ctMkG0wxM5VuFeeFLLjtVK8ZnkpNkuGo-w6CTTJ9Z3PwsBAemlbUF934W8iy5DpaZtOUcU02-ZLcaS51jHEkTFm_kY1_wfOO8QnXrb8hBzDEc6pgZ4gFoyz4KgiD7nxfTe8ghqAhIfrJ46cTzVZBbkPlODVJsLCDO6V7ZcJoncyw1yRr0hd1GNn_ZbEM3I9i1bmVxOlWElUvDUNHxpQngt3C4CXzjS1rtvkw22wMrTRtTbC8Lkuabe7jvthPPe3DofYCAAA=)).
-
-```svelte
-<Parent>
-  <Child />
-</Parent>
-```
-
 Ключ (`'my-context'` в примере выше) и сам контекст могут быть любыми значениями JavaScript.
+
+:::note
+`createContext` является предпочтительным вариантом, так как обеспечивает лучшую типобезопасность и избавляет от необходимости использовать ключи.
+:::
 
 Помимо [`setContext`](https://svelte.dev/docs/svelte/svelte#setContext) и [`getContext`](https://svelte.dev/docs/svelte/svelte#getContext), Svelte предоставляет функции [`hasContext`](https://svelte.dev/docs/svelte/svelte#hasContext) и [`getAllContexts`](https://svelte.dev/docs/svelte/svelte#getAllContexts).
 
 ## Использование контекста с состоянием
 
-Вы можете хранить реактивное состояние в контексте ([демонстрация](https://svelte.dev/playground/untitled#H4sIAAAAAAAAE41R0W6DMAz8FSuaBNUQdK8MkKZ-wh7HHihzu6hgosRMm1D-fUpSVNq12x4iEvvOx_kmQU2PIhfP3DCCJGgHYvxkkYid7NCI_GUS_KUcxhVEMjOelErNB3bsatvG4LW6n0ZsRC4K02qpuKqpZtmrQTNMYJA3QRAs7PTQQxS40eMCt3mX3duxnWb-lS5h7nTI0A4jMWoo4c44P_Hku-zrOazdy64chWo-ScfRkRgl8wgHKrLTH1OxHZkHgoHaTraHcopXUFYzPPVfuC_hwQaD1GrskdiNCdQwJljJqlvXfyqVsA5CGg0uRUQifHw56xFtciO75QrP07vo_JXf_tf8yK2ezDKY_ZWt_1y2qqYzv7bI1IW1V_sN19m-07wCAAA=))...
+Вы можете хранить реактивное состояние в контексте...
 
-```svelte
-<script>
-  import { setContext } from 'svelte';
-  import Child from './Child.svelte';
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    <Tabs>
+      <TabItem label="App.svelte">
+        ```svelte
+        <script>
+          import { setCounter } from './context.ts';
+          import Child from './Child.svelte';
 
-  let counter = $state({
-    count: 0
-  });
+          let counter = $state({
+            count: 0
+          });
 
-  setContext('counter', counter);
-</script>
+          setCounter(counter);
+        </script>
 
-<button onclick={() => counter.count += 1}>
-  увеличить
-</button>
+        <button onclick={() => counter.count += 1}>
+          увеличить
+        </button>
 
-<Child />
-<Child />
-<Child />
-```
+        <Child />
+        <Child />
+        <Child />
+
+        <button onclick={() => counter.count = 0}>
+          сбросить
+        </button>
+        ```
+      </TabItem>
+      <TabItem label="Child.svelte">
+        ```svelte
+        <script>
+          import { getCounter } from './context.ts';
+
+          const counter = getCounter();
+        </script>
+
+        <p>{counter.count}</p>
+        ```
+      </TabItem>
+      <TabItem label="context.ts">
+        ```ts
+        import { createContext } from 'svelte';
+
+        interface Counter {
+          count: number;
+        }
+
+        export const [getCounter, setCounter] = createContext<Counter>();
+        ```
+      </TabItem>
+    </Tabs>
+  </TabItem>
+  <TabItem label="TS">
+    <Tabs>
+      <TabItem label="App.svelte">
+        ```svelte
+        <script lang="ts">
+          import { setCounter } from './context.ts';
+          import Child from './Child.svelte';
+
+          let counter = $state({
+            count: 0
+          });
+
+          setCounter(counter);
+        </script>
+
+        <button onclick={() => counter.count += 1}>
+          увеличить
+        </button>
+
+        <Child />
+        <Child />
+        <Child />
+
+        <button onclick={() => counter.count = 0}>
+          сбросить
+        </button>
+        ```
+      </TabItem>
+      <TabItem label="Child.svelte">
+        ```svelte
+        <script lang="ts">
+          import { getCounter } from './context.ts';
+
+          const counter = getCounter();
+        </script>
+
+        <p>{counter.count}</p>
+        ```
+      </TabItem>
+      <TabItem label="context.ts">
+        ```ts
+        import { createContext } from 'svelte';
+
+        interface Counter {
+          count: number;
+        }
+
+        export const [getCounter, setCounter] = createContext<Counter>();
+        ```
+      </TabItem>
+    </Tabs>
+  </TabItem>
+</Tabs>
 
 ...однако обратите внимание, что если вы _переприсваиваете_ `counter` вместо его обновления, вы «разорвете связь» — другими словами, вместо этого...
 
 ```svelte
-<button onclick={() => counter = { count: 0 }}>
+<button onclick={() => counter = { count: 0 } }>
   сбросить
 </button>
 ```
@@ -116,16 +315,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Svelte предупредит вас, если вы сделаете что-то неправильно.
 
-## Типобезопасный контекст
-
-В качестве альтернативы использованию `setContext` и `getContext` напрямую, вы можете использовать их через `createContext`. Это обеспечивает типобезопасность и делает ненужным использование ключа:
-
-```ts
-// context.ts
-import { createContext } from 'svelte';
-
-export const [getUserContext, setUserContext] = createContext<User>();
-```
+## Тестирование компонентов
 
 При написании [компонентных тестов](/misc/testing/#юнит-тесты-и-тесты-компонентов-с-vitest) бывает полезно создать обёрточный компонент, который устанавливает контекст, чтобы проверить поведение компонента, который этот контекст использует. Начиная с версии 5.49, можно делать примерно следующее:
 
