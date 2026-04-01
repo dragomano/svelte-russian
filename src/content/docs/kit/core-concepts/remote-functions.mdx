@@ -212,6 +212,10 @@ export const getPost = query(v.string(), async (slug) => {
 
 Как аргументы, так и возвращаемые значения сериализуются с помощью [devalue](https://github.com/sveltejs/devalue), который поддерживает типы вроде `Date` и `Map` (а также пользовательские типы, определённые в вашем хуке [transport](/kit/advanced/hooks/#transport)) в дополнение к JSON.
 
+:::note
+Для аргументов `query` и `prerender` (но не для возвращаемых значений) объекты, Map и Set сортируются таким образом, чтобы экземпляры с одинаковыми элементами создавали один и тот же ключ кэша. Например, `getPosts({ limit: 10, offset: 10 })` и `getPosts({ offset: 10, limit: 10 })` приведут к созданию одного и того же ключа кэша. Если порядок важен для вас, вам придется использовать массив.
+:::
+
 ### Обновление запросов
 
 Любой запрос можно обновить с помощью метода `refresh`:
@@ -238,14 +242,14 @@ import * as v from 'valibot';
 import { query } from '$app/server';
 import * as db from '$lib/server/database';
 
-export const getWeather = query.batch(v.string(), async (cities) => {
+export const getWeather = query.batch(v.string(), async (cityIds) => {
   const weather = await db.sql`
     SELECT * FROM weather
-    WHERE city = ANY(${cities})
+    WHERE city_id = ANY(${cityIds})
   `;
-  const lookup = new Map(weather.map(w => [w.city, w]));
+  const lookup = new Map(weather.map(w => [w.city_id, w]));
 
-  return (city) => lookup.get(city);
+  return (cityId) => lookup.get(cityId);
 });
 ```
 
@@ -325,7 +329,7 @@ export const createPost = form(async (data) => {
       import { createPost } from '../data.remote';
     </script>
 
-    <h1>Создать новую запись</h1>
+    <h1>Создание новой записи</h1>
 
     <form {...createPost}>
       <label>
@@ -349,7 +353,7 @@ export const createPost = form(async (data) => {
       import { createPost } from '../data.remote';
     </script>
 
-    <h1>Создать новую запись</h1>
+    <h1>Создание новой записи</h1>
 
     <form {...createPost}>
       <label>
@@ -369,6 +373,347 @@ export const createPost = form(async (data) => {
 </Tabs>
 
 Объект формы содержит свойства `method` и `action`, позволяющие ей работать без JavaScript (то есть отправлять данные с перезагрузкой страницы). Также у неё есть обработчик `onsubmit`, который прогрессивно улучшает форму при наличии JavaScript, отправляя данные *без* перезагрузки всей страницы.
+
+Как и в случае с `query`, если колбэк использует отправленные данные (`data`), они должны быть [валидированы](#аргументы-query) путём передачи [Standard Schema](https://standardschema.dev) в качестве первого аргумента в `form`.
+
+### Поля
+
+Форма состоит из набора _полей_, которые определяются схемой. В случае с `createPost` у нас есть два поля, `title` и `content`, оба из которых являются строками. Чтобы получить атрибуты поля, вызовите его метод `.as(...)`, указав, какой [тип ввода](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input#input_types) использовать. Для большинства типов ввода вы также можете передать второй аргумент — `.as(type, value)` — чтобы управлять отображаемым значением:
+
+```diff lang="svelte"
+<form {...createPost}>
+  <label>
+    <h2>Заголовок</h2>
++    <input {...createPost.fields.title.as('text')} />
+  </label>
+
+  <label>
+    <h2>Текст записи</h2>
++    <textarea {...createPost.fields.content.as('text')}></textarea>
+  </label>
+
+  <button>Опубликовать!</button>
+</form>
+```
+
+Эти атрибуты позволяют SvelteKit устанавливать правильный тип ввода, задавать `name`, который используется для формирования данных (`data`), передаваемых в обработчик, заполнять значение (`value`) формы (например, после неудачной отправки, чтобы избавить пользователя от необходимости вводить всё заново) и устанавливать состояние [`aria-invalid`](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-invalid).
+
+Передача второго аргумента в `.as(...)` полезна при рендеринге формы на основе существующих данных, таких как форма редактирования или несколько экземпляров, созданных с помощью [`for(...)`](#несколько-экземпляров-формы). Полям ввода `radio`, `submit` и `hidden` это значение требуется всегда, а полям `checkbox` оно необходимо, когда они представляют один из вариантов в поле-массиве. Поля типа `file` не могут быть заполнены таким способом.
+
+:::note
+Генерируемый атрибут `name` использует нотацию объектов JS (например, `nested.array[0].value`). Строковые ключи, требующие кавычек, такие как `object['nested-array'][0].value`, не поддерживаются. «Под капотом» к именам логических чекбоксов и числовых полей добавляются префиксы `b:` и `n:` соответственно, чтобы дать SvelteKit сигнал привести значения из строк к нужным типам перед валидацией.
+:::
+
+Поля могут быть вложены в объекты и массивы, а их значениями могут быть строки, числа, логические значения или объекты `File`. Например, если бы ваша схема выглядела так...
+
+```js
+// data.remote.js
+const datingProfile = v.object({
+  name: v.string(),
+  photo: v.file(),
+  info: v.object({
+    height: v.number(),
+    likesDogs: v.optional(v.boolean(), false)
+  }),
+  attributes: v.array(v.string())
+});
+
+export const createProfile = form(datingProfile, (data) => { /* ... */ });
+```
+
+...ваша форма могла бы выглядеть так:
+
+```svelte
+<script>
+  import { createProfile } from './data.remote';
+
+  const { name, photo, info, attributes } = createProfile.fields;
+</script>
+
+<form {...createProfile} enctype="multipart/form-data">
+  <label>
+    <input {...name.as('text')} /> Имя
+  </label>
+
+  <label>
+    <input {...photo.as('file')} /> Фото
+  </label>
+
+  <label>
+    <input {...info.height.as('number')} /> Рост (см)
+  </label>
+
+  <label>
+    <input {...info.likesDogs.as('checkbox')} /> Я люблю собак
+  </label>
+
+  <h2>Мои лучшие качества</h2>
+  <input {...attributes[0].as('text')} />
+  <input {...attributes[1].as('text')} />
+  <input {...attributes[2].as('text')} />
+
+  <button>Отправить</button>
+</form>
+```
+
+Поскольку наша форма содержит поле ввода `file`, мы добавили атрибут `enctype="multipart/form-data"`. Значения для `info.height` и `info.likesDogs` автоматически приводятся к числу и логическому значению соответственно.
+
+:::note
+Если флажок `checkbox` не отмечен, его значение не включается в объект [`FormData`](https://developer.mozilla.org/en-US/docs/Web/API/FormData), на основе которого SvelteKit формирует данные. Из-за этого мы должны сделать данное значение необязательным в нашей схеме. В Valibot это означает использование `v.optional(v.boolean(), false)` вместо простого `v.boolean()`, в то время как в Zod это означает использование `z.coerce.boolean<boolean>()`.
+:::
+
+В случае с полями ввода `radio` и `checkbox`, относящимися к одному и тому же полю, значение `value` должно быть указано в качестве второго аргумента в `.as(...)`:
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // data.remote.js
+    export const operatingSystems = /** @type {const} */ (['windows', 'mac', 'linux']);
+    export const languages = /** @type {const} */ (['html', 'css', 'js']);
+
+    export const survey = form(
+      v.object({
+        operatingSystem: v.picklist(operatingSystems),
+        languages: v.optional(v.array(v.picklist(languages)), []),
+      }),
+      (data) => { /* ... */ },
+    );
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // data.remote.ts
+    export const operatingSystems = ['windows', 'mac', 'linux'] as const;
+    export const languages = ['html', 'css', 'js'] as const;
+
+    export const survey = form(
+      v.object({
+        operatingSystem: v.picklist(operatingSystems),
+        languages: v.optional(v.array(v.picklist(languages)), []),
+      }),
+      (data) => { /* ... */ },
+    );
+    ```
+  </TabItem>
+</Tabs>
+
+```svelte
+<form {...survey}>
+  <h2>Какую ОС вы используете?</h2>
+
+  {#each operatingSystems as os}
+    <label>
+      <input {...survey.fields.operatingSystem.as('radio', os)}>
+      {os}
+    </label>
+  {/each}
+
+  <h2>На каких языках вы программируете?</h2>
+
+  {#each languages as language}
+    <label>
+      <input {...survey.fields.languages.as('checkbox', language)}>
+      {language}
+    </label>
+  {/each}
+
+  <button>Отправить</button>
+</form>
+```
+
+В качестве альтернативы вы можете использовать `select` и `select multiple`:
+
+```svelte
+<form {...survey}>
+  <h2>Какую ОС вы используете?</h2>
+
+  <select {...survey.fields.operatingSystem.as('select')}>
+    {#each operatingSystems as os}
+      <option>{os}</option>
+    {/each}
+  </select>
+
+  <h2>На каких языках вы программируете?</h2>
+
+  <select {...survey.fields.languages.as('select multiple')}>
+    {#each languages as language}
+      <option>{language}</option>
+    {/each}
+  </select>
+
+  <button>Отправить</button>
+</form>
+```
+
+:::note
+Как и в случае с неотмеченными полями `checkbox`, если выбор не сделан, данные будут иметь значение `undefined`. По этой причине в поле `languages` используется `v.optional(v.array(...), [])` вместо обычного `v.array(...)`.
+:::
+
+### Программная валидация
+
+В дополнение к декларативной валидации по схеме, вы можете программно помечать поля как невалидные внутри обработчика формы, используя хелпер `invalid` из `@sveltejs/kit`. Это полезно в тех случаях, когда вы не можете знать, валидны ли данные, пока не попытаетесь выполнить какое-либо действие.
+
+- Он выбрасывает исключение (throw) так же, как `redirect` или `error`
+- Он принимает несколько аргументов, которые могут быть строками (для проблем, относящихся к форме в целом — они будут отображаться только в `fields.allIssues()`) или ошибками, соответствующими Standard Schema (для тех, что относятся к конкретному полю). Используйте параметр `issue` для типобезопасного создания таких ошибок:
+
+```js
+// src/routes/shop/data.remote.js
+import * as v from 'valibot';
+import { invalid } from '@sveltejs/kit';
+import { form } from '$app/server';
+import * as db from '$lib/server/database';
+
+export const buyHotcakes = form(
+  v.object({
+    qty: v.pipe(
+      v.number(),
+      v.minValue(1, 'вы должны купить хотя бы один пирожок')
+    )
+  }),
+  async (data, issue) => {
+    try {
+      await db.buy(data.qty);
+    } catch (e) {
+      if (e.code === 'OUT_OF_STOCK') {
+        invalid(
+          issue.qty(`у нас не хватает пирожков`)
+        );
+      }
+    }
+  }
+);
+```
+
+### Валидация
+
+Если отправленные данные не проходят проверку по схеме, колбэк не будет выполнен. Вместо этого метод `issues()` каждого невалидного поля вернет массив объектов `{ message: string }`, а атрибут `aria-invalid` (возвращаемый из `as(...)`) будет установлен в `true`:
+
+```svelte
+<form {...createPost}>
+  <label>
+    <h2>Заголовок</h2>
+
+    {#each createPost.fields.title.issues() as issue}
+      <p class="issue">{issue.message}</p>
+    {/each}
+
+    <input {...createPost.fields.title.as('text')} />
+  </label>
+
+  <label>
+    <h2>Текст записи</h2>
+
+    {#each createPost.fields.content.issues() as issue}
+      <p class="issue">{issue.message}</p>
+    {/each}
+
+    <textarea {...createPost.fields.content.as('text')}></textarea>
+  </label>
+
+  <button>Опубликовать!</button>
+</form>
+```
+
+Вам не нужно ждать отправки формы, чтобы провалидировать данные — вы можете вызывать `validate()` программно, например, в обработчике `oninput` (который будет проверять данные при каждом нажатии клавиши) или в обработчике `onchange`:
+
+```svelte
+<form {...createPost} oninput={() => createPost.validate()}>
+  <!-- -->
+</form>
+```
+
+По умолчанию ошибки будут игнорироваться, если они относятся к элементам управления формы, с которыми еще не взаимодействовали. Чтобы провалидировать _все_ поля ввода, вызовите `validate({ includeUntouched: true })`.
+
+Для валидации на стороне клиента вы можете указать _preflight_-схему, которая заполнит `issues()` и предотвратит отправку данных на сервер, если данные не прошли валидацию:
+
+```svelte
+<script>
+  import * as v from 'valibot';
+  import { createPost } from '../data.remote';
+
+  const schema = v.object({
+    title: v.pipe(v.string(), v.nonEmpty()),
+    content: v.pipe(v.string(), v.nonEmpty())
+  });
+</script>
+
+<h1>Создание новой записи</h1>
+
+<form {...+++createPost.preflight(schema)+++}>
+  <!-- -->
+</form>
+```
+
+:::note
+Preflight-схема может быть тем же объектом, что и ваша серверная схема, если это уместно, хотя она не сможет выполнять проверки на стороне сервера, такие как «это значение уже существует в базе данных». Обратите внимание, что вы не можете экспортировать схему из файла `.remote.ts` или `.remote.js`, поэтому схема должна быть экспортирована либо из общего модуля, либо из блока `<script module>` в компоненте, содержащем `<form>`.
+:::
+
+Чтобы получить список _всех_ ошибок, а не только тех, которые относятся к одному конкретному полю, вы можете использовать метод `fields.allIssues()`:
+
+```svelte
+{#each createPost.fields.allIssues() as issue}
+  <p>{issue.message}</p>
+{/each}
+```
+
+### Получение и установка значений
+
+У каждого поля есть метод `value()`, который отражает его текущее значение. По мере того как пользователь взаимодействует с формой, оно обновляется автоматически:
+
+```svelte
+<form {...createPost}>
+  <!-- -->
+</form>
+
+<div class="preview">
+  <h2>{createPost.fields.title.value()}</h2>
+  <div>{@html render(createPost.fields.content.value())}</div>
+</div>
+```
+
+В качестве альтернативы, `createPost.fields.value()` вернет объект `{ title, content }`.
+
+Вы можете обновить поле (или набор полей) с помощью метода `set(...)`:
+
+```svelte
+<script>
+  import { createPost } from '../data.remote';
+
+  // это...
+  createPost.fields.set({
+    title: 'Моя новая запись в блоге',
+    content: 'Lorem ipsum dolor sit amet...'
+  });
+
+  // ...эквивалентно этому:
+  createPost.fields.title.set('Моя новая запись в блоге');
+  createPost.fields.content.set('Lorem ipsum dolor sit amet');
+</script>
+```
+
+### Обработка конфиденциальных данных
+
+В случае отправки формы без прогрессивного улучшения (то есть когда JavaScript по какой-либо причине недоступен) метод `value()` также заполняется, если отправленные данные оказались невалидными. Это сделано для того, чтобы пользователю не пришлось заполнять всю форму заново с нуля.
+
+Вы можете предотвратить отправку конфиденциальных данных (таких как пароли и номера кредитных карт) обратно пользователю, используя имя, начинающееся с нижнего подчеркивания:
+
+```svelte "{...register.fields._password.as('password')}"
+<form {...register}>
+  <label>
+    Имя пользователя
+    <input {...register.fields.username.as('text')} />
+  </label>
+
+  <label>
+    Пароль
+    <input {...register.fields._password.as('password')} />
+  </label>
+
+  <button>Зарегистрироваться!</button>
+</form>
+```
+
+В данном примере, если данные не проходят валидацию, при перезагрузке страницы будет заполнено только первое поле `<input>`.
 
 ### Однопроходные мутации
 
@@ -416,7 +761,7 @@ export const createPost = form(async (data) => {
       import { createPost } from '../data.remote';
     </script>
 
-    <h1>Создать новую запись</h1>
+    <h1>Создание новой записи</h1>
 
     <form {...createPost}><!-- ... --></form>
 
@@ -432,7 +777,7 @@ export const createPost = form(async (data) => {
       import { createPost } from '../data.remote';
     </script>
 
-    <h1>Создать новую запись</h1>
+    <h1>Создание новой записи</h1>
 
     <form {...createPost}><!-- ... --></form>
 
@@ -464,7 +809,7 @@ export const createPost = form(async (data) => {
       import { showToast } from '$lib/toast';
     </script>
 
-    <h1>Создать новую запись</h1>
+    <h1>Создание новой записи</h1>
 
     <form {...createPost.enhance(async ({ form, data, submit }) => {
       try {
@@ -490,7 +835,7 @@ export const createPost = form(async (data) => {
       import { showToast } from '$lib/toast';
     </script>
 
-    <h1>Создать новую запись</h1>
+    <h1>Создание новой записи</h1>
 
     <form {...createPost.enhance(async ({ form, data, submit }) => {
       try {
@@ -527,6 +872,29 @@ await submit().updates(
 ```
 
 Переопределённые данные применяются немедленно и сбрасываются после завершения (или ошибки) отправки формы.
+
+### Несколько экземпляров формы
+
+Некоторые формы могут повторяться как часть списка. В этом случае вы можете создавать отдельные экземпляры функции формы с помощью `for(id)`, чтобы обеспечить их изоляцию.
+
+Если каждый экземпляр должен отображать разные значения, передайте их в качестве второго аргумента в `.as(...)`:
+
+```svelte
+// src/routes/todos/+page.svelte
+<script>
+  import { getTodos, modifyTodo } from '../data.remote';
+</script>
+
+<h1>Список дел</h1>
+
+{#each await getTodos() as todo}
+  {@const modify = modifyTodo.for(todo.id)}
+  <form {...modify}>
+    <input {...modify.fields.description.as('text', todo.description)} />
+    <button disabled={!!modify.pending}>Сохранить изменения</button>
+  </form>
+{/each}
+```
 
 ### Несколько кнопок отправки
 
