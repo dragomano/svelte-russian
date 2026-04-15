@@ -120,6 +120,14 @@ Your `console.%method%` contained `$state` proxies. Consider using `$inspect(...
 
 Самый простой способ залогировать изменяющееся значение — использовать руну [`$inspect`](/runes/inspect). В качестве альтернативы, для разового логирования (например, в обработчике событий) можно использовать [`$state.snapshot`](/runes/state#statesnapshot), чтобы получить снимок текущего значения.
 
+### derived_inert
+
+```
+Reading a derived belonging to a now-destroyed effect may result in stale values
+```
+
+Значение `$derived`, созданное внутри эффекта, перестанет обновляться, когда эффект будет уничтожен. Вам следует создать `$derived` вне эффекта или внутри `$effect.root`.
+
 ### event_handler_invalid
 
 ```
