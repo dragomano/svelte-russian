@@ -43,3 +43,9 @@ sidebar:
 <div style:color="red" style="color: blue">Это будет красным</div>
 <div style:color="red" style="color: blue !important">Это всё равно будет красным</div>
 ```
+
+Вы можете устанавливать пользовательские CSS-свойства:
+
+```svelte
+<div style:--columns={columns}>...</div>
+```
