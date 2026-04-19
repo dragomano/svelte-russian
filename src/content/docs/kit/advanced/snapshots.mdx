@@ -1,0 +1,66 @@
+---
+title: Снимки
+origin: https://svelte.dev/docs/kit/snapshots
+sidebar:
+  order: 6
+---
+
+Эфемерное состояние DOM — такое как позиции прокрутки в боковых панелях, содержимое элементов `<input>` и тому подобное — теряется при переходе с одной страницы на другую.
+
+Например, если пользователь заполнил форму, но ушёл с неё и вернулся обратно до отправки, или если пользователь обновил страницу, введённые им значения будут потеряны. В случаях, когда важно сохранить такие данные, можно сделать _снимок_ состояния DOM, который потом можно восстановить, если пользователь вернётся назад.
+
+Для этого нужно экспортировать объект `snapshot` с методами `capture` и `restore` из компонента `+page.svelte` или `+layout.svelte`:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // +page.svelte
+    <script>
+      let comment = $state('');
+
+      /** @type {import('./$types').Snapshot<string>} */
+      export const snapshot = {
+        capture: () => comment,
+        restore: (value) => comment = value
+      };
+    </script>
+
+    <form method="POST">
+      <label for="comment">Комментарий</label>
+      <textarea id="comment" bind:value={comment} />
+      <button>Отправить комментарий</button>
+    </form>
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // +page.svelte
+    <script lang="ts">
+      import type { Snapshot } from './$types';
+
+      let comment = $state('');
+
+      export const snapshot: Snapshot<string> = {
+        capture: () => comment,
+        restore: (value) => comment = value
+      };
+    </script>
+
+    <form method="POST">
+      <label for="comment">Комментарий</label>
+      <textarea id="comment" bind:value={comment} />
+      <button>Отправить комментарий</button>
+    </form>
+    ```
+  </TabItem>
+</Tabs>
+
+Когда вы уходите с этой страницы, функция `capture` вызывается непосредственно перед обновлением страницы, а возвращённое значение ассоциируется с текущей записью в стеке истории браузера. Если вы вернётесь назад, функция `restore` будет вызвана с сохранённым значением сразу после обновления страницы.
+
+Данные должны быть сериализуемыми в JSON, чтобы их можно было сохранить в `sessionStorage`. Это позволяет восстановить состояние при перезагрузке страницы или когда пользователь возвращается назад с другого сайта.
+
+:::note
+Избегайте возврата очень больших объектов из `capture` — после захвата объекты будут удерживаться в памяти на протяжении всей сессии, а в крайних случаях могут оказаться слишком большими для сохранения в `sessionStorage`.
+:::
