@@ -1,0 +1,190 @@
+---
+title: Поверхностная маршрутизация
+origin: https://svelte.dev/docs/kit/shallow-routing
+sidebar:
+  order: 7
+---
+
+Когда вы перемещаетесь по приложению SvelteKit, создаются _записи истории_. При нажатии кнопок «Назад» и «Вперёд» происходит перемещение по этому списку записей, при этом заново выполняются любые функции `load` и заменяются компоненты страницы по мере необходимости.
+
+Иногда бывает полезно создавать записи истории _без_ перехода на другую страницу. Например, вы можете захотеть показать модальное окно (диалог), которое пользователь сможет закрыть, нажав кнопку «Назад». Это особенно ценно на мобильных устройствах, где жесты смахивания (swipe) часто более естественны, чем прямое взаимодействие с интерфейсом. В таких случаях модальное окно, _не_ связанное с записью истории, может вызывать раздражение: пользователь может смахнуть назад, пытаясь его закрыть, и в итоге окажется на неправильной странице.
+
+SvelteKit делает это возможным с помощью функций [`pushState`](https://svelte.dev/docs/kit/$app-navigation#pushState) и [`replaceState`](https://svelte.dev/docs/kit/$app-navigation#replaceState). Они позволяют ассоциировать состояние с записью истории без перехода на другую страницу. Например, для реализации модального окна, управляемого через историю:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // +page.svelte
+    <script>
+      import { pushState } from '$app/navigation';
+      import { page } from '$app/state';
+      import Modal from './Modal.svelte';
+
+      function showModal() {
+        pushState('', {
+          showModal: true
+        });
+      }
+    </script>
+
+    {#if page.state.showModal}
+      <Modal close={() => history.back()} />
+    {/if}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // +page.svelte
+    <script lang="ts">
+      import { pushState } from '$app/navigation';
+      import { page } from '$app/state';
+      import Modal from './Modal.svelte';
+
+      function showModal() {
+        pushState('', {
+          showModal: true
+        });
+      }
+    </script>
+
+    {#if page.state.showModal}
+      <Modal close={() => history.back()} />
+    {/if}
+    ```
+  </TabItem>
+</Tabs>
+
+Модальное окно можно закрыть, перейдя назад (сбросив `page.state.showModal`) или взаимодействуя с ним таким образом, чтобы выполнился колбэк `close`, который программно выполнит переход назад.
+
+## API
+
+Первый аргумент `pushState` — это URL относительно текущего URL. Чтобы остаться на текущем URL, используйте `''`.
+
+Второй аргумент — новое состояние страницы, которое можно получить через [объект page](https://svelte.dev/docs/kit/$app-state#page) как `page.state`. Вы можете сделать состояние страницы типобезопасным, объявив интерфейс [`App.PageState`](https://svelte.dev/docs/kit/types#PageState) (обычно в `src/app.d.ts`).
+
+Чтобы установить состояние страницы без создания новой записи в истории, используйте `replaceState` вместо `pushState`.
+
+:::caution
+`page.state` из `$app/state` был добавлен в SvelteKit 2.12. Если вы используете более раннюю версию или Svelte 4, используйте `$page.state` из `$app/stores`.
+:::
+
+## Загрузка данных для маршрута
+
+При поверхностной маршрутизации вам может понадобиться отрисовать другой компонент `+page.svelte` внутри текущей страницы. Например, при клике на миниатюру фото может открыться детальный просмотр без перехода на страницу фото.
+
+Для этого нужно загрузить данные, которые ожидает `+page.svelte`. Удобный способ — использовать [`preloadData`](https://svelte.dev/docs/kit/$app-navigation#preloadData) внутри обработчика `click` элемента `<a>`. Если элемент (или его родитель) использует атрибут [`data-sveltekit-preload-data`](/kit/advanced/link-options/#data-sveltekit-preload-data), данные уже будут запрошены, и `preloadData` повторно использует этот запрос.
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```js
+    // src/routes/photos/+page.svelte
+    <script>
+      import { preloadData, pushState, goto } from '$app/navigation';
+      import { page } from '$app/state';
+      import Modal from './Modal.svelte';
+      import PhotoPage from './[id]/+page.svelte';
+
+      let { data } = $props();
+    </script>
+
+    {#each data.thumbnails as thumbnail}
+      <a
+        href="/photos/{thumbnail.id}"
+        onclick={async (e) => {
+          if (innerWidth < 640        // выходим, если экран слишком маленький
+            || e.shiftKey             // или ссылка открывается в новом окне
+            || e.metaKey || e.ctrlKey // или в новой вкладке (mac: metaKey, win/linux: ctrlKey)
+            // также стоит учитывать клик колёсиком мыши
+          ) return;
+
+          // предотвращаем навигацию
+          e.preventDefault();
+
+          const { href } = e.currentTarget;
+
+          // запускаем функции `load` (точнее, получаем результат функций `load`,
+          // которые уже выполняются благодаря `data-sveltekit-preload-data`)
+          const result = await preloadData(href);
+
+          if (result.type === 'loaded' && result.status === 200) {
+            pushState(href, { selected: result.data });
+          } else {
+            // что-то пошло не так! попробуем перейти обычным способом
+            goto(href);
+          }
+        }}
+      >
+        <img alt={thumbnail.alt} src={thumbnail.src} />
+      </a>
+    {/each}
+
+    {#if page.state.selected}
+      <Modal onclose={() => history.back()}>
+        <!-- передаём данные страницы в компонент +page.svelte
+            так же, как это сделал бы SvelteKit при навигации -->
+        <PhotoPage data={page.state.selected} />
+      </Modal>
+    {/if}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```ts
+    // src/routes/photos/+page.svelte
+    <script lang="ts">
+      import { preloadData, pushState, goto } from '$app/navigation';
+      import { page } from '$app/state';
+      import Modal from './Modal.svelte';
+      import PhotoPage from './[id]/+page.svelte';
+
+      let { data } = $props();
+    </script>
+
+    {#each data.thumbnails as thumbnail}
+      <a
+        href="/photos/{thumbnail.id}"
+        onclick={async (e) => {
+          if (innerWidth < 640        // выходим, если экран слишком маленький
+            || e.shiftKey             // или ссылка открывается в новом окне
+            || e.metaKey || e.ctrlKey // или в новой вкладке (mac: metaKey, win/linux: ctrlKey)
+            // также стоит учитывать клик колёсиком мыши
+          ) return;
+
+          // предотвращаем навигацию
+          e.preventDefault();
+
+          const { href } = e.currentTarget;
+
+          // запускаем функции `load` (точнее, получаем результат функций `load`,
+          // которые уже выполняются благодаря `data-sveltekit-preload-data`)
+          const result = await preloadData(href);
+
+          if (result.type === 'loaded' && result.status === 200) {
+            pushState(href, { selected: result.data });
+          } else {
+            // что-то пошло не так! попробуем перейти обычным способом
+            goto(href);
+          }
+        }}
+      >
+        <img alt={thumbnail.alt} src={thumbnail.src} />
+      </a>
+    {/each}
+
+    {#if page.state.selected}
+      <Modal onclose={() => history.back()}>
+        <!-- передаём данные страницы в компонент +page.svelte
+            так же, как это сделал бы SvelteKit при навигации -->
+        <PhotoPage data={page.state.selected} />
+      </Modal>
+    {/if}
+    ```
+  </TabItem>
+</Tabs>
+
+## Предупреждения
+
+Во время серверного рендеринга (SSR) `page.state` всегда является пустым объектом. То же самое относится к первой странице, на которую попадает пользователь — если пользователь перезагрузит страницу (или вернётся из другого документа), состояние _не_ будет применено, пока он не выполнит навигацию.
+
+Поверхностная маршрутизация — это функция, которая требует JavaScript для работы. Будьте внимательны при её использовании и старайтесь предусмотреть разумное резервное поведение на случай, если JavaScript недоступен.
