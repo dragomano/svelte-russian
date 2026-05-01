@@ -274,7 +274,7 @@ test('Component', () => {
   expect(document.body.innerHTML).toBe('<button>0</button>');
 
   // Нажимаем кнопку, затем выполняем сброс изменений, чтобы можно было синхронно записать ожидания
-  document.body.querySelector('button').click();
+  document.body.querySelector('button')?.click();
   flushSync();
 
   expect(document.body.innerHTML).toBe('<button>1</button>');
