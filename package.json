@@ -8,9 +8,6 @@
     "preview": "astro preview",
     "astro": "astro"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": ["@parcel/watcher", "esbuild", "sharp"]
-  },
   "dependencies": {
     "@astrojs/starlight": "^0.39.0",
     "@astrojs/svelte": "^8.1.0",
