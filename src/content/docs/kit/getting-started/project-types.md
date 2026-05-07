@@ -47,7 +47,7 @@ SvelteKit легко развернуть на serverless-платформах. 
 
 ### Библиотеки
 
-С помощью [`@sveltejs/package`](https://svelte.dev/docs/kit/packaging) (опция `library` в `sv create`) можно создавать библиотеки для других Svelte-приложений.
+С помощью [`@sveltejs/package`](/kit/advanced/packaging) (опция `library` в `sv create`) можно создавать библиотеки для других Svelte-приложений.
 
 ### Офлайн-приложения
 
