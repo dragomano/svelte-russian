@@ -24,39 +24,39 @@ export default defineConfig({
             items: [
               {
                 label: 'Введение',
-                autogenerate: { directory: 'introduction' },
+                items: [{ autogenerate: { directory: 'introduction' } }],
               },
               {
                 label: 'Руны',
-                autogenerate: { directory: 'runes' },
+                items: [{ autogenerate: { directory: 'runes' } }],
               },
               {
                 label: 'Синтаксис шаблонов',
                 collapsed: true,
-                autogenerate: { directory: 'template-syntax' },
+                items: [{ autogenerate: { directory: 'template-syntax' } }],
               },
               {
                 label: 'Стилизация',
-                autogenerate: { directory: 'styling' },
+                items: [{ autogenerate: { directory: 'styling' } }],
               },
               {
                 label: 'Специальные элементы',
                 collapsed: true,
-                autogenerate: { directory: 'special-elements' },
+                items: [{ autogenerate: { directory: 'special-elements' } }],
               },
               {
                 label: 'Рантайм',
                 collapsed: true,
-                autogenerate: { directory: 'runtime' },
+                items: [{ autogenerate: { directory: 'runtime' } }],
               },
               {
                 label: 'Разное',
-                autogenerate: { directory: 'misc' },
+                items: [{ autogenerate: { directory: 'misc' } }],
               },
               {
                 label: 'Справочник',
                 collapsed: true,
-                autogenerate: { directory: 'reference' },
+                items: [{ autogenerate: { directory: 'reference' } }],
               },
               {
                 label: 'Обучающие статьи и ролики',
@@ -72,19 +72,19 @@ export default defineConfig({
             items: [
               {
                 label: 'Начало работы',
-                autogenerate: { directory: 'kit/getting-started' },
+                items: [{ autogenerate: { directory: 'kit/getting-started' } }],
               },
               {
                 label: 'Основные концепции',
-                autogenerate: { directory: 'kit/core-concepts' },
+                items: [{ autogenerate: { directory: 'kit/core-concepts' } }],
               },
               {
                 label: 'Сборка и развёртывание',
-                autogenerate: { directory: 'kit/build-and-deploy' },
+                items: [{ autogenerate: { directory: 'kit/build-and-deploy' } }],
               },
               {
                 label: 'Дополнительно',
-                autogenerate: { directory: 'kit/advanced' },
+                items: [{ autogenerate: { directory: 'kit/advanced' } }],
               },
             ],
           },
@@ -96,11 +96,11 @@ export default defineConfig({
             items: [
               {
                 label: 'Общая информация',
-                autogenerate: { directory: 'cli/introduction' },
+                items: [{ autogenerate: { directory: 'cli/introduction' } }],
               },
               {
                 label: 'Команды',
-                autogenerate: { directory: 'cli/commands' },
+                items: [{ autogenerate: { directory: 'cli/commands' } }],
               },
             ],
           },
@@ -112,15 +112,15 @@ export default defineConfig({
             items: [
               {
                 label: 'Общая информация',
-                autogenerate: { directory: 'mcp/introduction' },
+                items: [{ autogenerate: { directory: 'mcp/introduction' } }],
               },
               {
                 label: 'Настройка',
-                autogenerate: { directory: 'mcp/setup' },
+                items: [{ autogenerate: { directory: 'mcp/setup' } }],
               },
               {
                 label: 'Возможности',
-                autogenerate: { directory: 'mcp/capabilities' },
+                items: [{ autogenerate: { directory: 'mcp/capabilities' } }],
               },
             ],
           },
