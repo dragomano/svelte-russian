@@ -86,6 +86,10 @@ export default defineConfig({
                 label: 'Дополнительно',
                 items: [{ autogenerate: { directory: 'kit/advanced' } }],
               },
+              {
+                label: 'Лучшие практики',
+                items: [{ autogenerate: { directory: 'kit/best-practices' } }],
+              },
             ],
           },
           {
