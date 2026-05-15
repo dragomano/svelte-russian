@@ -109,22 +109,34 @@ export default defineConfig({
             ],
           },
           {
-            id: 'mcp',
-            label: 'MCP',
-            link: '/mcp/introduction/overview',
-            icon: 'information',
+            id: 'ai',
+            label: 'ИИ',
+            link: '/ai/overview',
+            icon: 'desktop',
             items: [
               {
-                label: 'Общая информация',
-                items: [{ autogenerate: { directory: 'mcp/introduction' } }],
+                label: 'Введение',
+                link: 'ai/overview',
               },
               {
-                label: 'Настройка',
-                items: [{ autogenerate: { directory: 'mcp/setup' } }],
+                label: 'Инструкции',
+                link: 'ai/instructions',
               },
               {
-                label: 'Возможности',
-                items: [{ autogenerate: { directory: 'mcp/capabilities' } }],
+                label: 'MCP-сервер',
+                items: [{ autogenerate: { directory: 'ai/mcp' } }],
+              },
+              {
+                label: 'Навыки',
+                link: 'ai/skills',
+              },
+              {
+                label: 'Субагенты',
+                link: 'ai/subagents',
+              },
+              {
+                label: 'Плагины',
+                items: [{ autogenerate: { directory: 'ai/plugins' } }],
               },
             ],
           },
