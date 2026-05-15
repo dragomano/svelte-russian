@@ -1,0 +1,69 @@
+---
+title: AGENTS.md
+origin: https://svelte.dev/docs/ai/instructions
+---
+
+Чтобы получить максимум от [MCP-сервера](/ai/mcp) и [навыков](/ai/skills), мы рекомендуем добавить следующий промпт в ваш файл [`AGENTS.md`](https://agents.md) (или [`CLAUDE.md`](https://docs.claude.com/en/docs/claude-code/memory#claude-md-imports), если используете Claude Code, либо [`GEMINI.md`](https://geminicli.com/docs/cli/gemini-md/)). Это сообщит вашему агенту, какие инструменты доступны и когда их целесообразно использовать.
+
+:::note
+Это уже настроено автоматически, если вы использовали команду `npx sv add mcp`
+:::
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs>
+  <TabItem label="На английском">
+    ````markdown
+    You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
+
+    ## Available Svelte MCP Tools:
+
+    ### 1. list-sections
+
+    Use this FIRST to discover all available documentation sections. Returns a structured list with titles, use_cases, and paths.
+    When asked about Svelte or SvelteKit topics, ALWAYS use this tool at the start of the chat to find relevant sections.
+
+    ### 2. get-documentation
+
+    Retrieves full documentation content for specific sections. Accepts single or multiple sections.
+    After calling the list-sections tool, you MUST analyze the returned documentation sections (especially the use_cases field) and then use the get-documentation tool to fetch ALL documentation sections that are relevant for the user's task.
+
+    ### 3. svelte-autofixer
+
+    Analyzes Svelte code and returns issues and suggestions.
+    You MUST use this tool whenever writing Svelte code before sending it to the user. Keep calling it until no issues or suggestions are returned.
+
+    ### 4. playground-link
+
+    Generates a Svelte Playground link with the provided code.
+    After completing the code, ask the user if they want a playground link. Only call this tool after user confirmation and NEVER if code was written to files in their project.
+    ````
+  </TabItem>
+  <TabItem label="На русском (расход токенов больше)">
+    ````markdown
+    Ты можешь использовать сервер Svelte MCP, где есть доступ к всесторонней документации по Svelte 5 и SvelteKit. Вот как эффективно использовать доступные инструменты:
+
+    ## Доступные инструменты Svelte MCP:
+
+    ### 1. list-sections
+
+    Используй этот ПЕРВЫМ, чтобы обнаружить все доступные разделы документации. Возвращает структурированный список с заголовками, use_cases и путями.
+    Когда спрашивают о темах Svelte или SvelteKit, ВСЕГДА используй этот инструмент в начале чата, чтобы найти релевантные разделы.
+
+    ### 2. get-documentation
+
+    Получает полный контент документации для конкретных разделов. Принимает один или несколько разделов.
+    После вызова инструмента list-sections ты ДОЛЖЕН проанализировать возвращённые разделы документации (особенно поле use_cases), а затем использовать инструмент get-documentation, чтобы получить ВСЕ релевантные разделы документации для задачи пользователя.
+
+    ### 3. svelte-autofixer
+
+    Анализирует код Svelte и возвращает проблемы и предложения.
+    Ты ДОЛЖЕН использовать этот инструмент каждый раз при написании кода Svelte перед отправкой его пользователю. Продолжай вызывать его, пока не будут возвращены проблемы или предложения.
+
+    ### 4. playground-link
+
+    Генерирует ссылку на Svelte Playground с предоставленным кодом.
+    После завершения кода спроси пользователя, хочет ли он ссылку на playground. Вызывай этот инструмент только после подтверждения пользователя и НИКОГДА, если код был записан в файлы проекта.
+    ````
+  </TabItem>
+</Tabs>
