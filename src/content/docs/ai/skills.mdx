@@ -1,0 +1,528 @@
+---
+title: Навыки
+origin: https://svelte.dev/docs/ai/skills
+---
+
+Это список доступных навыков, предоставляемых пакетом Svelte MCP. Навыки — это наборы инструкций, которые ИИ-агенты могут подгружать по требованию для помощи в конкретных задачах.
+
+Навыки доступны как в плагине Claude Code (устанавливается через маркетплейс), так и в плагине OpenCode (`@sveltejs/opencode`). Их также можно установить вручную в папки `.claude/skills` или `.opencode/skills`.
+
+Вы можете скачать последние версии навыков со [страницы релизов](https://github.com/sveltejs/ai-tools/releases) репозитория или найти их в папке [`plugins/svelte/skills`](https://github.com/sveltejs/ai-tools/tree/main/plugins/svelte/skills).
+
+## `svelte-code-writer`
+
+Инструменты командной строки для поиска документации Svelte 5 и анализа кода. **ДОЛЖЕН** использоваться при создании, редактировании или анализе любого Svelte-компонента (.svelte) или Svelte-модуля (.svelte.ts/.svelte.js). По возможности этот навык следует выполнять внутри агента `svelte-file-editor` для наилучших результатов.
+
+---
+
+<a href="https://github.com/sveltejs/ai-tools/releases?q=svelte-code-writer" target="_blank" rel="noopener noreferrer">Открыть страницу релизов</a>
+
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<details>
+  <summary>Посмотреть содержимое навыка</summary>
+
+<Tabs>
+  <TabItem label="На английском">
+    ````markdown
+    # Svelte 5 Code Writer
+
+    ## CLI Tools
+
+    You have access to `@sveltejs/mcp` CLI for Svelte-specific assistance. Use these commands via `npx`:
+
+    ### List Documentation Sections
+
+    ```bash
+    npx @sveltejs/mcp list-sections
+    ```
+
+    Lists all available Svelte 5 and SvelteKit documentation sections with titles and paths.
+
+    ### Get Documentation
+
+    ```bash
+    npx @sveltejs/mcp get-documentation "<section1>,<section2>,..."
+    ```
+
+    Retrieves full documentation for specified sections. Use after `list-sections` to fetch relevant docs.
+
+    **Example:**
+
+    ```bash
+    npx @sveltejs/mcp get-documentation "$state,$derived,$effect"
+    ```
+
+    ### Svelte Autofixer
+
+    ```bash
+    npx @sveltejs/mcp svelte-autofixer "<code_or_path>" [options]
+    ```
+
+    Analyzes Svelte code and suggests fixes for common issues.
+
+    **Options:**
+
+    - `--async` - Enable async Svelte mode (default: false)
+    - `--svelte-version` - Target version: 4 or 5 (default: 5)
+
+    **Examples:**
+
+    ```bash
+    # Analyze inline code (escape $ as \$)
+    npx @sveltejs/mcp svelte-autofixer '<script>let count = \$state(0);</script>'
+
+    # Analyze a file
+    npx @sveltejs/mcp svelte-autofixer ./src/lib/Component.svelte
+
+    # Target Svelte 4
+    npx @sveltejs/mcp svelte-autofixer ./Component.svelte --svelte-version 4
+    ```
+
+    **Important:** When passing code with runes (`$state`, `$derived`, etc.) via the terminal, escape the `$` character as `\$` to prevent shell variable substitution.
+
+    ## Workflow
+
+    1. **Uncertain about syntax?** - Run `list-sections` then `get-documentation` for relevant topics
+    2. **Reviewing/debugging?** - Run `svelte-autofixer` on the code to detect issues
+    3. **Always validate** - Run `svelte-autofixer` before finalizing any Svelte component
+    ````
+  </TabItem>
+  <TabItem label="На русском (расход токенов больше)">
+    ````markdown
+    # Написание кода на Svelte 5
+
+    ## CLI-инструменты
+
+    Для помощи со Svelte доступен CLI `@sveltejs/mcp`. Используй команды через `npx`:
+
+    ### Список разделов документации
+
+    ```bash
+    npx @sveltejs/mcp list-sections
+    ```
+
+    Выводит все доступные разделы документации Svelte 5 и SvelteKit с заголовками и путями.
+
+    ### Получение документации
+
+    ```bash
+    npx @sveltejs/mcp get-documentation "<раздел1>,<раздел2>,..."
+    ```
+
+    Загружает полную документацию по указанным разделам. Используй после `list-sections` для получения нужных материалов.
+
+    **Пример:**
+
+    ```bash
+    npx @sveltejs/mcp get-documentation "$state,$derived,$effect"
+    ```
+
+    ### Автоисправление Svelte
+
+    ```bash
+    npx @sveltejs/mcp svelte-autofixer "<код_или_путь>" [опции]
+    ```
+
+    Анализирует код Svelte и предлагает исправления распространённых проблем.
+
+    **Опции:**
+
+    - `--async` — включить асинхронный режим Svelte (по умолчанию: false)
+    - `--svelte-version` — целевая версия: 4 или 5 (по умолчанию: 5)
+
+    **Примеры:**
+
+    ```bash
+    # Анализ встроенного кода (экранируй $ как \$)
+    npx @sveltejs/mcp svelte-autofixer '<script>let count = \$state(0);</script>'
+
+    # Анализ файла
+    npx @sveltejs/mcp svelte-autofixer ./src/lib/Component.svelte
+
+    # Целевая версия Svelte 4
+    npx @sveltejs/mcp svelte-autofixer ./Component.svelte --svelte-version 4
+    ```
+
+    **Важно:** при передаче кода с рунами (`$state`, `$derived` и др.) через терминал экранируй символ `$` как `\$`, чтобы избежать подстановки переменных оболочки.
+
+    ## Рабочий процесс
+
+    1. **Не уверен в синтаксисе?** — запусти `list-sections`, затем `get-documentation` по нужным темам
+    2. **Ревью или отладка?** — запусти `svelte-autofixer` на коде для выявления проблем
+    3. **Всегда проверяй** — запускай `svelte-autofixer` перед финализацией любого компонента Svelte
+    ````
+  </TabItem>
+</Tabs>
+
+</details>
+
+## `svelte-core-bestpractices`
+
+Руководство по написанию быстрого, надёжного и современного кода на Svelte. Подгружай этот навык всегда, когда работаешь в проекте на Svelte и тебя просят написать, отредактировать или проанализировать Svelte-компонент или модуль. Охватывает реактивность, обработку событий, стилизацию, интеграцию со сторонними библиотеками и многое другое.
+
+---
+
+<a href="https://github.com/sveltejs/ai-tools/releases?q=svelte-core-bestpractices" target="_blank" rel="noopener noreferrer">Открыть страницу релизов</a>
+
+---
+
+<details>
+  <summary>Посмотреть содержимое навыка</summary>
+
+<Tabs>
+  <TabItem label="На английском">
+    ````markdown
+    ## `$state`
+
+    Only use the `$state` rune for variables that should be _reactive_ — in other words, variables that cause an `$effect`, `$derived` or template expression to update. Everything else can be a normal variable.
+
+    Objects and arrays (`$state({...})` or `$state([...])`) are made deeply reactive, meaning mutation will trigger updates. This has a trade-off: in exchange for fine-grained reactivity, the objects must be proxied, which has performance overhead. In cases where you're dealing with large objects that are only ever reassigned (rather than mutated), use `$state.raw` instead. This is often the case with API responses, for example.
+
+    ## `$derived`
+
+    To compute something from state, use `$derived` rather than `$effect`:
+
+    ```js
+    // do this
+    let square = $derived(num * num);
+
+    // don't do this
+    let square;
+
+    $effect(() => {
+      square = num * num;
+    });
+    ```
+
+    > [!NOTE] `$derived` is given an expression, _not_ a function. If you need to use a function (because the expression is complex, for example) use `$derived.by`.
+
+    Deriveds are writable — you can assign to them, just like `$state`, except that they will re-evaluate when their expression changes.
+
+    If the derived expression is an object or array, it will be returned as-is — it is _not_ made deeply reactive. You can, however, use `$state` inside `$derived.by` in the rare cases that you need this.
+
+    ## `$effect`
+
+    Effects are an escape hatch and should mostly be avoided. In particular, avoid updating state inside effects.
+
+    - If you need to sync state to an external library such as D3, it is often neater to use [`{@attach ...}`](references/@attach.md)
+    - If you need to run some code in response to user interaction, put the code directly in an event handler or use a [function binding](references/bind.md) as appropriate
+    - If you need to log values for debugging purposes, use [`$inspect`](references/$inspect.md)
+    - If you need to observe something external to Svelte, use [`createSubscriber`](references/svelte-reactivity.md)
+
+    Never wrap the contents of an effect in `if (browser) {...}` or similar — effects do not run on the server.
+
+    ## `$props`
+
+    Treat props as though they will change. For example, values that depend on props should usually use `$derived`:
+
+    ```js
+    // @errors: 2451
+    let { type } = $props();
+
+    // do this
+    let color = $derived(type === 'danger' ? 'red' : 'green');
+
+    // don't do this — `color` will not update if `type` changes
+    let color = type === 'danger' ? 'red' : 'green';
+    ```
+
+    ## `$inspect.trace`
+
+    `$inspect.trace` is a debugging tool for reactivity. If something is not updating properly or running more than it should you can add `$inspect.trace(label)` as the first line of an `$effect` or `$derived.by` (or any function they call) to trace their dependencies and discover which one triggered an update.
+
+    ## Events
+
+    Any element attribute starting with `on` is treated as an event listener:
+
+    ```svelte
+    <button onclick={() => {...}}>click me</button>
+
+    <!-- attribute shorthand also works -->
+    <button {onclick}>...</button>
+
+    <!-- so do spread attributes -->
+    <button {...props}>...</button>
+    ```
+
+    If you need to attach listeners to `window` or `document` you can use `<svelte:window>` and `<svelte:document>`:
+
+    ```svelte
+    <svelte:window onkeydown={...} />
+    <svelte:document onvisibilitychange={...} />
+    ```
+
+    Avoid using `onMount` or `$effect` for this.
+
+    ## Snippets
+
+    [Snippets](references/snippet.md) are a way to define reusable chunks of markup that can be instantiated with the [`{@render ...}`](references/@render.md) tag, or passed to components as props. They must be declared within the template.
+
+    ```svelte
+    {#snippet greeting(name)}
+      <p>hello {name}!</p>
+    {/snippet}
+
+    {@render greeting('world')}
+    ```
+
+    > [!NOTE] Snippets declared at the top level of a component (i.e. not inside elements or blocks) can be referenced inside `<script>`. A snippet that doesn't reference component state is also available in a `<script module>`, in which case it can be exported for use by other components.
+
+    ## Each blocks
+
+    Prefer to use [keyed each blocks](references/each.md) — this improves performance by allowing Svelte to surgically insert or remove items rather than updating the DOM belonging to existing items.
+
+    > [!NOTE] The key _must_ uniquely identify the object. Do not use the index as a key.
+
+    Avoid destructuring if you need to mutate the item (with something like `bind:value={item.count}`, for example).
+
+    ## Using JavaScript variables in CSS
+
+    If you have a JS variable that you want to use inside CSS you can set a CSS custom property with the `style:` directive.
+
+    ```svelte
+    <div style:--columns={columns}>...</div>
+    ```
+
+    You can then reference `var(--columns)` inside the component's `<style>`.
+
+    ## Styling child components
+
+    The CSS in a component's `<style>` is scoped to that component. If a parent component needs to control the child's styles, the preferred way is to use CSS custom properties:
+
+    ```svelte
+    <!-- Parent.svelte -->
+    <Child --color="red" />
+
+    <!-- Child.svelte -->
+    <h1>Hello</h1>
+
+    <style>
+      h1 {
+        color: var(--color);
+      }
+    </style>
+    ```
+
+    If this is impossible (for example, the child component comes from a library) you can use `:global` to override styles:
+
+    ```svelte
+    <div>
+      <Child />
+    </div>
+
+    <style>
+      div :global {
+        h1 {
+          color: red;
+        }
+      }
+    </style>
+    ```
+
+    ## Context
+
+    Consider using context instead of declaring state in a shared module. This will scope the state to the part of the app that needs it, and eliminate the possibility of it leaking between users when server-side rendering.
+
+    Use `createContext` rather than `setContext` and `getContext`, as it provides type safety.
+
+    ## Async Svelte
+
+    If using version 5.36 or higher, you can use [await expressions](references/await-expressions.md) and [hydratable](references/hydratable.md) to use promises directly inside components. Note that these require the `experimental.async` option to be enabled in `svelte.config.js` as they are not yet considered fully stable.
+
+    ## Avoid legacy features
+
+    Always use runes mode for new code, and avoid features that have more modern replacements:
+
+    - use `$state` instead of implicit reactivity (e.g. `let count = 0; count += 1`)
+    - use `$derived` and `$effect` instead of `$:` assignments and statements (but only use effects when there is no better solution)
+    - use `$props` instead of `export let`, `$$props` and `$$restProps`
+    - use `onclick={...}` instead of `on:click={...}`
+    - use `{#snippet ...}` and `{@render ...}` instead of `<slot>` and `$$slots` and `<svelte:fragment>`
+    - use `<DynamicComponent>` instead of `<svelte:component this={DynamicComponent}>`
+    - use `import Self from './ThisComponent.svelte'` and `<Self>` instead of `<svelte:self>`
+    - use classes with `$state` fields to share reactivity between components, instead of using stores
+    - use `{@attach ...}` instead of `use:action`
+    - use clsx-style arrays and objects in `class` attributes, instead of the `class:` directive
+    ````
+  </TabItem>
+  <TabItem label="На русском (расход токенов больше)">
+    ````markdown
+    ## `$state`
+
+    Используй руну `$state` только для переменных, которые должны быть _реактивными_ — то есть переменных, которые вызывают обновление `$effect`, `$derived` или выражения в шаблоне. Всё остальное может быть обычной переменной.
+
+    Объекты и массивы (`$state({...})` или `$state([...])`) становятся глубоко реактивными, то есть мутация будет вызывать обновления. У этого есть компромисс: в обмен на точечную реактивность объекты должны быть проксированы, что создаёт накладные расходы по производительности. Если ты работаешь с большими объектами, которые только переназначаются (а не мутируются), используй вместо этого `$state.raw`. Это часто бывает, например, с ответами API.
+
+    ## `$derived`
+
+    Для вычисления чего-либо из состояния используй `$derived`, а не `$effect`:
+
+    ```js
+    // делай так
+    let square = $derived(num * num);
+
+    // не делай так
+    let square;
+
+    $effect(() => {
+      square = num * num;
+    });
+    ```
+
+    > [!NOTE] `$derived` принимает выражение, _а не_ функцию. Если нужно использовать функцию (например, потому что выражение сложное), используй `$derived.by`.
+
+    Производные значения доступны для записи — им можно присваивать значения, как и `$state`, только они будут пересчитываться при изменении своего выражения.
+
+    Если выражение производного значения является объектом или массивом, он возвращается как есть — он _не_ становится глубоко реактивным. Однако в редких случаях, когда это нужно, можно использовать `$state` внутри `$derived.by`.
+
+    ## `$effect`
+
+    Эффекты — это запасной выход, которого следует в основном избегать. В частности, избегай обновления состояния внутри эффектов.
+
+    - Если нужно синхронизировать состояние с внешней библиотекой, например D3, зачастую удобнее использовать [`{@attach ...}`](references/@attach.md)
+    - Если нужно запустить код в ответ на действие пользователя, помести код прямо в обработчик события или используй [функциональное связывание](references/bind.md) там, где это уместно
+    - Если нужно логировать значения для отладки, используй [`$inspect`](references/$inspect.md)
+    - Если нужно наблюдать за чем-то внешним по отношению к Svelte, используй [`createSubscriber`](references/svelte-reactivity.md)
+
+    Никогда не оборачивай содержимое эффекта в `if (browser) {...}` и подобное — эффекты не выполняются на сервере.
+
+    ## `$props`
+
+    Относись к пропсам так, будто они будут изменяться. Например, значения, зависящие от пропсов, обычно должны использовать `$derived`:
+
+    ```js
+    // @errors: 2451
+    let { type } = $props();
+
+    // делай так
+    let color = $derived(type === 'danger' ? 'red' : 'green');
+
+    // не делай так — `color` не обновится при изменении `type`
+    let color = type === 'danger' ? 'red' : 'green';
+    ```
+
+    ## `$inspect.trace`
+
+    `$inspect.trace` — это инструмент отладки реактивности. Если что-то не обновляется должным образом или срабатывает чаще, чем нужно, добавь `$inspect.trace(label)` первой строкой в `$effect` или `$derived.by` (или в любую вызываемую ими функцию), чтобы отследить их зависимости и выяснить, какая из них вызвала обновление.
+
+    ## События
+
+    Любой атрибут элемента, начинающийся с `on`, воспринимается как обработчик события:
+
+    ```svelte
+    <button onclick={() => {...}}>нажми меня</button>
+
+    <!-- сокращение атрибута тоже работает -->
+    <button {onclick}>...</button>
+
+    <!-- как и spread-атрибуты -->
+    <button {...props}>...</button>
+    ```
+
+    Если нужно прикрепить обработчики к `window` или `document`, используй `<svelte:window>` и `<svelte:document>`:
+
+    ```svelte
+    <svelte:window onkeydown={...} />
+    <svelte:document onvisibilitychange={...} />
+    ```
+
+    Избегай использования `onMount` или `$effect` для этого.
+
+    ## Сниппеты
+
+    [Сниппеты](references/snippet.md) — это способ определить переиспользуемые фрагменты разметки, которые можно вставлять с помощью тега [`{@render ...}`](references/@render.md) или передавать компонентам как пропсы. Они должны быть объявлены внутри шаблона.
+
+    ```svelte
+    {#snippet greeting(name)}
+      <p>привет, {name}!</p>
+    {/snippet}
+
+    {@render greeting('мир')}
+    ```
+
+    > [!NOTE] Сниппеты, объявленные на верхнем уровне компонента (то есть не внутри элементов или блоков), можно использовать внутри `<script>`. Сниппет, который не обращается к состоянию компонента, также доступен в `<script module>` — в этом случае его можно экспортировать для использования в других компонентах.
+
+    ## Блоки each
+
+    Предпочитай использовать [блоки each с ключом](references/each.md) — это улучшает производительность, позволяя Svelte точечно вставлять или удалять элементы, а не обновлять DOM существующих.
+
+    > [!NOTE] Ключ _должен_ уникально идентифицировать объект. Не используй индекс в качестве ключа.
+
+    Избегай деструктуризации, если нужно мутировать элемент (например, с помощью `bind:value={item.count}`).
+
+    ## Использование переменных JavaScript в CSS
+
+    Если есть JS-переменная, которую нужно использовать внутри CSS, задай CSS-кастомное свойство с помощью директивы `style:`.
+
+    ```svelte
+    <div style:--columns={columns}>...</div>
+    ```
+
+    После этого можно использовать `var(--columns)` внутри блока `<style>` компонента.
+
+    ## Стилизация дочерних компонентов
+
+    CSS в блоке `<style>` компонента ограничен этим компонентом. Если родительскому компоненту нужно управлять стилями дочернего, предпочтительный способ — использовать CSS-кастомные свойства:
+
+    ```svelte
+    <!-- Parent.svelte -->
+    <Child --color="red" />
+
+    <!-- Child.svelte -->
+    <h1>Привет</h1>
+
+    <style>
+      h1 {
+        color: var(--color);
+      }
+    </style>
+    ```
+
+    Если это невозможно (например, дочерний компонент из библиотеки), можно использовать `:global` для переопределения стилей:
+
+    ```svelte
+    <div>
+      <Child />
+    </div>
+
+    <style>
+      div :global {
+        h1 {
+          color: red;
+        }
+      }
+    </style>
+    ```
+
+    ## Контекст
+
+    Рассмотри использование контекста вместо объявления состояния в общем модуле. Это ограничит состояние той частью приложения, которой оно нужно, и исключит возможность его утечки между пользователями при серверном рендеринге.
+
+    Используй `createContext` вместо `setContext` и `getContext`, так как он обеспечивает типобезопасность.
+
+    ## Асинхронный Svelte
+
+    Если используешь версию 5.36 или выше, можно применять [await-выражения](references/await-expressions.md) и [hydratable](references/hydratable.md) для работы с промисами прямо внутри компонентов. Обрати внимание, что для этого требуется включить опцию `experimental.async` в `svelte.config.js`, поскольку они ещё не считаются полностью стабильными.
+
+    ## Избегай устаревших возможностей
+
+    Всегда используй режим рун для нового кода и избегай возможностей, которым есть более современная замена:
+
+    - используй `$state` вместо неявной реактивности (например, `let count = 0; count += 1`)
+    - используй `$derived` и `$effect` вместо `$:`-присвоений и выражений (но используй эффекты только тогда, когда нет лучшего решения)
+    - используй `$props` вместо `export let`, `$$props` и `$$restProps`
+    - используй `onclick={...}` вместо `on:click={...}`
+    - используй `{#snippet ...}` и `{@render ...}` вместо `<slot>`, `$$slots` и `<svelte:fragment>`
+    - используй `<DynamicComponent>` вместо `<svelte:component this={DynamicComponent}>`
+    - используй `import Self from './ThisComponent.svelte'` и `<Self>` вместо `<svelte:self>`
+    - используй классы с полями `$state` для совместного использования реактивности между компонентами вместо хранилищ
+    - используй `{@attach ...}` вместо `use:action`
+    - используй массивы и объекты в стиле clsx в атрибутах `class` вместо директивы `class:`
+    ````
+  </TabItem>
+</Tabs>
+
+</details>
