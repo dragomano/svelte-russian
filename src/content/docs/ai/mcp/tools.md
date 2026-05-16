@@ -1,8 +1,8 @@
 ---
 title: Инструменты
-origin: https://svelte.dev/docs/mcp/tools
+origin: https://svelte.dev/docs/ai/tools
 sidebar:
-  order: 0
+  order: 3
 ---
 
 Следующие инструменты предоставляет сервер MCP модели, которую вы используете. Она может решить вызвать один или несколько из них во время сессии:
