@@ -1,8 +1,8 @@
 ---
 title: Локальная настройка
-origin: https://svelte.dev/docs/mcp/local-setup
+origin: https://svelte.dev/docs/ai/local-setup
 sidebar:
-  order: 0
+  order: 1
 ---
 
 Локальная (или stdio) версия сервера MCP доступна через npm-пакет [`@sveltejs/mcp`](https://www.npmjs.com/package/@sveltejs/mcp). Вы можете либо установить его глобально и затем сослаться на него в вашей конфигурации, либо запустить с помощью `npx`:
@@ -48,6 +48,27 @@ command = "npx"
 args = ["-y", "@sveltejs/mcp"]
 ```
 
+## Copilot CLI
+
+Используйте Copilot CLI для интерактивного добавления сервера MCP:
+
+```bash
+/mcp add
+```
+
+Альтернативно, создайте или отредактируйте `~/.copilot/mcp-config.json` и добавьте следующую конфигурацию:
+
+```json
+{
+  "mcpServers": {
+    "svelte": {
+      "command": "npx",
+      "args": ["-y", "@sveltejs/mcp"]
+    }
+  }
+}
+```
+
 ## Gemini CLI
 
 Чтобы включить локальную версию MCP в Gemini CLI, просто выполните следующую команду:
@@ -60,7 +81,7 @@ gemini mcp add -t stdio -s [scope] svelte npx -y @sveltejs/mcp
 
 ## OpenCode
 
-Выполните команду:
+Вы можете автоматически настроить сервер MCP с помощью [плагина OpenCode](/ai/plugins/opencode-plugin) (рекомендуется). Если вы предпочитаете настроить сервер MCP вручную, выполните:
 
 ```bash
 opencode mcp add
@@ -94,6 +115,8 @@ opencode mcp add
 
 ## Cursor
 
+Вы можете автоматически настроить сервер MCP с помощью [плагина Cursor](/ai/plugins/cursor-plugin) (рекомендуется). Если вы предпочитаете настроить сервер MCP вручную, следуйте инструкциям:
+
 - Откройте палитру команд
 - Выберите «View: Open MCP Settings»
 - Нажмите на «Add custom MCP»
@@ -113,6 +136,12 @@ opencode mcp add
 
 ## Zed
 
+Установите [расширение Svelte MCP Server](https://zed.dev/extensions/svelte-mcp).
+
+<details>
+
+<summary>Настроить вручную</summary>
+
 - Откройте палитру команд
 - Найдите и выберите «agent:open settings»
 - В панели настроек найдите `Model Context Protocol (MCP) Servers`
@@ -129,6 +158,8 @@ opencode mcp add
   }
 }
 ```
+
+</details>
 
 ## Другие клиенты
 
