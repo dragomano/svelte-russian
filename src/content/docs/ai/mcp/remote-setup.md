@@ -1,8 +1,8 @@
 ---
 title: Удалённая настройка
-origin: https://svelte.dev/docs/mcp/remote-setup
+origin: https://svelte.dev/docs/ai/remote-setup
 sidebar:
-  order: 1
+  order: 2
 ---
 
 Удалённая версия сервера MCP доступна по адресу `https://mcp.svelte.dev/mcp`.
@@ -18,6 +18,8 @@ claude mcp add -t http -s [scope] svelte https://mcp.svelte.dev/mcp
 ```
 
 Вы можете выбрать предпочитаемую область видимости — `scope` (она должна быть `user`, `project` или `local`) и `name`.
+
+Если хотите, вы также можете установить плагин `svelte` из [маркетплейса Svelte Claude Code](/ai/plugins/claude-plugin). Он предоставит вам как удалённый сервер, так и полезные [навыки](/ai/skills).
 
 ## Claude Desktop
 
@@ -37,6 +39,26 @@ experimental_use_rmcp_client = true
 url = "https://mcp.svelte.dev/mcp"
 ```
 
+## Copilot CLI
+
+Используйте Copilot CLI для интерактивного добавления сервера MCP:
+
+```bash
+/mcp add
+```
+
+Альтернативно, создайте или отредактируйте `~/.copilot/mcp-config.json` и добавьте следующую конфигурацию:
+
+```json
+{
+  "mcpServers": {
+    "svelte": {
+      "url": "https://mcp.svelte.dev/mcp"
+    }
+  }
+}
+```
+
 ## Gemini CLI
 
 Чтобы использовать удалённый сервер MCP с Gemini CLI, просто выполните следующую команду:
@@ -49,7 +71,7 @@ gemini mcp add -t http -s [scope] svelte https://mcp.svelte.dev/mcp
 
 ## OpenCode
 
-Выполните команду:
+Вы можете автоматически настроить сервер MCP с помощью [плагина OpenCode](/ai/plugins/opencode-plugin) (рекомендуется). Если вы предпочитаете настроить сервер MCP вручную, выполните:
 
 ```bash
 opencode mcp add
@@ -82,6 +104,8 @@ opencode mcp add
 - Выберите, хотите ли вы добавить его как глобальный (`Global`) или сервер MCP для рабочего пространства (`Workspace`)
 
 ## Cursor
+
+Вы можете автоматически настроить сервер MCP с помощью [плагина Cursor](/ai/plugins/cursor-plugin) (рекомендуется). Если вы предпочитаете настроить сервер MCP вручную, следуйте инструкциям:
 
 - Откройте палитру команд
 - Выберите «View: Open MCP Settings»
