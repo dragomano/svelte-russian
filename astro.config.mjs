@@ -2,9 +2,9 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import starlightLinksValidator from 'starlight-links-validator';
-import svelte from '@astrojs/svelte';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
 import starlightUiTweaks from 'starlight-ui-tweaks';
+import svelte from '@astrojs/svelte';
 
 // https://astro.build/config
 export default defineConfig({
