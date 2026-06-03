@@ -1,0 +1,123 @@
+---
+title: "{let/const ...}"
+origin: https://svelte.dev/docs/svelte/declaration-tags
+sidebar:
+  order: 10
+---
+
+Теги объявлений определяют локальные переменные внутри разметки с помощью `const` или `let`:
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      let boxes = [{ width: 10, height: 10 }, { width: 15, height: 15 }];
+    </script>
+
+    {#each boxes as box}
+      {const area = box.width * box.height}
+      {const label = `${box.width} ⨉ ${box.height} = ${area}`}
+
+      <p>{label}</p>
+    {/each}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      let boxes = [{ width: 10, height: 10 }, { width: 15, height: 15 }];
+    </script>
+
+    {#each boxes as box}
+      {const area = box.width * box.height}
+      {const label = `${box.width} ⨉ ${box.height} = ${area}`}
+
+      <p>{label}</p>
+    {/each}
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Теги объявлений доступны начиная со Svelte 5.56.
+:::
+
+:::note
+Синтаксис [`{@const ...}`](/template-syntax/const/) считается устаревшим — используйте теги объявлений вместо него.
+:::
+
+Когда значения должны быть реактивными, вы можете использовать `$state` и `$derived`:
+
+<Tabs syncKey="lang">
+  <TabItem label="JS">
+    ```svelte
+    // App.svelte
+    <script>
+      let user = $state({ name: 'Svelte' });
+      let editing = $state(false);
+    </script>
+
+    <p>Привет, {user.name}</p>
+    <button onclick={() => editing = true}>изменить имя</button>
+
+    {#if editing}
+      {let name = $state(user.name)}
+      {const greeting = $derived(`Привет, ${name}`)}
+
+      <hr>
+      <input bind:value={name} />
+      <p>{greeting}</p>
+
+      <button onclick={() => {
+        user.name = name;
+        editing = false;
+      }}>сохранить</button>
+    {/if}
+    ```
+  </TabItem>
+  <TabItem label="TS">
+    ```svelte
+    // App.svelte
+    <script lang="ts">
+      let user = $state({ name: 'Svelte' });
+      let editing = $state(false);
+    </script>
+
+    <p>Привет, {user.name}</p>
+    <button onclick={() => editing = true}>изменить имя</button>
+
+    {#if editing}
+      {let name = $state(user.name)}
+      {const greeting = $derived(`Привет, ${name}`)}
+
+      <hr>
+      <input bind:value={name} />
+      <p>{greeting}</p>
+
+      <button onclick={() => {
+        user.name = name;
+        editing = false;
+      }}>сохранить</button>
+    {/if}
+    ```
+  </TabItem>
+</Tabs>
+
+Теги объявлений можно использовать в любом месте внутри компонента. Они могут ссылаться на значения, объявленные вне их самих (например, в теге `<script>` или в блоках `{#each ...}`), и доступны для всего, что находится в той же лексической области видимости (то есть для соседних элементов и их дочерних элементов):
+
+```svelte
+{const hello = 'привет'}
+{hello} <!-- 'привет' -->
+<div>
+  {const hello = 'ку'}
+  {hello} <!-- 'ку' -->
+  <div>
+    {hello} <!-- 'ку' -->
+  </div>
+</div>
+{hello} <!-- 'привет' -->
+```

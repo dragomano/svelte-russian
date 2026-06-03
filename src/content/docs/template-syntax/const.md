@@ -5,6 +5,10 @@ sidebar:
   order: 9
 ---
 
+:::note
+`{@const x = y}` — это устаревший синтаксис. Используйте [`{const x = $derived(y)}`](/template-syntax/declaration-tags/) вместо него.
+:::
+
 Тег `{@const ...}` определяет локальную константу:
 
 ```svelte
