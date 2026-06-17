@@ -1,0 +1,233 @@
+---
+title: Переменные окружения
+origin: https://svelte.dev/docs/kit/environment-variables
+sidebar:
+  order: 6
+---
+
+Переменные окружения — это значения, необходимые вашему приложению и существующие отдельно от его исходного кода. Они позволяют использовать конфиденциальные данные, такие как API-ключи и учётные данные для подключения к базе данных, не сохраняя их в системе контроля версий.
+
+Во время разработки и на этапе сборки переменные, определённые в файле `.env` или `.env.local`, добавляются в окружение:
+
+```txt
+// .env.local
+API_KEY=19f401ba-e8b0-48c4-8c77-b0ebb26d97fe
+```
+
+По умолчанию каждая переменная окружения неявно доступна внутри приложения через следующие модули:
+
+- [`$env/static/private`](https://svelte.dev/docs/kit/$env-static-private)
+- [`$env/static/public`](https://svelte.dev/docs/kit/$env-static-public)
+- [`$env/dynamic/private`](https://svelte.dev/docs/kit/$env-dynamic-private)
+- [`$env/dynamic/public`](https://svelte.dev/docs/kit/$env-dynamic-public)
+
+## Явные переменные окружения
+
+Начиная с SvelteKit 2.63 можно включить режим _явных_ переменных окружения. В этом случае переменные окружения импортируются из следующих модулей:
+
+- [`$app/env/private`](https://svelte.dev/docs/kit/$app-env-private)
+- [`$app/env/public`](https://svelte.dev/docs/kit/$app-env-public)
+
+Кроме того, модуль [`$app/environment`](https://svelte.dev/docs/kit/$app-environment) был переименован в [`$app/env`](https://svelte.dev/docs/kit/$app-env).
+
+:::note
+Явные переменные окружения станут поведением по умолчанию в SvelteKit 3. Модули `$env/*`, а также `$app/environment`, будут удалены.
+:::
+
+### Настройка
+
+Чтобы включить этот режим, обновите конфигурацию...
+
+```js ins="explicitEnvironmentVariables: true"
+// svelte.config.js
+export default {
+  kit: {
+    experimental: {
+      explicitEnvironmentVariables: true
+    }
+  }
+};
+```
+
+...и добавьте файл `src/env.ts` (или `src/env.js`), который экспортирует объект `variables`:
+
+```ts
+// src/env.ts
+import { defineEnvVars } from '@sveltejs/kit/hooks';
+
+export const variables = defineEnvVars({
+  // ...
+});
+```
+
+Каждое значение в объекте, передаваемом в [`defineEnvVars`](https://svelte.dev/docs/kit/@sveltejs-kit-hooks#defineEnvVars), представляет собой объект [`EnvVarConfig`](https://svelte.dev/docs/kit/@sveltejs-kit#EnvVarConfig), который определяет параметры соответствующей переменной окружения.
+
+:::note
+Функция `defineEnvVars` возвращает переданный ей аргумент без изменений — она существует исключительно для обеспечения типобезопасности.
+:::
+
+### Приватные переменные
+
+По умолчанию все переменные считаются приватными. Например, вы не захотите раскрывать свой `API_KEY`:
+
+```ts ins="API_KEY: {}"
+// src/env.ts
+import { defineEnvVars } from '@sveltejs/kit/hooks';
+
+export const variables = defineEnvVars({
+  API_KEY: {}
+});
+```
+
+:::note
+Поскольку для этой переменной не требуется никакой дополнительной настройки, можно использовать пустой объект (`{}`).
+:::
+
+Теперь, когда `API_KEY` определена, её можно импортировать в код приложения через `$app/env/private`:
+
+```js
+import { API_KEY } from '$app/env/private';
+```
+
+Модуль `$app/env/private` нельзя импортировать в код, выполняющийся в браузере, поэтому вы не сможете случайно раскрыть свои секретные данные в JavaScript-бандле.
+
+### Публичные переменные
+
+Некоторые переменные полностью безопасно — и даже необходимо — делать доступными в браузере. Для таких переменных можно указать `public: true`:
+
+```ts ins="public: true"
+// src/env.ts
+import { defineEnvVars } from '@sveltejs/kit/hooks';
+
+export const variables = defineEnvVars({
+  GOOGLE_ANALYTICS_ID: {
+    public: true
+  }
+});
+```
+
+`GOOGLE_ANALYTICS_ID` теперь можно импортировать из `$app/env/public` или использовать в шаблоне `app.html` как `%sveltekit.env.GOOGLE_ANALYTICS_ID%`:
+
+```html ins="%sveltekit.env.GOOGLE_ANALYTICS_ID%"
+// src/app.html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%sveltekit.assets%/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    %sveltekit.head%
+
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=%sveltekit.env.GOOGLE_ANALYTICS_ID%"
+    ></script>
+
+    <script>
+      window.dataLayer ??= [];
+      function gtag(){dataLayer.push(arguments)}
+      gtag('js', new Date());
+      gtag('config', '%sveltekit.env.GOOGLE_ANALYTICS_ID%');
+    </script>
+  </head>
+  <body data-sveltekit-preload-data="hover">
+    <div style="display: contents">%sveltekit.body%</div>
+  </body>
+</html>
+```
+
+### Валидация
+
+Вы можете указать валидатор, совместимый со [Standard Schema](https://standardschema.dev/), например [Zod](https://zod.dev/) или [Valibot](https://valibot.dev/), чтобы проверять корректность значения переменной окружения:
+
+```ts ins="import * as v from 'valibot';" ins="schema: v.pipe(v.string(), v.regex(/G-[A-Z0-9]+/))"
+// src/env.ts
+import { defineEnvVars } from '@sveltejs/kit/hooks';
+import * as v from 'valibot';
+
+export const variables = defineEnvVars({
+  GOOGLE_ANALYTICS_ID: {
+    public: true,
+    schema: v.pipe(v.string(), v.regex(/G-[A-Z0-9]+/))
+  }
+});
+```
+
+Если значение некорректно, приложение не запустится (или не соберётся). Чтобы отключить проверку только для одного из этих случаев, используйте [`building`](https://svelte.dev/docs/kit/$app-env#building) из `$app/env` вместе с валидатором, допускающим отсутствие значения:
+
+```ts ins="import { building } from '$app/env'" ins="schema: building ? v.optional(v.string()) : v.string()"
+// src/env.ts
+import { defineEnvVars } from '@sveltejs/kit/hooks';
+import { building } from '$app/env'
+import * as v from 'valibot';
+
+export const variables = defineEnvVars({
+  SECRET: {
+    // необязательна при сборке, но обязательна при запуске приложения
+    schema: building ? v.optional(v.string()) : v.string()
+  }
+});
+```
+
+Вы можете использовать валидаторы, чтобы делать значения необязательными или преобразовывать их (например, превращать строку в булево значение или разбирать JSON) — подробности см. в документации используемой библиотеки валидации.
+
+### Статические переменные
+
+Если для переменной указано `static: true`, её значение будет встроено непосредственно в код приложения, что позволяет применять такие оптимизации, как устранение недостижимого кода:
+
+```ts ins="static: true,"
+// src/env.ts
+import { defineEnvVars } from '@sveltejs/kit/hooks';
+import * as v from 'valibot';
+
+export const variables = defineEnvVars({
+  SHOW_DEBUG_OVERLAY: {
+    public: true,
+    static: true,
+
+    // приводим к true/false
+    schema: v.pipe(
+      v.optional(v.string(), ''),
+      v.transform((str) => str !== '')
+    )
+  }
+});
+```
+
+Поскольку эта переменная является `static`, компонент `<DebugOverlay>`, показанный здесь, будет исключён из JavaScript-бандла, если только `SHOW_DEBUG_OVERLAY` не будет truthy:
+
+```svelte
+<script>
+  import { SHOW_DEBUG_OVERLAY } from '$app/env/public';
+  import DebugOverlay from '$lib/components/DebugOverlay.svelte';
+</script>
+
+{#if SHOW_DEBUG_OVERLAY}
+  <DebugOverlay />
+{/if}
+```
+
+Но если переменная установлена перед сборкой приложения...
+
+```bash
+SHOW_DEBUG_OVERLAY=true npm run build
+```
+
+...тогда компонент будет включён в бандл и отображён.
+
+### Документирование переменных
+
+Вы можете задокументировать назначение переменной окружения, добавив `description`:
+
+```ts
+// src/env.ts
+import { defineEnvVars } from '@sveltejs/kit/hooks';
+
+export const variables = defineEnvVars({
+  CACHE_TTL_SECONDS: {
+    description: 'How long to cache responses, in seconds'
+  }
+});
+```
+
+При наведении курсора на `CACHE_TTL_SECONDS` в коде вашего приложения отобразится описание.
