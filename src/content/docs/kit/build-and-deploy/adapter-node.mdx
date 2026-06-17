@@ -285,3 +285,9 @@ app.listen(3000, () => {
   console.log('listening on port 3000');
 });
 ```
+
+:::note
+При использовании `handler.js` в кастомном сервере учитываются только те переменные окружения, которые читает сам обработчик: `ORIGIN`, `PROTOCOL_HEADER`, `HOST_HEADER`, `PORT_HEADER`, `ADDRESS_HEADER`, `XFF_DEPTH` и `BODY_SIZE_LIMIT`.
+
+Переменные жизненного цикла сервера (`PORT`, `HOST`, `SOCKET_PATH`, `SHUTDOWN_TIMEOUT`, `IDLE_TIMEOUT`, `KEEP_ALIVE_TIMEOUT`, `HEADERS_TIMEOUT`, `LISTEN_PID`, `LISTEN_FDS`) учитываются только сервером по умолчанию (`node build`). Если вам нужно такое же поведение в кастомном сервере, реализуйте их самостоятельно — например, в сниппете выше сервер слушает на жёстко заданном порту `3000`, независимо от значения `PORT`.
+:::
