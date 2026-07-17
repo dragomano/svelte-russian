@@ -45,7 +45,7 @@ export default config;
 ```js
 // src/routes/blog/data.remote.js
 import { query } from '$app/server';
-import * as db from '$lib/server/database';
+import * as db from '#lib/server/database';
 
 export const getPosts = query(async () => {
   const posts = await db.sql`
@@ -60,7 +60,7 @@ export const getPosts = query(async () => {
 ```
 
 :::note
-На этой странице вы встретите импорты из условных модулей вроде `$lib/server/database` и `$lib/server/auth`. Они приведены только для примера — вы можете использовать любую настройку базы данных и аутентификации.
+На этой странице вы встретите импорты из условных модулей вроде `#lib/server/database` и `#lib/server/auth`. Они приведены только для примера — вы можете использовать любую настройку базы данных и аутентификации.
 
 Функция `db.sql` выше — это [теговая функция шаблонных литералов](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Template_literals#теговые_шаблоны), которая экранирует все подставляемые значения.
 :::
@@ -203,7 +203,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 import * as v from 'valibot';
 import { error } from '@sveltejs/kit';
 import { query } from '$app/server';
-import * as db from '$lib/server/database';
+import * as db from '#lib/server/database';
 
 export const getPosts = query(async () => { /* ... */ });
 
@@ -272,7 +272,7 @@ export const getPost = query(v.string(), async (slug) => {
 // weather.remote.js
 import * as v from 'valibot';
 import { query } from '$app/server';
-import * as db from '$lib/server/database';
+import * as db from '#lib/server/database';
 
 export const getWeather = query.batch(v.string(), async (cityIds) => {
   const weather = await db.sql`
@@ -374,8 +374,8 @@ async function logTimes() {
 import * as v from 'valibot';
 import { error, redirect } from '@sveltejs/kit';
 import { query, form } from '$app/server';
-import * as db from '$lib/server/database';
-import * as auth from '$lib/server/auth';
+import * as db from '#lib/server/database';
+import * as auth from '#lib/server/auth';
 
 export const getPosts = query(async () => { /* ... */ });
 
@@ -649,7 +649,7 @@ export const createProfile = form(datingProfile, (data) => { /* ... */ });
 import * as v from 'valibot';
 import { invalid } from '@sveltejs/kit';
 import { form } from '$app/server';
-import * as db from '$lib/server/database';
+import * as db from '#lib/server/database';
 
 export const buyHotcakes = form(
   v.object({
@@ -873,7 +873,7 @@ export const createPost = form(async (data) => {
     // src/routes/blog/new/+page.svelte
     <script>
       import { createPost } from '../data.remote';
-      import { showToast } from '$lib/toast';
+      import { showToast } from '#lib/toast';
     </script>
 
     <h1>Создание новой записи</h1>
@@ -899,7 +899,7 @@ export const createPost = form(async (data) => {
     // src/routes/blog/new/+page.svelte
     <script lang="ts">
       import { createPost } from '../data.remote';
-      import { showToast } from '$lib/toast';
+      import { showToast } from '#lib/toast';
     </script>
 
     <h1>Создание новой записи</h1>
@@ -974,7 +974,7 @@ await submit().updates(
     ```js
     // src/routes/login/+page.svelte
     <script>
-      import { loginOrRegister } from '$lib/auth';
+      import { loginOrRegister } from '#lib/auth';
     </script>
 
     <form {...loginOrRegister}>
@@ -997,7 +997,7 @@ await submit().updates(
     ```ts
     // src/routes/login/+page.svelte
     <script lang="ts">
-      import { loginOrRegister } from '$lib/auth';
+      import { loginOrRegister } from '#lib/auth';
     </script>
 
     <form {...loginOrRegister}>
@@ -1020,7 +1020,7 @@ await submit().updates(
 
 В обработчике формы вы можете проверить, какая именно кнопка была нажата:
 
-```js title="$lib/auth.js"
+```js title="#lib/auth.js"
 import * as v from 'valibot';
 import { form } from '$app/server';
 
@@ -1054,7 +1054,7 @@ export const loginOrRegister = form(
 // likes.remote.js
 import * as v from 'valibot';
 import { query, command } from '$app/server';
-import * as db from '$lib/server/database';
+import * as db from '#lib/server/database';
 
 export const getLikes = query(v.string(), async (id) => {
   const [row] = await db.sql`
@@ -1083,7 +1083,7 @@ export const addLike = command(v.string(), async (id) => {
     // +page.svelte
     <script>
       import { getLikes, addLike } from './likes.remote';
-      import { showToast } from '$lib/toast';
+      import { showToast } from '#lib/toast';
 
       let { item } = $props();
     </script>
@@ -1108,7 +1108,7 @@ export const addLike = command(v.string(), async (id) => {
     // +page.svelte
     <script lang="ts">
       import { getLikes, addLike } from './likes.remote';
-      import { showToast } from '$lib/toast';
+      import { showToast } from '#lib/toast';
 
       let { item } = $props();
     </script>
@@ -1269,7 +1269,7 @@ await requested(getPosts, 1).refreshAll();
 ```js
 // src/routes/blog/data.remote.js
 import { prerender } from '$app/server';
-import * as db from '$lib/server/database';
+import * as db from '#lib/server/database';
 
 export const getPosts = prerender(async () => {
   const posts = await db.sql`
@@ -1300,7 +1300,7 @@ export const getPosts = prerender(async () => {
 import * as v from 'valibot';
 import { error } from '@sveltejs/kit';
 import { prerender } from '$app/server';
-import * as db from '$lib/server/database';
+import * as db from '#lib/server/database';
 
 export const getPosts = prerender(async () => { /* ... */ });
 
@@ -1453,7 +1453,7 @@ export const getStuff = query('unchecked', async ({ id }: { id: string }) => {
 ```ts
 // user.remote.ts
 import { getRequestEvent, query } from '$app/server';
-import { findUser } from '$lib/server/database';
+import { findUser } from '#lib/server/database';
 
 export const getProfile = query(async () => {
   const user = await getUser();

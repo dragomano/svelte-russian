@@ -48,9 +48,9 @@ export default config;
 SvelteKit предоставляет доступ к интервалу `root` и интервалу `current` на событии запроса. Интервал `root` — это тот, который связан с вашей корневой функцией `handle`, а текущий интервал может быть связан с `handle`, `load`, действием формы или удалённой функцией, в зависимости от контекста. Вы можете аннотировать эти интервалы любыми атрибутами, которые хотите записать:
 
 ```js
-// $lib/authenticate.ts
+// #lib/authenticate.ts
 import { getRequestEvent } from '$app/server';
-import { getAuthenticatedUser } from '$lib/auth-core';
+import { getAuthenticatedUser } from '#lib/auth-core';
 
 async function authenticate() {
   const user = await getAuthenticatedUser();

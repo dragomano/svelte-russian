@@ -19,20 +19,24 @@ sidebar:
 
 Вы можете сделать свои собственные модули серверными двумя способами:
 
-- добавив `.server` к имени файла, например `secrets.server.js`
-- поместив их в `$lib/server`, например `$lib/server/secrets.js`
+- Для отдельных модулей добавьте `.server` к имени файла, например `secrets.server.js`. Это работает для _любого_ файла в директории проекта.
+- Директории с именем `server` в любом месте вашего проекта (кроме `src/routes` и директории с ресурсами) помечают _весь_ содержащийся в них код как доступный только на сервере, например `src/lib/server/config.js` или `src/lib/data/server/user/profile.js`. (В SvelteKit 2 это применялось только к директории `src/lib`.)
+
+:::note
+Модули за пределами вашей рабочей директории и модули внутри `node_modules` (например, пакеты из npm) _не подпадают_ под эти правила. Если вы хотите опубликовать пакет с серверным модулем, добавьте `import '$app/server'` в начало этого файла.
+:::
 
 ## Как это работает
 
 Каждый раз, когда ваш публичный код импортирует серверный код (напрямую или косвенно)...
 
-```js title="$lib/server/secrets.js"
+```js title="#lib/server/secrets.js"
 export const atlantisCoordinates = [/* отредактировано */];
 ```
 
 ```js
 // src/routes/utils.js
-export { atlantisCoordinates } from '$lib/server/secrets.js';
+export { atlantisCoordinates } from '#lib/server/secrets.js';
 
 export const add = (a, b) => a + b;
 ```
@@ -47,11 +51,11 @@ export const add = (a, b) => a + b;
 ...SvelteKit выдаст ошибку:
 
 ```
-Cannot import $lib/server/secrets.ts into code that runs in the browser, as this could leak sensitive information.
+Cannot import #lib/server/secrets.ts into code that runs in the browser, as this could leak sensitive information.
 
  src/routes/+page.svelte imports
   src/routes/utils.js imports
-   $lib/server/secrets.ts
+   #lib/server/secrets.ts
 
 If you're only using the import as a type, change it to `import type`.
 ```

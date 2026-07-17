@@ -19,7 +19,7 @@ sidebar:
 
 ```svelte
 <script>
-  import logo from '$lib/assets/logo.png';
+  import logo from '#lib/assets/logo.png';
 </script>
 
 <img alt="Логотип проекта" src={logo} />

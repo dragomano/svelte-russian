@@ -17,7 +17,7 @@ SvelteKit загружает ваши файлы `+page/layout(.server).js` (и 
 
 ```diff lang="js"
 +import { building } from '$app/environment';
-import { setupMyDatabase } from '$lib/server/database';
+import { setupMyDatabase } from '#lib/server/database';
 
 +if (!building) {
   setupMyDatabase();

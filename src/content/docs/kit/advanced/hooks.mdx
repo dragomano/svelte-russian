@@ -436,7 +436,7 @@ export {};
   <TabItem label="JS">
     ```js
     // src/hooks.server.js
-    import * as db from '$lib/server/database';
+    import * as db from '#lib/server/database';
 
     /** @type {import('@sveltejs/kit').ServerInit} */
     export async function init() {
@@ -447,7 +447,7 @@ export {};
   <TabItem label="TS">
     ```ts
     // src/hooks.server.ts
-    import * as db from '$lib/server/database';
+    import * as db from '#lib/server/database';
     import type { ServerInit } from '@sveltejs/kit';
 
     export const init: ServerInit = async () => {
@@ -562,7 +562,7 @@ export {};
   <TabItem label="JS">
     ```js
     // src/hooks.js
-    import { Vector } from '$lib/math';
+    import { Vector } from '#lib/math';
 
     /** @type {import('@sveltejs/kit').Transport} */
     export const transport = {
@@ -576,7 +576,7 @@ export {};
   <TabItem label="TS">
     ```ts
     // src/hooks.ts
-    import { Vector } from '$lib/math';
+    import { Vector } from '#lib/math';
     import type { Transport } from '@sveltejs/kit';
 
     export const transport: Transport = {

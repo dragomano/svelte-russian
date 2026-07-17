@@ -303,7 +303,7 @@ src/routes/
     ```svelte
     // src/routes/nested/route/+layout@.svelte
     <script>
-      import ReusableLayout from '$lib/ReusableLayout.svelte';
+      import ReusableLayout from '#lib/ReusableLayout.svelte';
       let { data, children } = $props();
     </script>
 
@@ -316,7 +316,7 @@ src/routes/
     ```svelte
     // src/routes/nested/route/+layout@.svelte
     <script lang="ts">
-      import ReusableLayout from '$lib/ReusableLayout.svelte';
+      import ReusableLayout from '#lib/ReusableLayout.svelte';
       let { data, children } = $props();
     </script>
 
@@ -332,7 +332,7 @@ src/routes/
   <TabItem label="JS">
     ```js
     // src/routes/nested/route/+layout.js
-    import { reusableLoad } from '$lib/reusable-load-function';
+    import { reusableLoad } from '#lib/reusable-load-function';
 
     /** @type {import('./$types').PageLoad} */
     export function load(event) {
@@ -344,7 +344,7 @@ src/routes/
   <TabItem label="TS">
     ```ts
     // src/routes/nested/route/+layout.ts
-    import { reusableLoad } from '$lib/reusable-load-function';
+    import { reusableLoad } from '#lib/reusable-load-function';
     import type { PageLoad } from './$types';
 
     export const load: PageLoad = (event) => {
