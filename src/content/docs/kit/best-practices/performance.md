@@ -70,7 +70,7 @@ SvelteKit автоматически предзагружает критичес
 
 Старайтесь минимизировать количество сторонних скриптов, выполняющихся в браузере. Например, вместо JavaScript-аналитики рассмотрите серверные реализации, которые предлагают многие платформы с адаптерами SvelteKit: [Cloudflare](https://www.cloudflare.com/web-analytics/), [Netlify](https://docs.netlify.com/monitor-sites/site-analytics/) и [Vercel](https://vercel.com/docs/analytics).
 
-Чтобы запускать сторонние скрипты в веб-воркере (это не блокирует основной поток), используйте [интеграцию Partytown для SvelteKit](https://partytown.builder.io/sveltekit).
+Чтобы запускать сторонние скрипты в веб-воркере (это не блокирует основной поток), используйте [интеграцию Partytown для SvelteKit](https://partytown.qwik.dev/sveltekit/).
 
 ### Выборочная загрузка
 
