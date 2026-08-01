@@ -14,7 +14,7 @@ export default function (options) {
   const adapter = {
       name: 'adapter-package-name',
       async adapt(builder) {
-          // adapter implementation
+          // реализация адаптера
       },
       async emulate() {
           return {
@@ -34,6 +34,11 @@ export default function (options) {
               // Возвращает `true`, если данный адаптер поддерживает загрузку `instrumentation.server.js`.
               // Возвращает `false`, если не поддерживает, либо выбрасывает информативную ошибку.
           }
+      },
+      vite: {
+          plugins: [
+              // добавьте здесь плагины для интеграции с Vite
+          ]
       }
   };
 
@@ -41,7 +46,7 @@ export default function (options) {
 }
 ```
 
-Из них `name` и `adapt` являются обязательными. `emulate` и `supports` — необязательные.
+Из них `name` и `adapt` являются обязательными. `emulate`, `vite.plugins` и `supports` — необязательные.
 
 В методе `adapt` адаптер должен выполнять следующие действия:
 
