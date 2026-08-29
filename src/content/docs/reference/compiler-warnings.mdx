@@ -386,7 +386,7 @@ The scope attribute should only be used with `<th>` elements
 '%event%' event must be accompanied by '%accompanied_by%' event
 ```
 
-Обеспечьте, чтобы `onmouseover` и `onmouseout` сопровождались `onfocus` и `onblur` соответственно. Это гарантирует, что функциональность, активируемая этими событиями мыши, будет доступна и для пользователей клавиатуры.
+Обеспечьте, чтобы `onmouseover` и `onmouseout` сопровождались `onfocus` (или `onfocusin`) и `onblur` (или `onfocusout`) соответственно. Это гарантирует, что функциональность, активируемая этими событиями мыши, будет доступна и для пользователей клавиатуры.
 
 ```svelte
 <!-- A11y: onmouseover must be accompanied by onfocus -->
