@@ -54,6 +54,13 @@ _Переход_ инициируется элементом, который в�
   <div transition:fade={{ duration: 2000 }}>плавно появляется и исчезает в течение двух секунд</div>
 {/if}
 ```
+
+## Доступность
+
+Переходы выполняются с помощью [Web Animations API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API), а не CSS. Поэтому глобальное правило `@media (prefers-reduced-motion: reduce)`, обнуляющее `transition-duration` и `animation-duration`, не влияет на них.
+
+Используйте [`prefersReducedMotion`](https://svelte.dev/docs/svelte/svelte-motion#prefersReducedMotion), чтобы соответствующим образом изменить (или полностью отключить) переход для устройств, на которых пользователь запросил уменьшение анимации.
+
 ## Пользовательские функции переходов
 
 ```js
