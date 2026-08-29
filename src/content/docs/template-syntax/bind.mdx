@@ -317,6 +317,19 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 </select>
 ```
 
+Начиная с версии 5.57.0, если `<select>` имеет `defaultValue` и является частью формы, при сбросе формы он вернётся к этому значению, а не к пустой строке. Обратите внимание, что при первоначальном рендеринге значение привязки имеет приоритет, если только оно не равно `null` или `undefined`.
+
+```svelte
+<form>
+  <select bind:value defaultValue="b">
+    <option>a</option>
+    <option>b</option>
+    <option>c</option>
+  </select>
+  <input type="reset" value="Сброс">
+</form>
+```
+
 ## `<audio>`
 
 Элементы `<audio>` имеют свой собственный набор привязок — пять двусторонних...
