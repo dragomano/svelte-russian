@@ -362,23 +362,6 @@ Reactive `$state(...)` proxies and the values they proxy have different identiti
 
 Чтобы решить эту проблему, убедитесь, что вы сравниваете значения, которые либо **оба** созданы через `$state(...)`, либо **оба** не являются прокси. Обратите внимание, что `$state.raw(...)` *не* создаёт прокси состояния.
 
-### state_proxy_unmount
-
-```
-Tried to unmount a state proxy, rather than a component
-```
-
-`unmount` был вызван с прокси состояния:
-
-```js
-let component = $state(mount(Component, { target }));
-
-// позже...
-unmount(component);
-```
-
-Избегайте использования `$state` здесь. Если `component` по какой-то причине должен быть реактивным, используйте вместо этого `$state.raw`.
-
 ### svelte_boundary_reset_noop
 
 ```
