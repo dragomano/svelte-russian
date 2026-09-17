@@ -547,7 +547,7 @@ export const createProfile = form(datingProfile, (data) => { /* ... */ });
 Поскольку наша форма содержит поле ввода `file`, мы добавили атрибут `enctype="multipart/form-data"`. Значения для `info.height` и `info.likesDogs` автоматически приводятся к числу и логическому значению соответственно.
 
 :::note
-Если флажок `checkbox` не отмечен, его значение не включается в объект [`FormData`](https://developer.mozilla.org/en-US/docs/Web/API/FormData), на основе которого SvelteKit формирует данные. Из-за этого мы должны сделать данное значение необязательным в нашей схеме. В Valibot это означает использование `v.optional(v.boolean(), false)` вместо простого `v.boolean()`, в то время как в Zod это означает использование `z.coerce.boolean<boolean>()`.
+Если `checkbox` не отмечен, его значение не включается в объект [`FormData`](https://developer.mozilla.org/en-US/docs/Web/API/FormData), из которого SvelteKit формирует данные. Поэтому в нашей схеме нужно задать для этого поля значение `false` по умолчанию, а не просто сделать его необязательным. В Valibot это означает использование `v.optional(v.boolean(), false)` вместо `v.boolean()`, а в Zod — `z.boolean().default(false)` вместо `z.boolean()`.
 :::
 
 В случае с полями ввода `radio` и `checkbox`, относящимися к одному и тому же полю, значение `value` должно быть указано в качестве второго аргумента в `.as(...)`:
