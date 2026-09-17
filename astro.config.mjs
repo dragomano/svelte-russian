@@ -9,6 +9,16 @@ import svelte from '@astrojs/svelte';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://svelte.dragomano.ru',
+  vite: {
+    build: {
+      rollupOptions: {
+        onwarn(warning, defaultHandler) {
+          if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
+          defaultHandler(warning);
+        },
+      },
+    },
+  },
   integrations: [
     starlight({
       plugins: [
