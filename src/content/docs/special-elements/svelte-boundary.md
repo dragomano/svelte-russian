@@ -42,6 +42,12 @@ sidebar:
 </svelte:boundary>
 ```
 
+Сниппет `pending` _не_ будет показан для последующих асинхронных обновлений — для них вы можете использовать [`$effect.pending()`](/runes/effect/#effectpending).
+
+:::note
+Во время серверного рендеринга граница со сниппетом `pending` рендерит этот сниппет и игнорирует остальное содержимое. Подробнее см. раздел [Серверный рендеринг](/template-syntax/await-expressions/#серверный-рендеринг).
+:::
+
 ### `failed`
 
 Если предусмотрен сниппет `failed`, он будет отображаться при возникновении ошибки внутри границы, получая доступ к объекту `error` и функции `reset` для повторного создания содержимого ([демонстрация](https://svelte.dev/playground/hello-world#H4sIAAAAAAAAE3VRy26DMBD8lS2tFCIh6JkAUlWp39Cq9EBg06CAbdlLArL87zWGKk8ORnhmd3ZnrD1WtOjFXqKO2BDGW96xqpBD5gXerm5QefG39mgQY9EIWHxueRMinLosti0UPsJLzggZKTeilLWgLGc51a3gkuCjKQ7DO7cXZotgJ3kLqzC6hmex1SZnSXTWYHcrj8LJjWTk0PHoZ8VqIdCOKayPykcpuQxAokJaG1dGybYj4gw4K5u6PKTasSbjXKgnIDlA8VvUdo-pzonraBY2bsH7HAl78mKSHZpgIcuHjq9jXSpZSLixRlveKYQUXhQVhL6GPobXAAb7BbNeyvNUs4qfRg3OnELLj5hqH9eQZqCnoBwR9lYcQxuVXeBzc8kMF8yXY4yNJ5oGiUzP_aaf_waTRGJib5_Ad3P_vbCuaYxzeNpbU0eUMPAOKh7Yw1YErgtoXyuYlPLzc10_xo_5A91zkQL_AgAA)):
